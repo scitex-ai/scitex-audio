@@ -19,7 +19,6 @@ keywords = [
     "speech",
     "scitex",
     "science",
-]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Science/Research",
@@ -32,14 +31,11 @@ classifiers = [
     "Programming Language :: Python :: 3.13",
     "Topic :: Multimedia :: Sound/Audio :: Speech",
     "Topic :: Scientific/Engineering",
-]
 dependencies = [
     "click>=8.0",
     "pydub",
     "soundfile",
     "scitex_dev",
-]
-
 [project.optional-dependencies]
 pyttsx3 = ["pyttsx3"]
 gtts = ["gTTS"]
@@ -50,55 +46,39 @@ dev = [
     "pytest>=7.0",
     "pytest-cov>=4.0",
     "pytest-asyncio",
-]
 docs = [
     "sphinx>=7.0",
     "sphinx-rtd-theme>=2.0",
     "myst-parser>=2.0",
     "sphinx-copybutton>=0.5",
     "sphinx-autodoc-typehints>=1.25",
-]
 all = [
     "scitex-audio[pyttsx3,gtts,luxtts,elevenlabs,mcp,dev,docs]",
-]
-
 [project.scripts]
 scitex-audio = "scitex_audio._cli:main"
-
 [project.entry-points."scitex_dev.docs"]
 scitex-audio = "scitex_audio"
-
 [project.entry-points."scitex_dev.skills"]
-scitex-audio = "scitex_audio"
-
 [project.entry-points."scitex_linter.plugins"]
 scitex-audio = "scitex_audio._linter_plugin:get_plugin"
-
 [project.urls]
 Homepage = "https://github.com/ywatanabe1989/scitex-audio"
 Repository = "https://github.com/ywatanabe1989/scitex-audio"
 Documentation = "https://scitex-audio.readthedocs.io"
-
 [tool.hatch.metadata]
 allow-direct-references = true
-
 [tool.hatch.build.targets.wheel]
 packages = ["src/scitex_audio"]
-
 [tool.hatch.build.targets.wheel.force-include]
-"src/scitex_audio/skills" = "scitex_audio/skills"
 "src/scitex_audio/_skills" = "scitex_audio/_skills"
-
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = ["test_*.py"]
 asyncio_mode = "auto"
 addopts = "--cov=scitex_audio --cov-report=term-missing --cov-report=html:htmlcov"
-
 [tool.ruff]
 line-length = 88
 target-version = "py310"
-
 [tool.ruff.lint]
 select = ["E", "F", "I", "W"]
 ignore = ["E501"]
