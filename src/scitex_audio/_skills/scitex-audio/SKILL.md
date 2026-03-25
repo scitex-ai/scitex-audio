@@ -1,5 +1,4 @@
 ---
-name: scitex-audio
 description: Text-to-speech with multiple backends (ElevenLabs, LuxTTS, gTTS, pyttsx3), smart local/relay routing, and MCP tools. Use when generating speech, playing audio notifications, or routing audio between machines.
 allowed-tools: mcp__scitex__audio_*
 ---
