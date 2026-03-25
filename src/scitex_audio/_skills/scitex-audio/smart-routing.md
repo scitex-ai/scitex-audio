@@ -1,5 +1,4 @@
 ---
-name: smart-routing
 description: Auto/local/remote modes, relay server setup, SSH tunneling for remote audio playback.
 ---
 

@@ -1,5 +1,4 @@
 ---
-name: available-backends
 description: All TTS backends with capabilities, install commands, and engine class details.
 ---
 

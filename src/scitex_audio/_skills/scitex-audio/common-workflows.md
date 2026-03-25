@@ -1,5 +1,4 @@
 ---
-name: common-workflows
 description: Common TTS patterns for notifications, experiments, remote agents, and audio file generation.
 ---
 
