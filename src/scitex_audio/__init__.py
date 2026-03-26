@@ -23,7 +23,7 @@ from __future__ import annotations as _annotations
 
 import subprocess as _subprocess
 
-__version__ = "0.2.4"
+__version__ = "0.2.5"
 
 # Import from engines subpackage (hide module from dir())
 from ._engines import ElevenLabsTTS, GoogleTTS, LuxTTS, SystemTTS
