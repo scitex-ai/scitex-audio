@@ -80,7 +80,7 @@ speak("Bonjour", backend="gtts", voice="fr")
 speak("Save this", output_path="output.mp3", play=False)
 ```
 
-## Three Interfaces
+## Four Interfaces
 
 <details>
 <summary><strong>Python API</strong></summary>
@@ -199,6 +199,30 @@ scitex-audio mcp install
 ```
 
 > **[Full MCP specification](https://scitex-audio.readthedocs.io/)**
+
+</details>
+
+<details>
+<summary><strong>Skills — for AI Agent Discovery</strong></summary>
+
+<br>
+
+Skills provide workflow-oriented guides that AI agents query to discover capabilities and usage patterns.
+
+```bash
+scitex-audio skills list              # List available skill pages
+scitex-audio skills get SKILL         # Show main skill page
+scitex-dev skills export --package scitex-audio  # Export to Claude Code
+```
+
+| Skill | Content |
+|-------|---------|
+| `quick-start` | Basic usage, first call, return values |
+| `available-backends` | All TTS backends, capabilities, install commands |
+| `smart-routing` | Auto/local/remote modes, relay server, SSH tunneling |
+| `cli-commands` | Complete CLI reference |
+| `mcp-tools-for-ai-agents` | MCP tools and installation |
+| `common-workflows` | Notification patterns, multi-backend, save audio |
 
 </details>
 

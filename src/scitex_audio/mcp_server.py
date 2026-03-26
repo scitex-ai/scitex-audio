@@ -314,6 +314,11 @@ if FASTMCP_AVAILABLE:
         except Exception as e:
             return json.dumps({"success": False, "error": str(e)}, indent=2)
 
+    # Register STT tools
+    from ._mcp.stt_handlers import register_stt_tools
+
+    register_stt_tools(mcp)
+
 
 def run_server(
     transport: str = "stdio",
