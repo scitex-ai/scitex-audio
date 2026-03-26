@@ -46,8 +46,6 @@ gtts = ["gTTS"]
 # luxtts deps (excluding zipvoice which must be installed manually from git)
 # Install zipvoice separately: pip install git+https://github.com/ysharma3501/LuxTTS.git
 luxtts = ["torch", "torchaudio", "transformers", "huggingface-hub"]
-# For local dev with zipvoice included (NOT PyPI-compatible due to direct git URL):
-luxtts-local = ["Zipvoice @ git+https://github.com/ysharma3501/LuxTTS.git", "torch", "torchaudio", "transformers", "huggingface-hub"]
 elevenlabs = ["elevenlabs"]
 mcp = ["fastmcp>=2.0"]
 dev = [
