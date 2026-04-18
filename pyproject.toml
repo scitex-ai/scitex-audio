@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "scitex-audio"
-version = "0.2.5"
+version = "0.2.6"
 description = "Text-to-Speech with multiple backends for scientific workflows"
 readme = "README.md"
 license = "AGPL-3.0-only"

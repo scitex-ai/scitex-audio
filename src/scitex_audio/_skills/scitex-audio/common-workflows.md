@@ -18,7 +18,7 @@ speak("Experiment finished. Results saved.")
 
 ```python
 # Highest quality (paid)
-speak("Premium quality", backend="elevenlabs", voice="rachel")
+speak("Premium quality", backend="elevenlabs", voice="adam")
 
 # Offline high-quality with voice cloning
 speak("Offline speech", backend="luxtts", speed=2.0)
@@ -128,7 +128,7 @@ from scitex_audio import get_tts
 # ElevenLabs voices
 tts = get_tts("elevenlabs")
 voices = tts.get_voices()
-# [{"name": "rachel", "id": "21m00...", "type": "preset"}, ...]
+# [{"name": "adam", "id": "pNInz...", "type": "premade"}, ...]
 
 # Google TTS languages
 tts = get_tts("gtts")

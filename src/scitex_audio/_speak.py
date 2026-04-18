@@ -116,7 +116,7 @@ def speak(
     voice: Optional[str] = None,
     play: bool = True,
     output_path: Optional[str] = None,
-    fallback: bool = True,
+    fallback: Optional[bool] = None,
     rate: Optional[int] = None,
     speed: Optional[float] = None,
     mode: Optional[str] = None,
@@ -134,7 +134,7 @@ def speak(
         2. If local unavailable and relay configured, uses relay
         3. If both unavailable, returns error with clear message
 
-    Fallback order (local): elevenlabs -> luxtts -> gtts -> pyttsx3
+    Fallback order (local, only when backend is None): elevenlabs -> luxtts -> gtts -> pyttsx3
 
     Args:
         text: Text to speak.
@@ -143,7 +143,9 @@ def speak(
         voice: Voice name, ID, or language code.
         play: Whether to play the audio.
         output_path: Path to save audio file.
-        fallback: If True, try next backend on failure.
+        fallback: If None (default), True when backend is None, False when backend is
+                  explicitly specified — i.e. an explicit backend request fails loud
+                  rather than silently falling back. Pass True/False to override.
         rate: Speech rate in words per minute (pyttsx3 only, default 150).
         speed: Speed multiplier for gtts (1.0=normal, >1.0=faster, <1.0=slower).
         mode: Override mode ('local', 'remote', 'auto'). Uses env if None.
@@ -163,6 +165,10 @@ def speak(
     # Remove rate/speed from kwargs to avoid duplicate passing
     kwargs.pop("rate", None)
     kwargs.pop("speed", None)
+
+    # Resolve fallback default: explicit backend => no silent fallback (no-fallbacks policy)
+    if fallback is None:
+        fallback = backend is None
 
     # Determine mode
     effective_mode = mode or get_mode()
