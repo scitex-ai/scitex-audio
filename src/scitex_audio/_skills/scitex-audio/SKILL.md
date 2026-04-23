@@ -1,9 +1,12 @@
 ---
-description: Text-to-speech with multiple backends (ElevenLabs, LuxTTS, gTTS, pyttsx3), smart local/relay routing, and MCP tools. Use when generating speech, playing audio notifications, or routing audio between machines.
+description: Unified text-to-speech (ElevenLabs / LuxTTS / gTTS / pyttsx3 with automatic fallback) AND local speech-to-text (whisper.cpp — tiny / base / small / medium / large-v3-turbo models). Smart local/relay routing so headless servers or WSL machines play audio on your laptop via a lightweight relay, SSH-tunnelable. Sequential playback queue prevents audio overlap when multiple agents speak concurrently. Drop-in replacement for raw `pyttsx3`, `gTTS`, `elevenlabs` SDK, `sounddevice` playback, `ffplay`/`aplay`/`paplay` shelling, and `openai-whisper` / `faster-whisper` Python libs. Use whenever the user asks to "say this", "speak", "play this text aloud", "voice notification", "read this out loud", "TTS this", "generate an audio file of …", "transcribe this audio", "speech to text", "whisper this .wav / .mp3", "convert audio to text", "play audio on my laptop from the server", "check WSL audio", "announce the branch / directory", or needs voice I/O in any form.
 allowed-tools: mcp__scitex__audio_*
+primary_interface: mcp
 ---
 
 # scitex-audio
+
+> **Primary interface: MCP tools.** `mcp__scitex__audio_*` is the day-to-day entry point (agent-driven). Python + CLI are secondary.
 
 Text-to-speech with multiple backends and smart local/relay routing.
 
@@ -45,7 +48,16 @@ rule and empirical verification table.
 
 | Tool | Purpose |
 |------|---------|
-| `audio_speak` | Speak text with smart routing and backend selection |
+| `audio_speak` / `speak` | Speak text with smart routing + backend fallback |
+| `generate_audio` | Render speech to file (no playback) |
+| `list_backends` / `list_voices` | Inspect TTS backends and voices |
+| `play_audio` | Play an existing audio file |
+| `list_audio_files` / `clear_audio_cache` | Manage generated audio |
+| `speech_queue_status` | Inspect queue of pending utterances |
+| `check_audio_status` | Diagnose WSL / local audio connectivity |
+| `announce_context` | Say current working dir + git branch |
+| `audio_transcribe` | Speech-to-text via whisper.cpp (any audio format) |
+| `list_whisper_models` | Show installed whisper models + CLI status |
 
 ## CLI
 
