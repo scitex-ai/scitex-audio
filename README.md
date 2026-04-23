@@ -27,6 +27,15 @@
 
 ---
 
+## Problem and Solution
+
+
+| # | Problem | Solution |
+|---|---------|----------|
+| 1 | **TTS libraries balkanized** -- ElevenLabs REST + gTTS HTTP + pyttsx3 native each have different APIs, failure modes, voice formats | **`stx.audio.speak(text)`** -- one call; automatic fallback ElevenLabs → LuxTTS → gTTS → pyttsx3 when upstream fails or API key is missing |
+| 2 | **Offline TTS sounds robotic** -- espeak is a pi-era stopgap | **LuxTTS** -- offline 48 kHz voice-cloning on CPU; near-realtime after first-load warmup |
+| 3 | **Scripts can't alert users from a headless session** -- `print` gets lost in logs | **MCP tool `audio_speak`** -- agents and long-running scripts report status audibly to the operator, with desktop notification fallback |
+
 ## Problem
 
 Scientific workflows increasingly rely on AI agents that often run in parallel on remote servers or headless environments. Researchers may prefer auditory feedback over text — for experiment completion notifications, error alerts, or accessibility — but have no direct access to audio hardware.
