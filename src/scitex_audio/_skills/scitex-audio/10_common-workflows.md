@@ -23,9 +23,9 @@ speak("Premium quality", backend="elevenlabs", voice="adam")
 # Offline high-quality with voice cloning
 speak("Offline speech", backend="luxtts", speed=2.0)
 
-# Free, multi-language
+# Free, multi-language (i18n demo — strings are TTS input, not prose)
 speak("Bonjour tout le monde", backend="gtts", voice="fr")
-speak("こんにちは", backend="gtts", voice="ja")
+speak("こんにちは", backend="gtts", voice="ja")  # i18n-ok: Japanese TTS demo
 
 # System TTS, fast and free
 speak("System voice", backend="pyttsx3", rate=180)
