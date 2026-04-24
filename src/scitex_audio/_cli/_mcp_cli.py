@@ -169,16 +169,33 @@ def list_tools(ctx, verbose, compact, as_json):
                     click.echo()
 
 
-@mcp.command()
+@mcp.command(
+    "installation",
+    hidden=True,
+    context_settings={"ignore_unknown_options": True, "allow_extra_args": True},
+)
+@click.pass_context
+def installation_deprecated(ctx):
+    """(deprecated) Renamed to `show-installation`."""
+    click.echo(
+        "error: `scitex-audio mcp installation` was renamed to "
+        "`scitex-audio mcp show-installation`.\n"
+        "Re-run with: scitex-audio mcp show-installation",
+        err=True,
+    )
+    ctx.exit(2)
+
+
+@mcp.command("show-installation")
 @click.option("--json", "as_json", is_flag=True, help="Output as JSON")
-def installation(as_json):
+def show_installation(as_json):
     """
     Show MCP server installation instructions for Claude Code
 
     \b
     Example:
-      scitex-audio mcp installation
-      scitex-audio mcp installation --json
+      scitex-audio mcp show-installation
+      scitex-audio mcp show-installation --json
     """
     import json as json_mod
 
