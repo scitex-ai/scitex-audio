@@ -1,5 +1,4 @@
 ---
-name: available-backends
 description: All TTS backends with capabilities, install commands, and engine class details.
 ---
 
@@ -23,7 +22,7 @@ from scitex_audio import ElevenLabsTTS
 
 tts = ElevenLabsTTS(
     api_key=None,           # reads SCITEX_AUDIO_ELEVENLABS_API_KEY or ELEVENLABS_API_KEY
-    voice="rachel",         # preset name or voice ID
+    voice="adam",           # preset name or voice ID (default; free-tier premade)
     model_id="eleven_multilingual_v2",
     stability=0.5,
     similarity_boost=0.75,
@@ -32,7 +31,7 @@ tts = ElevenLabsTTS(
 tts.speak("Hello from ElevenLabs")
 ```
 
-Preset voices: `rachel`, `adam`, `antoni`, `bella`, `domi`, `elli`, `josh`, `sam`
+Free-tier premade voices: `adam` (default), `sarah`, `laura`, `charlie`, `george`, `callum`, `river`, `liam`, `alice`, `matilda`, `will`, `jessica`, `eric`, `bella`, `chris`, `brian`, `daniel`, `lily`, `roger`, `harry`. Paid library voices (require subscription): `rachel`, `antoni`, `domi`, `elli`, `josh`, `sam`
 
 Environment variables:
 - `SCITEX_AUDIO_ELEVENLABS_API_KEY` (preferred)

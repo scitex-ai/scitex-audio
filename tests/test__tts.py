@@ -14,11 +14,12 @@ class TestTTSConfig:
     """Tests for TTSConfig dataclass."""
 
     def test_default_voice_id(self):
-        """Test default voice ID is Rachel."""
+        """Test default voice ID is Adam (historical default: Rachel)."""
         from scitex_audio._tts import TTSConfig
 
         config = TTSConfig()
-        assert config.voice_id == "21m00Tcm4TlvDq8ikWAM"
+        # Adam voice ID (the current default after the config refresh)
+        assert config.voice_id == "pNInz6obpgDQGcFmaJgB"
 
     def test_default_voice_name_is_none(self):
         """Test default voice name is None."""

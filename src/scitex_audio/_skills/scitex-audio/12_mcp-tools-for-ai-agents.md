@@ -1,5 +1,4 @@
 ---
-name: mcp-tools-for-ai-agents
 description: MCP tools available to AI agents for text-to-speech, backend listing, and audio status.
 ---
 

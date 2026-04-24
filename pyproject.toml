@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "scitex-audio"
-version = "0.2.2"
+version = "0.2.6"
 description = "Text-to-Speech with multiple backends for scientific workflows"
 readme = "README.md"
 license = "AGPL-3.0-only"
@@ -43,7 +43,9 @@ dependencies = [
 [project.optional-dependencies]
 pyttsx3 = ["pyttsx3"]
 gtts = ["gTTS"]
-luxtts = ["Zipvoice @ git+https://github.com/ysharma3501/LuxTTS.git", "torch", "torchaudio", "transformers", "huggingface-hub"]
+# luxtts deps (excluding zipvoice which must be installed manually from git)
+# Install zipvoice separately: pip install git+https://github.com/ysharma3501/LuxTTS.git
+luxtts = ["torch", "torchaudio", "transformers", "huggingface-hub"]
 elevenlabs = ["elevenlabs"]
 mcp = ["fastmcp>=2.0"]
 dev = [
@@ -69,7 +71,6 @@ scitex-audio = "scitex_audio._cli:main"
 scitex-audio = "scitex_audio"
 
 [project.entry-points."scitex_dev.skills"]
-scitex-audio = "scitex_audio"
 
 [project.entry-points."scitex_linter.plugins"]
 scitex-audio = "scitex_audio._linter_plugin:get_plugin"
@@ -84,10 +85,6 @@ allow-direct-references = true
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/scitex_audio"]
-
-[tool.hatch.build.targets.wheel.force-include]
-"src/scitex_audio/skills" = "scitex_audio/skills"
-"src/scitex_audio/_skills" = "scitex_audio/_skills"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

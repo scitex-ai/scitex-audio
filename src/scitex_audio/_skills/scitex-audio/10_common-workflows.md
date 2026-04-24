@@ -1,5 +1,4 @@
 ---
-name: common-workflows
 description: Common TTS patterns for notifications, experiments, remote agents, and audio file generation.
 ---
 
@@ -19,14 +18,14 @@ speak("Experiment finished. Results saved.")
 
 ```python
 # Highest quality (paid)
-speak("Premium quality", backend="elevenlabs", voice="rachel")
+speak("Premium quality", backend="elevenlabs", voice="adam")
 
 # Offline high-quality with voice cloning
 speak("Offline speech", backend="luxtts", speed=2.0)
 
-# Free, multi-language
+# Free, multi-language (i18n demo — strings are TTS input, not prose)
 speak("Bonjour tout le monde", backend="gtts", voice="fr")
-speak("こんにちは", backend="gtts", voice="ja")
+speak("こんにちは", backend="gtts", voice="ja")  # i18n-ok: Japanese TTS demo
 
 # System TTS, fast and free
 speak("System voice", backend="pyttsx3", rate=180)
@@ -129,7 +128,7 @@ from scitex_audio import get_tts
 # ElevenLabs voices
 tts = get_tts("elevenlabs")
 voices = tts.get_voices()
-# [{"name": "rachel", "id": "21m00...", "type": "preset"}, ...]
+# [{"name": "adam", "id": "pNInz...", "type": "premade"}, ...]
 
 # Google TTS languages
 tts = get_tts("gtts")

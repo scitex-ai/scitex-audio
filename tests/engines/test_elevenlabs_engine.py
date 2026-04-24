@@ -34,12 +34,12 @@ class TestElevenLabsTTS:
         tts = ElevenLabsTTS()
         assert tts.requires_internet is True
 
-    def test_default_voice_is_rachel(self):
-        """Test default voice is 'rachel'."""
+    def test_default_voice_is_adam(self):
+        """Test default voice is 'adam' (rachel was the historical default)."""
         from scitex_audio._engines._elevenlabs_engine import ElevenLabsTTS
 
         tts = ElevenLabsTTS()
-        assert tts.voice == "rachel"
+        assert tts.voice == "adam"
 
     def test_default_model_id(self):
         """Test default model ID."""

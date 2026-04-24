@@ -35,7 +35,7 @@ def get_tool_schemas() -> list[types.Tool]:
                     },
                     "voice": {
                         "type": "string",
-                        "description": "Voice/language (gtts: 'en','fr'; elevenlabs: 'rachel','adam')",
+                        "description": "Voice/language (gtts: 'en','fr'; elevenlabs: 'adam' [default], 'sarah','george','bella' — free-tier premade voices)",
                     },
                     "rate": {
                         "type": "integer",

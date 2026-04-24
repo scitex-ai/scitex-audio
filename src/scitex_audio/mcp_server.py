@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # Timestamp: "2026-02-06 23:03:14 (ywatanabe)"
-# File: /home/ywatanabe/proj/scitex-python/src/scitex/audio/mcp_server.py
+# File: /home/ywatanabe/proj/scitex-audio/src/scitex_audio/mcp_server.py
 
 
 # Timestamp: 2026-01-15
@@ -313,6 +313,11 @@ if FASTMCP_AVAILABLE:
 
         except Exception as e:
             return json.dumps({"success": False, "error": str(e)}, indent=2)
+
+    # Register STT tools
+    from ._mcp.stt_handlers import register_stt_tools
+
+    register_stt_tools(mcp)
 
 
 def run_server(

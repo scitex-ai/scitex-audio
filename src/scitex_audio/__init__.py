@@ -23,7 +23,7 @@ from __future__ import annotations as _annotations
 
 import subprocess as _subprocess
 
-__version__ = "0.2.1"
+__version__ = "0.2.5"
 
 # Import from engines subpackage (hide module from dir())
 from ._engines import ElevenLabsTTS, GoogleTTS, LuxTTS, SystemTTS
@@ -88,6 +88,7 @@ def check_wsl_audio() -> dict:
 
 from ._audio_check import check_local_audio_available
 from ._env_registry import generate_template as generate_env_template
+from ._stt import available_models, find_whisper_cli, find_whisper_model, transcribe
 from ._tts import TTS
 
 __all__ = [
@@ -108,6 +109,11 @@ __all__ = [
     "check_local_audio_available",
     # Configuration
     "generate_env_template",
+    # STT (Speech-to-Text)
+    "transcribe",
+    "find_whisper_cli",
+    "find_whisper_model",
+    "available_models",
 ]
 
 FALLBACK_ORDER = ["elevenlabs", "luxtts", "gtts", "pyttsx3"]
