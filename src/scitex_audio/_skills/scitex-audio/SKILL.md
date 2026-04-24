@@ -76,3 +76,8 @@ scitex-audio relay --port 31293          # Start relay server
 scitex-audio mcp start                   # Start MCP server (stdio)
 scitex-audio skills list                 # List skill pages
 ```
+
+
+## Environment
+
+- [20_env-vars.md](20_env-vars.md) — SCITEX_* env vars read by scitex-audio at runtime
