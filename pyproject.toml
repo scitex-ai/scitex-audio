@@ -42,13 +42,24 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-pyttsx3 = ["pyttsx3"]
-gtts = ["gTTS"]
-# luxtts deps (excluding zipvoice which must be installed manually from git)
-# Install zipvoice separately: pip install git+https://github.com/ysharma3501/LuxTTS.git
-luxtts = ["torch", "torchaudio", "transformers", "huggingface-hub"]
-elevenlabs = ["elevenlabs"]
-mcp = ["fastmcp>=2.0"]
+elevenlabs = [
+    "elevenlabs",
+]
+gtts = [
+    "gTTS",
+]
+luxtts = [
+    "torch",
+    "torchaudio",
+    "transformers",
+    "huggingface-hub",
+]
+mcp = [
+    "fastmcp>=2.0",
+]
+pyttsx3 = [
+    "pyttsx3",
+]
 dev = [
     "pytest>=7.0",
     "pytest-cov>=4.0",
@@ -62,7 +73,11 @@ docs = [
     "sphinx-autodoc-typehints>=1.25",
 ]
 all = [
-    "scitex-audio[pyttsx3,gtts,luxtts,elevenlabs,mcp,dev,docs]",
+    "scitex-audio[elevenlabs]",
+    "scitex-audio[gtts]",
+    "scitex-audio[luxtts]",
+    "scitex-audio[mcp]",
+    "scitex-audio[pyttsx3]",
 ]
 
 [project.scripts]
