@@ -46,71 +46,72 @@ class TestSpeakCommand:
     """Tests for 'speak' subcommand."""
 
     def test_speak_command_calls_speak_function(self, runner):
-        """Test 'speak' command calls speak function."""
+        """Test 'speak-text' command calls speak function."""
         mock_speak = MagicMock(return_value={"played": True})
 
-        with patch("scitex_audio._cli._main.tts_speak", mock_speak, create=True):
-            with patch("scitex_audio.speak", mock_speak):
-                result = runner.invoke(audio, ["speak", "Hello world"])
+        with patch("scitex_audio.speak", mock_speak):
+            result = runner.invoke(audio, ["speak-text", "Hello world"])
 
         mock_speak.assert_called_once()
 
     def test_speak_with_backend_option(self, runner):
-        """Test 'speak' command with --backend option."""
+        """Test 'speak-text' command with --backend option."""
         mock_speak = MagicMock(return_value={"played": True})
 
         with patch("scitex_audio.speak", mock_speak):
-            result = runner.invoke(audio, ["speak", "Hello", "-b", "gtts"])
+            result = runner.invoke(audio, ["speak-text", "Hello", "-b", "gtts"])
 
         call_kwargs = mock_speak.call_args[1]
         assert call_kwargs["backend"] == "gtts"
 
     def test_speak_with_voice_option(self, runner):
-        """Test 'speak' command with --voice option."""
+        """Test 'speak-text' command with --voice option."""
         mock_speak = MagicMock(return_value={"played": True})
 
         with patch("scitex_audio.speak", mock_speak):
-            result = runner.invoke(audio, ["speak", "Hello", "-v", "en"])
+            result = runner.invoke(audio, ["speak-text", "Hello", "-v", "en"])
 
         call_kwargs = mock_speak.call_args[1]
         assert call_kwargs["voice"] == "en"
 
     def test_speak_with_output_option(self, runner):
-        """Test 'speak' command with --output option."""
+        """Test 'speak-text' command with --output option."""
         mock_speak = MagicMock(return_value={"played": True, "path": "/tmp/test.mp3"})
 
         with patch("scitex_audio.speak", mock_speak):
-            result = runner.invoke(audio, ["speak", "Hello", "-o", "/tmp/test.mp3"])
+            result = runner.invoke(
+                audio, ["speak-text", "Hello", "-o", "/tmp/test.mp3"]
+            )
 
         call_kwargs = mock_speak.call_args[1]
         assert call_kwargs["output_path"] == "/tmp/test.mp3"
 
     def test_speak_with_no_play_option(self, runner):
-        """Test 'speak' command with --no-play option."""
+        """Test 'speak-text' command with --no-play option."""
         mock_speak = MagicMock(return_value={})
 
         with patch("scitex_audio.speak", mock_speak):
-            result = runner.invoke(audio, ["speak", "Hello", "--no-play"])
+            result = runner.invoke(audio, ["speak-text", "Hello", "--no-play"])
 
         call_kwargs = mock_speak.call_args[1]
         assert call_kwargs["play"] is False
 
     def test_speak_with_no_fallback_option(self, runner):
-        """Test 'speak' command with --no-fallback option."""
+        """Test 'speak-text' command with --no-fallback option."""
         mock_speak = MagicMock(return_value={"played": True})
 
         with patch("scitex_audio.speak", mock_speak):
-            result = runner.invoke(audio, ["speak", "Hello", "--no-fallback"])
+            result = runner.invoke(audio, ["speak-text", "Hello", "--no-fallback"])
 
         call_kwargs = mock_speak.call_args[1]
         assert call_kwargs["fallback"] is False
 
 
 class TestBackendsCommand:
-    """Tests for 'backends' subcommand."""
+    """Tests for 'list-backends' subcommand."""
 
     def test_backends_command_lists_backends(self, runner):
-        """Test 'backends' command lists available backends."""
+        """Test 'list-backends' command lists available backends."""
         mock_available = MagicMock(return_value=["gtts", "pyttsx3"])
 
         with patch("scitex_audio.available_backends", mock_available):
@@ -118,13 +119,13 @@ class TestBackendsCommand:
                 "scitex_audio.FALLBACK_ORDER",
                 ["pyttsx3", "gtts", "luxtts", "elevenlabs"],
             ):
-                result = runner.invoke(audio, ["backends"])
+                result = runner.invoke(audio, ["list-backends"])
 
         assert result.exit_code == 0
         assert "available" in result.output.lower() or "gtts" in result.output.lower()
 
     def test_backends_shows_availability(self, runner):
-        """Test 'backends' command shows availability status."""
+        """Test 'list-backends' command shows availability status."""
         mock_available = MagicMock(return_value=["gtts"])
 
         with patch("scitex_audio.available_backends", mock_available):
@@ -132,7 +133,7 @@ class TestBackendsCommand:
                 "scitex_audio.FALLBACK_ORDER",
                 ["pyttsx3", "gtts", "luxtts", "elevenlabs"],
             ):
-                result = runner.invoke(audio, ["backends"])
+                result = runner.invoke(audio, ["list-backends"])
 
         assert result.exit_code == 0
         assert "available" in result.output.lower()
@@ -143,12 +144,12 @@ class TestArgumentParser:
 
     def test_invalid_backend_rejected(self, runner):
         """Test invalid backend is rejected."""
-        result = runner.invoke(audio, ["speak", "Hello", "-b", "invalid"])
+        result = runner.invoke(audio, ["speak-text", "Hello", "-b", "invalid"])
         assert result.exit_code != 0
 
     def test_backend_choices(self, runner):
         """Test valid backends are accepted."""
-        result = runner.invoke(audio, ["speak", "--help"])
+        result = runner.invoke(audio, ["speak-text", "--help"])
         assert "pyttsx3" in result.output
         assert "gtts" in result.output
         assert "elevenlabs" in result.output
