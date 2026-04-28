@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "scitex-audio"
-version = "0.2.8"
+version = "0.2.9"
 description = "Text-to-Speech with multiple backends for scientific workflows"
 readme = "README.md"
 license = "AGPL-3.0-only"
@@ -88,6 +88,8 @@ scitex-audio = "scitex_audio._cli:main"
 scitex-audio = "scitex_audio"
 
 [project.entry-points."scitex_dev.skills"]
+
+scitex-audio = "scitex_audio"
 
 [project.entry-points."scitex_linter.plugins"]
 scitex-audio = "scitex_audio._linter_plugin:get_plugin"
