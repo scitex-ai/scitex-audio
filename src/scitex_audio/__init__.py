@@ -23,8 +23,15 @@ from __future__ import annotations as _annotations
 
 import subprocess as _subprocess
 
-__version__ = "0.2.5"
-
+try:
+    from importlib.metadata import version as _v, PackageNotFoundError
+    try:
+        __version__ = _v("scitex-audio")
+    except PackageNotFoundError:
+        __version__ = "0.0.0+local"
+    del _v, PackageNotFoundError
+except ImportError:  # pragma: no cover — only on ancient Pythons
+    __version__ = "0.0.0+local"
 # Import from engines subpackage (hide module from dir())
 from ._engines import ElevenLabsTTS, GoogleTTS, LuxTTS, SystemTTS
 from ._engines._base import BaseTTS as _BaseTTS
