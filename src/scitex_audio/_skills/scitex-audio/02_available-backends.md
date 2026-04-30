@@ -1,5 +1,7 @@
 ---
 description: All TTS backends with capabilities, install commands, and engine class details.
+name: available-backends
+tags: [scitex-audio, scitex-package]
 ---
 
 # Available Backends
