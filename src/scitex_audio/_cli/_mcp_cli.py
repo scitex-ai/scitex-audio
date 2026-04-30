@@ -44,14 +44,25 @@ def mcp(ctx, as_json):
     type=int,
     help="Port for HTTP/SSE transport (default: 31293)",
 )
-def start(transport, host, port):
+@click.option("--dry-run", is_flag=True, help="Print launch plan without starting.")
+@click.option(
+    "-y", "--yes", is_flag=True, help="Suppress interactive confirmation (assume yes)."
+)
+def start(transport, host, port, dry_run, yes):
     """Start the MCP server for remote audio playback.
 
     \b
     Examples:
       scitex-audio mcp start
       scitex-audio mcp start -t http --port 31293
+      scitex-audio mcp start --dry-run
     """
+    if dry_run:
+        click.echo(
+            f"DRY RUN — would start scitex-audio MCP server "
+            f"(transport={transport}, host={host}, port={port})"
+        )
+        return
     try:
         from scitex_audio.mcp_server import FASTMCP_AVAILABLE, run_server
 
@@ -127,7 +138,14 @@ def doctor():
 @click.option("--json", "as_json", is_flag=True, help="Output as JSON")
 @click.pass_context
 def list_tools(ctx, verbose, compact, as_json):
-    """List available audio MCP tools."""
+    """List available audio MCP tools.
+
+    \b
+    Example:
+      $ scitex-audio mcp list-tools
+      $ scitex-audio mcp list-tools -vv
+      $ scitex-audio mcp list-tools --json
+    """
     try:
         from scitex.cli.mcp import list_tools as main_list_tools
 
