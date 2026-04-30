@@ -99,6 +99,7 @@ from ._stt import available_models, find_whisper_cli, find_whisper_model, transc
 from ._tts import TTS
 
 __all__ = [
+    "__version__",
     # Core
     "speak",
     "generate_bytes",
