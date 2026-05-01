@@ -1,0 +1,633 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>API Reference &mdash; scitex-audio 0.2.11 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=29c81e07"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Engines" href="engines.html" />
+    <link rel="prev" title="Environment Variables" href="../env_vars.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            scitex-audio
+              <img src="../_static/scitex-logo-banner.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../backends.html">Backends</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../relay.html">Remote Audio Relay</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../env_vars.html">Environment Variables</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">API Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#scitex_audio.ElevenLabsTTS"><code class="docutils literal notranslate"><span class="pre">ElevenLabsTTS</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#scitex_audio.ElevenLabsTTS.MAX_SPEED"><code class="docutils literal notranslate"><span class="pre">ElevenLabsTTS.MAX_SPEED</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#scitex_audio.ElevenLabsTTS.MIN_SPEED"><code class="docutils literal notranslate"><span class="pre">ElevenLabsTTS.MIN_SPEED</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#scitex_audio.ElevenLabsTTS.VOICES"><code class="docutils literal notranslate"><span class="pre">ElevenLabsTTS.VOICES</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#scitex_audio.ElevenLabsTTS.client"><code class="docutils literal notranslate"><span class="pre">ElevenLabsTTS.client</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#scitex_audio.ElevenLabsTTS.get_voices"><code class="docutils literal notranslate"><span class="pre">ElevenLabsTTS.get_voices()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#scitex_audio.ElevenLabsTTS.name"><code class="docutils literal notranslate"><span class="pre">ElevenLabsTTS.name</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#scitex_audio.ElevenLabsTTS.requires_api_key"><code class="docutils literal notranslate"><span class="pre">ElevenLabsTTS.requires_api_key</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#scitex_audio.ElevenLabsTTS.requires_internet"><code class="docutils literal notranslate"><span class="pre">ElevenLabsTTS.requires_internet</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#scitex_audio.ElevenLabsTTS.synthesize"><code class="docutils literal notranslate"><span class="pre">ElevenLabsTTS.synthesize()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#scitex_audio.GoogleTTS"><code class="docutils literal notranslate"><span class="pre">GoogleTTS</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#scitex_audio.GoogleTTS.LANGUAGES"><code class="docutils literal notranslate"><span class="pre">GoogleTTS.LANGUAGES</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#scitex_audio.GoogleTTS.get_voices"><code class="docutils literal notranslate"><span class="pre">GoogleTTS.get_voices()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#scitex_audio.GoogleTTS.name"><code class="docutils literal notranslate"><span class="pre">GoogleTTS.name</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#scitex_audio.GoogleTTS.requires_internet"><code class="docutils literal notranslate"><span class="pre">GoogleTTS.requires_internet</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#scitex_audio.GoogleTTS.synthesize"><code class="docutils literal notranslate"><span class="pre">GoogleTTS.synthesize()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#scitex_audio.LuxTTS"><code class="docutils literal notranslate"><span class="pre">LuxTTS</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#scitex_audio.LuxTTS.get_voices"><code class="docutils literal notranslate"><span class="pre">LuxTTS.get_voices()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#scitex_audio.LuxTTS.name"><code class="docutils literal notranslate"><span class="pre">LuxTTS.name</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#scitex_audio.LuxTTS.requires_internet"><code class="docutils literal notranslate"><span class="pre">LuxTTS.requires_internet</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#scitex_audio.LuxTTS.speak"><code class="docutils literal notranslate"><span class="pre">LuxTTS.speak()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#scitex_audio.LuxTTS.synthesize"><code class="docutils literal notranslate"><span class="pre">LuxTTS.synthesize()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#scitex_audio.SystemTTS"><code class="docutils literal notranslate"><span class="pre">SystemTTS</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#scitex_audio.SystemTTS.engine"><code class="docutils literal notranslate"><span class="pre">SystemTTS.engine</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#scitex_audio.SystemTTS.get_voices"><code class="docutils literal notranslate"><span class="pre">SystemTTS.get_voices()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#scitex_audio.SystemTTS.name"><code class="docutils literal notranslate"><span class="pre">SystemTTS.name</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#scitex_audio.SystemTTS.speak_direct"><code class="docutils literal notranslate"><span class="pre">SystemTTS.speak_direct()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#scitex_audio.SystemTTS.synthesize"><code class="docutils literal notranslate"><span class="pre">SystemTTS.synthesize()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#scitex_audio.TTS"><code class="docutils literal notranslate"><span class="pre">TTS</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#scitex_audio.TTS.VOICES"><code class="docutils literal notranslate"><span class="pre">TTS.VOICES</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#scitex_audio.TTS.__init__"><code class="docutils literal notranslate"><span class="pre">TTS.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#scitex_audio.TTS.client"><code class="docutils literal notranslate"><span class="pre">TTS.client</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#scitex_audio.TTS.list_voices"><code class="docutils literal notranslate"><span class="pre">TTS.list_voices()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#scitex_audio.TTS.speak"><code class="docutils literal notranslate"><span class="pre">TTS.speak()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#scitex_audio.available_backends"><code class="docutils literal notranslate"><span class="pre">available_backends()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#scitex_audio.available_models"><code class="docutils literal notranslate"><span class="pre">available_models()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#scitex_audio.check_local_audio_available"><code class="docutils literal notranslate"><span class="pre">check_local_audio_available()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#scitex_audio.check_wsl_audio"><code class="docutils literal notranslate"><span class="pre">check_wsl_audio()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#scitex_audio.find_whisper_cli"><code class="docutils literal notranslate"><span class="pre">find_whisper_cli()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#scitex_audio.find_whisper_model"><code class="docutils literal notranslate"><span class="pre">find_whisper_model()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#scitex_audio.generate_bytes"><code class="docutils literal notranslate"><span class="pre">generate_bytes()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#scitex_audio.generate_env_template"><code class="docutils literal notranslate"><span class="pre">generate_env_template()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#scitex_audio.get_tts"><code class="docutils literal notranslate"><span class="pre">get_tts()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#scitex_audio.speak"><code class="docutils literal notranslate"><span class="pre">speak()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#scitex_audio.stop_speech"><code class="docutils literal notranslate"><span class="pre">stop_speech()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#scitex_audio.transcribe"><code class="docutils literal notranslate"><span class="pre">transcribe()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="engines.html">Engines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mcp.html">MCP Handlers</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">scitex-audio</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">API Reference</li>
+      <li class="wy-breadcrumbs-aside">
+              <a href="https://github.com/ywatanabe1989/scitex-audio/blob/main/docs/sphinx/api/scitex_audio.rst" class="fa fa-github"> Edit on GitHub</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-scitex_audio">
+<span id="api-reference"></span><h1>API Reference<a class="headerlink" href="#module-scitex_audio" title="Link to this heading"></a></h1>
+<p>SciTeX Audio - Text-to-Speech with Multiple Backends</p>
+<dl>
+<dt>Backends (fallback order):</dt><dd><ul class="simple">
+<li><p>elevenlabs: ElevenLabs (paid, high quality, speed=1.2)</p></li>
+<li><p>luxtts: LuxTTS (open-source, offline, voice-cloning, speed=2.0)</p></li>
+<li><p>gtts: Google TTS (free, requires internet, speed=1.5)</p></li>
+<li><p>pyttsx3: System TTS (offline, free, uses espeak/SAPI5)</p></li>
+</ul>
+</dd>
+<dt>Usage:</dt><dd><p>from scitex_audio import speak
+speak(“Hello, world!”)</p>
+<p>from scitex_audio import get_tts, LuxTTS
+tts = get_tts(“luxtts”)
+tts.speak(“Hello!”)</p>
+</dd>
+</dl>
+<dl class="py class">
+<dt class="sig sig-object py" id="scitex_audio.ElevenLabsTTS">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">scitex_audio.</span></span><span class="sig-name descname"><span class="pre">ElevenLabsTTS</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">api_key</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voice</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'adam'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'eleven_multilingual_v2'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stability</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">similarity_boost</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.75</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">speed</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scitex_audio/_engines/_elevenlabs_engine.html#ElevenLabsTTS"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scitex_audio.ElevenLabsTTS" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">BaseTTS</span></code></p>
+<p>ElevenLabs TTS backend.</p>
+<p>High-quality voices but requires API key and has usage costs.</p>
+<dl class="simple">
+<dt>Environment:</dt><dd><p>ELEVENLABS_API_KEY: Your ElevenLabs API key</p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="scitex_audio.ElevenLabsTTS.MAX_SPEED">
+<span class="sig-name descname"><span class="pre">MAX_SPEED</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1.2</span></span><a class="headerlink" href="#scitex_audio.ElevenLabsTTS.MAX_SPEED" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="scitex_audio.ElevenLabsTTS.MIN_SPEED">
+<span class="sig-name descname"><span class="pre">MIN_SPEED</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.7</span></span><a class="headerlink" href="#scitex_audio.ElevenLabsTTS.MIN_SPEED" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="scitex_audio.ElevenLabsTTS.VOICES">
+<span class="sig-name descname"><span class="pre">VOICES</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'adam':</span> <span class="pre">'pNInz6obpgDQGcFmaJgB',</span> <span class="pre">'alice':</span> <span class="pre">'Xb7hH8MSUJpSbSDYk0k2',</span> <span class="pre">'antoni':</span> <span class="pre">'ErXwobaYiN019PkySvjV',</span> <span class="pre">'bella':</span> <span class="pre">'hpp4J3VqNfWAUOO0d1Us',</span> <span class="pre">'brian':</span> <span class="pre">'nPczCjzI2devNBz1zQrb',</span> <span class="pre">'callum':</span> <span class="pre">'N2lVS1w4EtoT3dr4eOWO',</span> <span class="pre">'charlie':</span> <span class="pre">'IKne3meq5aSn9XLyUdCD',</span> <span class="pre">'chris':</span> <span class="pre">'iP95p4xoKVk53GoZ742B',</span> <span class="pre">'daniel':</span> <span class="pre">'onwK4e9ZLuTAKqWW03F9',</span> <span class="pre">'domi':</span> <span class="pre">'AZnzlk1XvdvUeBnXmlld',</span> <span class="pre">'elli':</span> <span class="pre">'MF3mGyEYCl7XYWbV9V6O',</span> <span class="pre">'eric':</span> <span class="pre">'cjVigY5qzO86Huf0OWal',</span> <span class="pre">'george':</span> <span class="pre">'JBFqnCBsd6RMkjVDRZzb',</span> <span class="pre">'harry':</span> <span class="pre">'SOYHLrjzK2X1ezoPC6cr',</span> <span class="pre">'jessica':</span> <span class="pre">'cgSgspJ2msm6clMCkdW9',</span> <span class="pre">'josh':</span> <span class="pre">'TxGEqnHWrfWFTfGW9XjX',</span> <span class="pre">'laura':</span> <span class="pre">'FGY2WhTYpPnrIDTdsKH5',</span> <span class="pre">'liam':</span> <span class="pre">'TX3LPaxmHKxFdv7VOQHJ',</span> <span class="pre">'lily':</span> <span class="pre">'pFZP5JQG7iQjIQuC4Bku',</span> <span class="pre">'matilda':</span> <span class="pre">'XrExE9yKIg1WjnnlVkGX',</span> <span class="pre">'rachel':</span> <span class="pre">'21m00Tcm4TlvDq8ikWAM',</span> <span class="pre">'river':</span> <span class="pre">'SAz9YHcvj6GT2YYXdXww',</span> <span class="pre">'roger':</span> <span class="pre">'CwhRBWXzGAHq8TQ4Fs17',</span> <span class="pre">'sam':</span> <span class="pre">'yoZ06aMxZJJ28mfd3POQ',</span> <span class="pre">'sarah':</span> <span class="pre">'EXAVITQu4vr4xnSDxMaL',</span> <span class="pre">'will':</span> <span class="pre">'bIHbv24MWmeRgasZH58o'}</span></span><a class="headerlink" href="#scitex_audio.ElevenLabsTTS.VOICES" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="scitex_audio.ElevenLabsTTS.client">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">client</span></span><a class="headerlink" href="#scitex_audio.ElevenLabsTTS.client" title="Link to this definition"></a></dt>
+<dd><p>Lazy-load ElevenLabs client.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="scitex_audio.ElevenLabsTTS.get_voices">
+<span class="sig-name descname"><span class="pre">get_voices</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.14)"><span class="pre">List</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/scitex_audio/_engines/_elevenlabs_engine.html#ElevenLabsTTS.get_voices"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scitex_audio.ElevenLabsTTS.get_voices" title="Link to this definition"></a></dt>
+<dd><p>Get available voices.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="scitex_audio.ElevenLabsTTS.name">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">name</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><a class="headerlink" href="#scitex_audio.ElevenLabsTTS.name" title="Link to this definition"></a></dt>
+<dd><p>Return the backend name.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="scitex_audio.ElevenLabsTTS.requires_api_key">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">requires_api_key</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><a class="headerlink" href="#scitex_audio.ElevenLabsTTS.requires_api_key" title="Link to this definition"></a></dt>
+<dd><p>Whether this backend requires an API key.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="scitex_audio.ElevenLabsTTS.requires_internet">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">requires_internet</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><a class="headerlink" href="#scitex_audio.ElevenLabsTTS.requires_internet" title="Link to this definition"></a></dt>
+<dd><p>Whether this backend requires internet connection.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="scitex_audio.ElevenLabsTTS.synthesize">
+<span class="sig-name descname"><span class="pre">synthesize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.14)"><span class="pre">Path</span></a></span></span><a class="reference internal" href="../_modules/scitex_audio/_engines/_elevenlabs_engine.html#ElevenLabsTTS.synthesize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scitex_audio.ElevenLabsTTS.synthesize" title="Link to this definition"></a></dt>
+<dd><p>Synthesize text using ElevenLabs API.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="scitex_audio.GoogleTTS">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">scitex_audio.</span></span><span class="sig-name descname"><span class="pre">GoogleTTS</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lang</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'en'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">slow</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">speed</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1.5</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scitex_audio/_engines/_gtts_engine.html#GoogleTTS"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scitex_audio.GoogleTTS" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">BaseTTS</span></code></p>
+<p>Google Text-to-Speech backend using gTTS.</p>
+<p>Free to use, requires internet connection.
+Good quality voices with multi-language support.
+Supports speed control via pydub (requires ffmpeg).</p>
+<p>Install: pip install gTTS pydub</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="scitex_audio.GoogleTTS.LANGUAGES">
+<span class="sig-name descname"><span class="pre">LANGUAGES</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'ar':</span> <span class="pre">'Arabic',</span> <span class="pre">'de':</span> <span class="pre">'German',</span> <span class="pre">'en':</span> <span class="pre">'English',</span> <span class="pre">'es':</span> <span class="pre">'Spanish',</span> <span class="pre">'fr':</span> <span class="pre">'French',</span> <span class="pre">'hi':</span> <span class="pre">'Hindi',</span> <span class="pre">'it':</span> <span class="pre">'Italian',</span> <span class="pre">'ja':</span> <span class="pre">'Japanese',</span> <span class="pre">'ko':</span> <span class="pre">'Korean',</span> <span class="pre">'nl':</span> <span class="pre">'Dutch',</span> <span class="pre">'pl':</span> <span class="pre">'Polish',</span> <span class="pre">'pt':</span> <span class="pre">'Portuguese',</span> <span class="pre">'ru':</span> <span class="pre">'Russian',</span> <span class="pre">'sv':</span> <span class="pre">'Swedish',</span> <span class="pre">'tr':</span> <span class="pre">'Turkish',</span> <span class="pre">'vi':</span> <span class="pre">'Vietnamese',</span> <span class="pre">'zh-CN':</span> <span class="pre">'Chinese</span> <span class="pre">(Simplified)',</span> <span class="pre">'zh-TW':</span> <span class="pre">'Chinese</span> <span class="pre">(Traditional)'}</span></span><a class="headerlink" href="#scitex_audio.GoogleTTS.LANGUAGES" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="scitex_audio.GoogleTTS.get_voices">
+<span class="sig-name descname"><span class="pre">get_voices</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.14)"><span class="pre">List</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/scitex_audio/_engines/_gtts_engine.html#GoogleTTS.get_voices"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scitex_audio.GoogleTTS.get_voices" title="Link to this definition"></a></dt>
+<dd><p>Get available languages as ‘voices’.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="scitex_audio.GoogleTTS.name">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">name</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><a class="headerlink" href="#scitex_audio.GoogleTTS.name" title="Link to this definition"></a></dt>
+<dd><p>Return the backend name.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="scitex_audio.GoogleTTS.requires_internet">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">requires_internet</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><a class="headerlink" href="#scitex_audio.GoogleTTS.requires_internet" title="Link to this definition"></a></dt>
+<dd><p>Whether this backend requires internet connection.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="scitex_audio.GoogleTTS.synthesize">
+<span class="sig-name descname"><span class="pre">synthesize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.14)"><span class="pre">Path</span></a></span></span><a class="reference internal" href="../_modules/scitex_audio/_engines/_gtts_engine.html#GoogleTTS.synthesize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scitex_audio.GoogleTTS.synthesize" title="Link to this definition"></a></dt>
+<dd><p>Synthesize text using Google TTS with optional speed control.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="scitex_audio.LuxTTS">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">scitex_audio.</span></span><span class="sig-name descname"><span class="pre">LuxTTS</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">device</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'YatharthS/LuxTTS'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reference_audio</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_steps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">speed</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">2.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rms</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.01</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t_shift</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.9</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_smooth</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ref_duration</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">5.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trim_start</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scitex_audio/_engines/_luxtts_engine.html#LuxTTS"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scitex_audio.LuxTTS" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">BaseTTS</span></code></p>
+<p>LuxTTS backend - open-source voice-cloning TTS.</p>
+<p>High-quality 48kHz output. Near-realtime on CPU, 150x+ on GPU.
+Requires a reference audio file for voice cloning.</p>
+<p>Install: pip install git+https://github.com/ysharma3501/LuxTTS.git</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="scitex_audio.LuxTTS.get_voices">
+<span class="sig-name descname"><span class="pre">get_voices</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.14)"><span class="pre">List</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/scitex_audio/_engines/_luxtts_engine.html#LuxTTS.get_voices"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scitex_audio.LuxTTS.get_voices" title="Link to this definition"></a></dt>
+<dd><p>Get available voices (reference audio files).</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="scitex_audio.LuxTTS.name">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">name</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><a class="headerlink" href="#scitex_audio.LuxTTS.name" title="Link to this definition"></a></dt>
+<dd><p>Return the backend name.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="scitex_audio.LuxTTS.requires_internet">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">requires_internet</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><a class="headerlink" href="#scitex_audio.LuxTTS.requires_internet" title="Link to this definition"></a></dt>
+<dd><p>Whether this backend requires internet connection.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="scitex_audio.LuxTTS.speak">
+<span class="sig-name descname"><span class="pre">speak</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">play</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voice</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a></span></span><a class="reference internal" href="../_modules/scitex_audio/_engines/_luxtts_engine.html#LuxTTS.speak"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scitex_audio.LuxTTS.speak" title="Link to this definition"></a></dt>
+<dd><p>Synthesize and optionally play. Uses .wav temp files (not .mp3).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="scitex_audio.LuxTTS.synthesize">
+<span class="sig-name descname"><span class="pre">synthesize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.14)"><span class="pre">Path</span></a></span></span><a class="reference internal" href="../_modules/scitex_audio/_engines/_luxtts_engine.html#LuxTTS.synthesize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scitex_audio.LuxTTS.synthesize" title="Link to this definition"></a></dt>
+<dd><p>Synthesize text using LuxTTS.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="scitex_audio.SystemTTS">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">scitex_audio.</span></span><span class="sig-name descname"><span class="pre">SystemTTS</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rate</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">150</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">volume</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voice</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scitex_audio/_engines/_pyttsx3_engine.html#SystemTTS"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scitex_audio.SystemTTS" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">BaseTTS</span></code></p>
+<p>System TTS backend using pyttsx3.</p>
+<p>Works offline using system’s built-in TTS engine.
+Quality varies by platform and available voices.</p>
+<dl class="simple">
+<dt>Platforms:</dt><dd><ul class="simple">
+<li><p>Linux: espeak/espeak-ng</p></li>
+<li><p>Windows: SAPI5</p></li>
+<li><p>macOS: NSSpeechSynthesizer</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py property">
+<dt class="sig sig-object py" id="scitex_audio.SystemTTS.engine">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">engine</span></span><a class="headerlink" href="#scitex_audio.SystemTTS.engine" title="Link to this definition"></a></dt>
+<dd><p>Lazy-load pyttsx3 engine.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="scitex_audio.SystemTTS.get_voices">
+<span class="sig-name descname"><span class="pre">get_voices</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.14)"><span class="pre">List</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/scitex_audio/_engines/_pyttsx3_engine.html#SystemTTS.get_voices"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scitex_audio.SystemTTS.get_voices" title="Link to this definition"></a></dt>
+<dd><p>Get available system voices.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="scitex_audio.SystemTTS.name">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">name</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><a class="headerlink" href="#scitex_audio.SystemTTS.name" title="Link to this definition"></a></dt>
+<dd><p>Return the backend name.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="scitex_audio.SystemTTS.speak_direct">
+<span class="sig-name descname"><span class="pre">speak_direct</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scitex_audio/_engines/_pyttsx3_engine.html#SystemTTS.speak_direct"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scitex_audio.SystemTTS.speak_direct" title="Link to this definition"></a></dt>
+<dd><p>Speak directly without saving to file (faster).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="scitex_audio.SystemTTS.synthesize">
+<span class="sig-name descname"><span class="pre">synthesize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.14)"><span class="pre">Path</span></a></span></span><a class="reference internal" href="../_modules/scitex_audio/_engines/_pyttsx3_engine.html#SystemTTS.synthesize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scitex_audio.SystemTTS.synthesize" title="Link to this definition"></a></dt>
+<dd><p>Synthesize text using system TTS.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="scitex_audio.TTS">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">scitex_audio.</span></span><span class="sig-name descname"><span class="pre">TTS</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">api_key</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voice_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voice_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scitex_audio/_tts.html#TTS"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scitex_audio.TTS" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Text-to-Speech using ElevenLabs API.</p>
+<p class="rubric">Examples</p>
+<p># Basic usage
+tts = TTS()
+tts.speak(“Hello, world!”)</p>
+<p># With custom voice
+tts = TTS(voice_name=”Adam”)
+tts.speak(“Processing complete”)</p>
+<p># Save to file without playing
+tts.speak(“Test”, output_path=”/tmp/test.mp3”, play=False)</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="scitex_audio.TTS.VOICES">
+<span class="sig-name descname"><span class="pre">VOICES</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'adam':</span> <span class="pre">'pNInz6obpgDQGcFmaJgB',</span> <span class="pre">'alice':</span> <span class="pre">'Xb7hH8MSUJpSbSDYk0k2',</span> <span class="pre">'antoni':</span> <span class="pre">'ErXwobaYiN019PkySvjV',</span> <span class="pre">'bella':</span> <span class="pre">'hpp4J3VqNfWAUOO0d1Us',</span> <span class="pre">'brian':</span> <span class="pre">'nPczCjzI2devNBz1zQrb',</span> <span class="pre">'callum':</span> <span class="pre">'N2lVS1w4EtoT3dr4eOWO',</span> <span class="pre">'charlie':</span> <span class="pre">'IKne3meq5aSn9XLyUdCD',</span> <span class="pre">'chris':</span> <span class="pre">'iP95p4xoKVk53GoZ742B',</span> <span class="pre">'daniel':</span> <span class="pre">'onwK4e9ZLuTAKqWW03F9',</span> <span class="pre">'domi':</span> <span class="pre">'AZnzlk1XvdvUeBnXmlld',</span> <span class="pre">'elli':</span> <span class="pre">'MF3mGyEYCl7XYWbV9V6O',</span> <span class="pre">'eric':</span> <span class="pre">'cjVigY5qzO86Huf0OWal',</span> <span class="pre">'george':</span> <span class="pre">'JBFqnCBsd6RMkjVDRZzb',</span> <span class="pre">'harry':</span> <span class="pre">'SOYHLrjzK2X1ezoPC6cr',</span> <span class="pre">'jessica':</span> <span class="pre">'cgSgspJ2msm6clMCkdW9',</span> <span class="pre">'josh':</span> <span class="pre">'TxGEqnHWrfWFTfGW9XjX',</span> <span class="pre">'laura':</span> <span class="pre">'FGY2WhTYpPnrIDTdsKH5',</span> <span class="pre">'liam':</span> <span class="pre">'TX3LPaxmHKxFdv7VOQHJ',</span> <span class="pre">'lily':</span> <span class="pre">'pFZP5JQG7iQjIQuC4Bku',</span> <span class="pre">'matilda':</span> <span class="pre">'XrExE9yKIg1WjnnlVkGX',</span> <span class="pre">'rachel':</span> <span class="pre">'21m00Tcm4TlvDq8ikWAM',</span> <span class="pre">'river':</span> <span class="pre">'SAz9YHcvj6GT2YYXdXww',</span> <span class="pre">'roger':</span> <span class="pre">'CwhRBWXzGAHq8TQ4Fs17',</span> <span class="pre">'sam':</span> <span class="pre">'yoZ06aMxZJJ28mfd3POQ',</span> <span class="pre">'sarah':</span> <span class="pre">'EXAVITQu4vr4xnSDxMaL',</span> <span class="pre">'will':</span> <span class="pre">'bIHbv24MWmeRgasZH58o'}</span></span><a class="headerlink" href="#scitex_audio.TTS.VOICES" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="scitex_audio.TTS.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">api_key</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voice_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voice_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/scitex_audio/_tts.html#TTS.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scitex_audio.TTS.__init__" title="Link to this definition"></a></dt>
+<dd><p>Initialize TTS.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>api_key</strong> – ElevenLabs API key. Defaults to ELEVENLABS_API_KEY env var.</p></li>
+<li><p><strong>voice_name</strong> – Voice name (e.g., “Adam”, “Sarah”, “George” — free-tier).</p></li>
+<li><p><strong>voice_id</strong> – Direct voice ID (overrides voice_name).</p></li>
+<li><p><strong>**kwargs</strong> – Additional config options (stability, speed, etc.)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="scitex_audio.TTS.client">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">client</span></span><a class="headerlink" href="#scitex_audio.TTS.client" title="Link to this definition"></a></dt>
+<dd><p>Lazy-load ElevenLabs client.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="scitex_audio.TTS.list_voices">
+<span class="sig-name descname"><span class="pre">list_voices</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><span class="pre">list</span></a></span></span><a class="reference internal" href="../_modules/scitex_audio/_tts.html#TTS.list_voices"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scitex_audio.TTS.list_voices" title="Link to this definition"></a></dt>
+<dd><p>List available voices from ElevenLabs.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="scitex_audio.TTS.speak">
+<span class="sig-name descname"><span class="pre">speak</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">play</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voice_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voice_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.14)"><span class="pre">Path</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../_modules/scitex_audio/_tts.html#TTS.speak"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scitex_audio.TTS.speak" title="Link to this definition"></a></dt>
+<dd><p>Convert text to speech and optionally play it.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>text</strong> – Text to convert to speech.</p></li>
+<li><p><strong>output_path</strong> – Path to save audio file. Auto-generated if None.</p></li>
+<li><p><strong>play</strong> – Whether to play the audio after generation.</p></li>
+<li><p><strong>voice_name</strong> – Override voice name for this call.</p></li>
+<li><p><strong>voice_id</strong> – Override voice ID for this call.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Path to the generated audio file, or None if only played.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="scitex_audio.available_backends">
+<span class="sig-prename descclassname"><span class="pre">scitex_audio.</span></span><span class="sig-name descname"><span class="pre">available_backends</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/scitex_audio.html#available_backends"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scitex_audio.available_backends" title="Link to this definition"></a></dt>
+<dd><p>Return list of available TTS backends.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="scitex_audio.available_models">
+<span class="sig-prename descclassname"><span class="pre">scitex_audio.</span></span><span class="sig-name descname"><span class="pre">available_models</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/scitex_audio/_stt.html#available_models"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scitex_audio.available_models" title="Link to this definition"></a></dt>
+<dd><p>List available whisper models.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List of model names (e.g., [“tiny”, “base”, “medium”]).</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="scitex_audio.check_local_audio_available">
+<span class="sig-prename descclassname"><span class="pre">scitex_audio.</span></span><span class="sig-name descname"><span class="pre">check_local_audio_available</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a></span></span><a class="reference internal" href="../_modules/scitex_audio/_audio_check.html#check_local_audio_available"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scitex_audio.check_local_audio_available" title="Link to this definition"></a></dt>
+<dd><p>Check if local audio playback is available.</p>
+<p>Checks PulseAudio sink state to determine if audio can actually be heard.
+On NAS or headless servers, the sink is typically SUSPENDED.</p>
+<p>In WSL environments, also checks for Windows playback fallback via PowerShell.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><ul class="simple">
+<li><p><em>dict with keys</em></p></li>
+<li><p><strong>- available</strong> (<em>bool - True if local audio output is likely to work</em>)</p></li>
+<li><p><strong>- state</strong> (<em>str - ‘RUNNING’, ‘IDLE’, ‘SUSPENDED’, ‘NO_SINK’, etc.</em>)</p></li>
+<li><p><strong>- reason</strong> (<em>str - Human-readable explanation</em>)</p></li>
+<li><p><strong>- fallback</strong> (<em>str (optional) - Fallback method if primary unavailable</em>)</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="scitex_audio.check_wsl_audio">
+<span class="sig-prename descclassname"><span class="pre">scitex_audio.</span></span><span class="sig-name descname"><span class="pre">check_wsl_audio</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a></span></span><a class="reference internal" href="../_modules/scitex_audio.html#check_wsl_audio"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scitex_audio.check_wsl_audio" title="Link to this definition"></a></dt>
+<dd><p>Check WSL audio status and connectivity.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="scitex_audio.find_whisper_cli">
+<span class="sig-prename descclassname"><span class="pre">scitex_audio.</span></span><span class="sig-name descname"><span class="pre">find_whisper_cli</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../_modules/scitex_audio/_stt.html#find_whisper_cli"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scitex_audio.find_whisper_cli" title="Link to this definition"></a></dt>
+<dd><p>Find whisper-cli binary.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Path to whisper-cli, or None if not found.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="scitex_audio.find_whisper_model">
+<span class="sig-prename descclassname"><span class="pre">scitex_audio.</span></span><span class="sig-name descname"><span class="pre">find_whisper_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'tiny'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../_modules/scitex_audio/_stt.html#find_whisper_model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scitex_audio.find_whisper_model" title="Link to this definition"></a></dt>
+<dd><p>Find a whisper model file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>model</strong> – Model name (tiny, base, small, medium, large-v3-turbo, etc.)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Path to model file, or None if not found.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="scitex_audio.generate_bytes">
+<span class="sig-prename descclassname"><span class="pre">scitex_audio.</span></span><span class="sig-name descname"><span class="pre">generate_bytes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">backend</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voice</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bytes" title="(in Python v3.14)"><span class="pre">bytes</span></a></span></span><a class="reference internal" href="../_modules/scitex_audio.html#generate_bytes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scitex_audio.generate_bytes" title="Link to this definition"></a></dt>
+<dd><p>Generate TTS audio as raw bytes without playing.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="scitex_audio.generate_env_template">
+<span class="sig-prename descclassname"><span class="pre">scitex_audio.</span></span><span class="sig-name descname"><span class="pre">generate_env_template</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">include_sensitive</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_defaults</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span></span><a class="headerlink" href="#scitex_audio.generate_env_template" title="Link to this definition"></a></dt>
+<dd><p>Generate a template .src file with all environment variables.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>include_sensitive</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>) – Include sensitive variables (API keys) as commented placeholders.</p></li>
+<li><p><strong>include_defaults</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>) – Include default values for variables that have them.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Bash-compatible .src file content.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)">str</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="scitex_audio.get_tts">
+<span class="sig-prename descclassname"><span class="pre">scitex_audio.</span></span><span class="sig-name descname"><span class="pre">get_tts</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">backend</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">BaseTTS</span></span></span><a class="reference internal" href="../_modules/scitex_audio.html#get_tts"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scitex_audio.get_tts" title="Link to this definition"></a></dt>
+<dd><p>Get a TTS instance for the specified backend.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="scitex_audio.speak">
+<span class="sig-prename descclassname"><span class="pre">scitex_audio.</span></span><span class="sig-name descname"><span class="pre">speak</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">backend</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voice</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">play</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fallback</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rate</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">speed</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a></span></span><a class="reference internal" href="../_modules/scitex_audio/_speak.html#speak"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scitex_audio.speak" title="Link to this definition"></a></dt>
+<dd><p>Convert text to speech with smart local/remote switching.</p>
+<dl class="simple">
+<dt>Modes:</dt><dd><ul class="simple">
+<li><p>local: Always use local TTS backends (fails if audio unavailable)</p></li>
+<li><p>remote: Always forward to relay server</p></li>
+<li><p>auto: Smart routing - prefers relay if local audio unavailable</p></li>
+</ul>
+</dd>
+<dt>Smart Routing (auto mode):</dt><dd><ol class="arabic simple">
+<li><p>Checks if local audio sink is available (not SUSPENDED)</p></li>
+<li><p>If local unavailable and relay configured, uses relay</p></li>
+<li><p>If both unavailable, returns error with clear message</p></li>
+</ol>
+</dd>
+</dl>
+<p>Fallback order (local, only when backend is None): elevenlabs -&gt; luxtts -&gt; gtts -&gt; pyttsx3</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>text</strong> – Text to speak.</p></li>
+<li><p><strong>backend</strong> – TTS backend (‘elevenlabs’, ‘luxtts’, ‘gtts’, ‘pyttsx3’).
+Auto-selects with fallback if None.</p></li>
+<li><p><strong>voice</strong> – Voice name, ID, or language code.</p></li>
+<li><p><strong>play</strong> – Whether to play the audio.</p></li>
+<li><p><strong>output_path</strong> – Path to save audio file.</p></li>
+<li><p><strong>fallback</strong> – If None (default), True when backend is None, False when backend is
+explicitly specified — i.e. an explicit backend request fails loud
+rather than silently falling back. Pass True/False to override.</p></li>
+<li><p><strong>rate</strong> – Speech rate in words per minute (pyttsx3 only, default 150).</p></li>
+<li><p><strong>speed</strong> – Speed multiplier for gtts (1.0=normal, &gt;1.0=faster, &lt;1.0=slower).</p></li>
+<li><p><strong>mode</strong> – Override mode (‘local’, ‘remote’, ‘auto’). Uses env if None.</p></li>
+<li><p><strong>**kwargs</strong> – Additional backend options.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>success, played, play_requested, backend, path (if saved), mode.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dict with</p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>Environment Variables:</dt><dd><p>SCITEX_AUDIO_MODE: Default mode (‘local’, ‘remote’, ‘auto’)
+SCITEX_AUDIO_RELAY_URL: Relay server URL for remote mode</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="scitex_audio.stop_speech">
+<span class="sig-prename descclassname"><span class="pre">scitex_audio.</span></span><span class="sig-name descname"><span class="pre">stop_speech</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../_modules/scitex_audio.html#stop_speech"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scitex_audio.stop_speech" title="Link to this definition"></a></dt>
+<dd><p>Stop any currently playing speech by killing espeak processes.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="scitex_audio.transcribe">
+<span class="sig-prename descclassname"><span class="pre">scitex_audio.</span></span><span class="sig-name descname"><span class="pre">transcribe</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">audio_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">language</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'ja'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'tiny'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">whisper_cli</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a></span></span><a class="reference internal" href="../_modules/scitex_audio/_stt.html#transcribe"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scitex_audio.transcribe" title="Link to this definition"></a></dt>
+<dd><p>Transcribe audio file to text using whisper.cpp.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>audio_path</strong> – Path to audio file (any format ffmpeg supports).</p></li>
+<li><p><strong>language</strong> – Language code (e.g., “ja”, “en”). None for auto-detect.</p></li>
+<li><p><strong>model</strong> – Whisper model name (tiny, base, small, medium, large-v3-turbo).</p></li>
+<li><p><strong>whisper_cli</strong> – Override path to whisper-cli binary.</p></li>
+<li><p><strong>model_path</strong> – Override path to model file.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>Dict with keys</strong></p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>success, text, segments, language, model, audio_path.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../env_vars.html" class="btn btn-neutral float-left" title="Environment Variables" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="engines.html" class="btn btn-neutral float-right" title="Engines" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Yusuke Watanabe.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

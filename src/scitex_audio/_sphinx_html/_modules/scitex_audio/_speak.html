@@ -1,0 +1,416 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>scitex_audio._speak &mdash; scitex-audio 0.2.11 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=29c81e07"></script>
+      <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            scitex-audio
+              <img src="../../_static/scitex-logo-banner.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../backends.html">Backends</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../relay.html">Remote Audio Relay</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../env_vars.html">Environment Variables</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../api/scitex_audio.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/engines.html">Engines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/mcp.html">MCP Handlers</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">scitex-audio</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+          <li class="breadcrumb-item"><a href="../scitex_audio.html">scitex_audio</a></li>
+      <li class="breadcrumb-item active">scitex_audio._speak</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for scitex_audio._speak</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python3</span>
+<span class="sd">&quot;&quot;&quot;Main speak() function with smart local/remote routing.</span>
+
+<span class="sd">This module provides the primary speak() function that intelligently</span>
+<span class="sd">routes audio to local or relay based on availability.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Optional</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">&quot;speak&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;_speak_local&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;_try_speak_with_fallback&quot;</span><span class="p">,</span>
+<span class="p">]</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_try_speak_with_fallback</span><span class="p">(</span>
+    <span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">voice</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">play</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">output_path</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Try to speak with fallback through backends.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        (result_dict, backend_used, error_log)</span>
+<span class="sd">        result_dict has keys: path, played, success, play_requested</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">FALLBACK_ORDER</span><span class="p">,</span> <span class="n">available_backends</span><span class="p">,</span> <span class="n">get_tts</span>
+
+    <span class="n">backends</span> <span class="o">=</span> <span class="n">available_backends</span><span class="p">()</span>
+    <span class="n">errors</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">for</span> <span class="n">backend</span> <span class="ow">in</span> <span class="n">FALLBACK_ORDER</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">backend</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">backends</span><span class="p">:</span>
+            <span class="k">continue</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">tts</span> <span class="o">=</span> <span class="n">get_tts</span><span class="p">(</span><span class="n">backend</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">tts</span><span class="o">.</span><span class="n">speak</span><span class="p">(</span>
+                <span class="n">text</span><span class="o">=</span><span class="n">text</span><span class="p">,</span>
+                <span class="n">voice</span><span class="o">=</span><span class="n">voice</span><span class="p">,</span>
+                <span class="n">play</span><span class="o">=</span><span class="n">play</span><span class="p">,</span>
+                <span class="n">output_path</span><span class="o">=</span><span class="n">output_path</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="c1"># result is now a dict with: path, played, success, play_requested</span>
+            <span class="n">result</span><span class="p">[</span><span class="s2">&quot;backend&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">backend</span>
+            <span class="k">return</span> <span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">backend</span><span class="p">,</span> <span class="n">errors</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">backend</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">continue</span>
+
+    <span class="k">return</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">errors</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_speak_local</span><span class="p">(</span>
+    <span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">backend</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">voice</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">play</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">output_path</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">fallback</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Local TTS playback (original implementation).</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Dict with keys: success, played, play_requested, backend, path (optional).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_tts</span>
+
+    <span class="c1"># If specific backend requested without fallback</span>
+    <span class="k">if</span> <span class="n">backend</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">fallback</span><span class="p">:</span>
+        <span class="n">tts</span> <span class="o">=</span> <span class="n">get_tts</span><span class="p">(</span><span class="n">backend</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">tts</span><span class="o">.</span><span class="n">speak</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="n">text</span><span class="p">,</span> <span class="n">voice</span><span class="o">=</span><span class="n">voice</span><span class="p">,</span> <span class="n">play</span><span class="o">=</span><span class="n">play</span><span class="p">,</span> <span class="n">output_path</span><span class="o">=</span><span class="n">output_path</span><span class="p">)</span>
+        <span class="n">result</span><span class="p">[</span><span class="s2">&quot;backend&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">backend</span>
+        <span class="k">return</span> <span class="n">result</span>
+
+    <span class="c1"># Use fallback logic</span>
+    <span class="k">if</span> <span class="n">fallback</span> <span class="ow">and</span> <span class="n">backend</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">result</span><span class="p">,</span> <span class="n">used_backend</span><span class="p">,</span> <span class="n">errors</span> <span class="o">=</span> <span class="n">_try_speak_with_fallback</span><span class="p">(</span>
+            <span class="n">text</span><span class="o">=</span><span class="n">text</span><span class="p">,</span> <span class="n">voice</span><span class="o">=</span><span class="n">voice</span><span class="p">,</span> <span class="n">play</span><span class="o">=</span><span class="n">play</span><span class="p">,</span> <span class="n">output_path</span><span class="o">=</span><span class="n">output_path</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">result</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">errors</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;All TTS backends failed:</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">errors</span><span class="p">))</span>
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="n">result</span> <span class="k">if</span> <span class="n">result</span> <span class="k">else</span> <span class="p">{</span><span class="s2">&quot;success&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;played&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;errors&quot;</span><span class="p">:</span> <span class="n">errors</span><span class="p">}</span>
+        <span class="p">)</span>
+
+    <span class="c1"># Specific backend with fallback enabled</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">tts</span> <span class="o">=</span> <span class="n">get_tts</span><span class="p">(</span><span class="n">backend</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">tts</span><span class="o">.</span><span class="n">speak</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="n">text</span><span class="p">,</span> <span class="n">voice</span><span class="o">=</span><span class="n">voice</span><span class="p">,</span> <span class="n">play</span><span class="o">=</span><span class="n">play</span><span class="p">,</span> <span class="n">output_path</span><span class="o">=</span><span class="n">output_path</span><span class="p">)</span>
+        <span class="n">result</span><span class="p">[</span><span class="s2">&quot;backend&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">backend</span>
+        <span class="k">return</span> <span class="n">result</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">fallback</span><span class="p">:</span>
+            <span class="n">result</span><span class="p">,</span> <span class="n">used_backend</span><span class="p">,</span> <span class="n">errors</span> <span class="o">=</span> <span class="n">_try_speak_with_fallback</span><span class="p">(</span>
+                <span class="n">text</span><span class="o">=</span><span class="n">text</span><span class="p">,</span> <span class="n">voice</span><span class="o">=</span><span class="n">voice</span><span class="p">,</span> <span class="n">play</span><span class="o">=</span><span class="n">play</span><span class="p">,</span> <span class="n">output_path</span><span class="o">=</span><span class="n">output_path</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="n">result</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Primary backend &#39;</span><span class="si">{</span><span class="n">backend</span><span class="si">}</span><span class="s2">&#39; failed: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;Fallback errors:</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">errors</span><span class="p">)</span>
+                <span class="p">)</span>
+            <span class="k">return</span> <span class="n">result</span>
+        <span class="k">raise</span>
+
+
+<div class="viewcode-block" id="speak">
+<a class="viewcode-back" href="../../api/scitex_audio.html#scitex_audio.speak">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">speak</span><span class="p">(</span>
+    <span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">backend</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">voice</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">play</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">output_path</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">fallback</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">rate</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">speed</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">mode</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Convert text to speech with smart local/remote switching.</span>
+
+<span class="sd">    Modes:</span>
+<span class="sd">        - local: Always use local TTS backends (fails if audio unavailable)</span>
+<span class="sd">        - remote: Always forward to relay server</span>
+<span class="sd">        - auto: Smart routing - prefers relay if local audio unavailable</span>
+
+<span class="sd">    Smart Routing (auto mode):</span>
+<span class="sd">        1. Checks if local audio sink is available (not SUSPENDED)</span>
+<span class="sd">        2. If local unavailable and relay configured, uses relay</span>
+<span class="sd">        3. If both unavailable, returns error with clear message</span>
+
+<span class="sd">    Fallback order (local, only when backend is None): elevenlabs -&gt; luxtts -&gt; gtts -&gt; pyttsx3</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        text: Text to speak.</span>
+<span class="sd">        backend: TTS backend (&#39;elevenlabs&#39;, &#39;luxtts&#39;, &#39;gtts&#39;, &#39;pyttsx3&#39;).</span>
+<span class="sd">                 Auto-selects with fallback if None.</span>
+<span class="sd">        voice: Voice name, ID, or language code.</span>
+<span class="sd">        play: Whether to play the audio.</span>
+<span class="sd">        output_path: Path to save audio file.</span>
+<span class="sd">        fallback: If None (default), True when backend is None, False when backend is</span>
+<span class="sd">                  explicitly specified — i.e. an explicit backend request fails loud</span>
+<span class="sd">                  rather than silently falling back. Pass True/False to override.</span>
+<span class="sd">        rate: Speech rate in words per minute (pyttsx3 only, default 150).</span>
+<span class="sd">        speed: Speed multiplier for gtts (1.0=normal, &gt;1.0=faster, &lt;1.0=slower).</span>
+<span class="sd">        mode: Override mode (&#39;local&#39;, &#39;remote&#39;, &#39;auto&#39;). Uses env if None.</span>
+<span class="sd">        **kwargs: Additional backend options.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Dict with: success, played, play_requested, backend, path (if saved), mode.</span>
+
+<span class="sd">    Environment Variables:</span>
+<span class="sd">        SCITEX_AUDIO_MODE: Default mode (&#39;local&#39;, &#39;remote&#39;, &#39;auto&#39;)</span>
+<span class="sd">        SCITEX_AUDIO_RELAY_URL: Relay server URL for remote mode</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">._audio_check</span><span class="w"> </span><span class="kn">import</span> <span class="n">check_local_audio_available</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">._branding</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_mode</span><span class="p">,</span> <span class="n">get_relay_url</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">._relay</span><span class="w"> </span><span class="kn">import</span> <span class="n">is_relay_available</span><span class="p">,</span> <span class="n">relay_speak</span>
+
+    <span class="c1"># Remove rate/speed from kwargs to avoid duplicate passing</span>
+    <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;rate&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;speed&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="c1"># Resolve fallback default: explicit backend =&gt; no silent fallback (no-fallbacks policy)</span>
+    <span class="k">if</span> <span class="n">fallback</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">fallback</span> <span class="o">=</span> <span class="n">backend</span> <span class="ow">is</span> <span class="kc">None</span>
+
+    <span class="c1"># Determine mode</span>
+    <span class="n">effective_mode</span> <span class="o">=</span> <span class="n">mode</span> <span class="ow">or</span> <span class="n">get_mode</span><span class="p">()</span>
+
+    <span class="c1"># Remote mode: always use relay</span>
+    <span class="k">if</span> <span class="n">effective_mode</span> <span class="o">==</span> <span class="s2">&quot;remote&quot;</span><span class="p">:</span>
+        <span class="n">relay_url</span> <span class="o">=</span> <span class="n">get_relay_url</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">relay_url</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">{</span>
+                <span class="s2">&quot;success&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                <span class="s2">&quot;played&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                <span class="s2">&quot;play_requested&quot;</span><span class="p">:</span> <span class="n">play</span><span class="p">,</span>
+                <span class="s2">&quot;mode&quot;</span><span class="p">:</span> <span class="s2">&quot;remote&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="s2">&quot;SCITEX_AUDIO_RELAY_URL or SCITEX_AUDIO_RELAY_HOST not set&quot;</span><span class="p">,</span>
+            <span class="p">}</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">relay_speak</span><span class="p">(</span>
+            <span class="n">text</span><span class="o">=</span><span class="n">text</span><span class="p">,</span>
+            <span class="n">backend</span><span class="o">=</span><span class="n">backend</span><span class="p">,</span>
+            <span class="n">voice</span><span class="o">=</span><span class="n">voice</span><span class="p">,</span>
+            <span class="n">rate</span><span class="o">=</span><span class="n">rate</span> <span class="ow">or</span> <span class="mi">150</span><span class="p">,</span>
+            <span class="n">speed</span><span class="o">=</span><span class="n">speed</span> <span class="ow">or</span> <span class="mf">1.5</span><span class="p">,</span>
+            <span class="n">play</span><span class="o">=</span><span class="n">play</span><span class="p">,</span>
+            <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s2">&quot;success&quot;</span><span class="p">:</span> <span class="n">result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;success&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">),</span>
+            <span class="s2">&quot;played&quot;</span><span class="p">:</span> <span class="n">result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;success&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span> <span class="ow">and</span> <span class="n">play</span><span class="p">,</span>
+            <span class="s2">&quot;play_requested&quot;</span><span class="p">:</span> <span class="n">play</span><span class="p">,</span>
+            <span class="s2">&quot;mode&quot;</span><span class="p">:</span> <span class="s2">&quot;remote&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;path&quot;</span><span class="p">:</span> <span class="n">result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;saved_to&quot;</span><span class="p">),</span>
+        <span class="p">}</span>
+
+    <span class="c1"># Auto mode: smart routing based on local audio availability</span>
+    <span class="k">if</span> <span class="n">effective_mode</span> <span class="o">==</span> <span class="s2">&quot;auto&quot;</span><span class="p">:</span>
+        <span class="c1"># Check local audio availability when playback requested</span>
+        <span class="n">local_audio_ok</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="n">local_audio_info</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">play</span><span class="p">:</span>
+            <span class="n">local_audio_info</span> <span class="o">=</span> <span class="n">check_local_audio_available</span><span class="p">()</span>
+            <span class="n">local_audio_ok</span> <span class="o">=</span> <span class="n">local_audio_info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;available&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+
+        <span class="n">relay_url</span> <span class="o">=</span> <span class="n">get_relay_url</span><span class="p">()</span>
+        <span class="n">relay_ok</span> <span class="o">=</span> <span class="n">relay_url</span> <span class="ow">and</span> <span class="n">is_relay_available</span><span class="p">()</span>
+
+        <span class="c1"># Smart routing: prefer relay if local audio unavailable</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">local_audio_ok</span> <span class="ow">and</span> <span class="n">relay_ok</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">result</span> <span class="o">=</span> <span class="n">relay_speak</span><span class="p">(</span>
+                    <span class="n">text</span><span class="o">=</span><span class="n">text</span><span class="p">,</span>
+                    <span class="n">backend</span><span class="o">=</span><span class="n">backend</span><span class="p">,</span>
+                    <span class="n">voice</span><span class="o">=</span><span class="n">voice</span><span class="p">,</span>
+                    <span class="n">rate</span><span class="o">=</span><span class="n">rate</span> <span class="ow">or</span> <span class="mi">150</span><span class="p">,</span>
+                    <span class="n">speed</span><span class="o">=</span><span class="n">speed</span> <span class="ow">or</span> <span class="mf">1.5</span><span class="p">,</span>
+                    <span class="n">play</span><span class="o">=</span><span class="n">play</span><span class="p">,</span>
+                    <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+                <span class="p">)</span>
+                <span class="k">if</span> <span class="n">result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;success&quot;</span><span class="p">):</span>
+                    <span class="k">return</span> <span class="p">{</span>
+                        <span class="s2">&quot;success&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+                        <span class="s2">&quot;played&quot;</span><span class="p">:</span> <span class="n">play</span><span class="p">,</span>
+                        <span class="s2">&quot;play_requested&quot;</span><span class="p">:</span> <span class="n">play</span><span class="p">,</span>
+                        <span class="s2">&quot;mode&quot;</span><span class="p">:</span> <span class="s2">&quot;remote&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;path&quot;</span><span class="p">:</span> <span class="n">result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;saved_to&quot;</span><span class="p">),</span>
+                        <span class="s2">&quot;routing&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;relay (local: </span><span class="si">{</span><span class="n">local_audio_info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;reason&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">,</span>
+                    <span class="p">}</span>
+            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                <span class="k">pass</span>  <span class="c1"># Fall through to local</span>
+
+        <span class="k">elif</span> <span class="n">relay_ok</span><span class="p">:</span>
+            <span class="c1"># Both available, try relay first</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">result</span> <span class="o">=</span> <span class="n">relay_speak</span><span class="p">(</span>
+                    <span class="n">text</span><span class="o">=</span><span class="n">text</span><span class="p">,</span>
+                    <span class="n">backend</span><span class="o">=</span><span class="n">backend</span><span class="p">,</span>
+                    <span class="n">voice</span><span class="o">=</span><span class="n">voice</span><span class="p">,</span>
+                    <span class="n">rate</span><span class="o">=</span><span class="n">rate</span> <span class="ow">or</span> <span class="mi">150</span><span class="p">,</span>
+                    <span class="n">speed</span><span class="o">=</span><span class="n">speed</span> <span class="ow">or</span> <span class="mf">1.5</span><span class="p">,</span>
+                    <span class="n">play</span><span class="o">=</span><span class="n">play</span><span class="p">,</span>
+                    <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+                <span class="p">)</span>
+                <span class="k">if</span> <span class="n">result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;success&quot;</span><span class="p">):</span>
+                    <span class="k">return</span> <span class="p">{</span>
+                        <span class="s2">&quot;success&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+                        <span class="s2">&quot;played&quot;</span><span class="p">:</span> <span class="n">play</span><span class="p">,</span>
+                        <span class="s2">&quot;play_requested&quot;</span><span class="p">:</span> <span class="n">play</span><span class="p">,</span>
+                        <span class="s2">&quot;mode&quot;</span><span class="p">:</span> <span class="s2">&quot;remote&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;path&quot;</span><span class="p">:</span> <span class="n">result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;saved_to&quot;</span><span class="p">),</span>
+                    <span class="p">}</span>
+            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                <span class="k">pass</span>  <span class="c1"># Fall through to local</span>
+
+        <span class="c1"># Local unavailable and no relay = failure</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">local_audio_ok</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">relay_ok</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">{</span>
+                <span class="s2">&quot;success&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                <span class="s2">&quot;played&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                <span class="s2">&quot;play_requested&quot;</span><span class="p">:</span> <span class="n">play</span><span class="p">,</span>
+                <span class="s2">&quot;mode&quot;</span><span class="p">:</span> <span class="s2">&quot;local&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;Audio unavailable: </span><span class="si">{</span><span class="n">local_audio_info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;reason&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;local_state&quot;</span><span class="p">:</span> <span class="n">local_audio_info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;state&quot;</span><span class="p">),</span>
+                <span class="s2">&quot;relay_configured&quot;</span><span class="p">:</span> <span class="n">relay_url</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="p">}</span>
+
+    <span class="c1"># Local mode (explicit or fallback from auto)</span>
+    <span class="k">if</span> <span class="n">effective_mode</span> <span class="o">==</span> <span class="s2">&quot;local&quot;</span> <span class="ow">and</span> <span class="n">play</span><span class="p">:</span>
+        <span class="n">local_audio_info</span> <span class="o">=</span> <span class="n">check_local_audio_available</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">local_audio_info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;available&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">):</span>
+            <span class="k">return</span> <span class="p">{</span>
+                <span class="s2">&quot;success&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                <span class="s2">&quot;played&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                <span class="s2">&quot;play_requested&quot;</span><span class="p">:</span> <span class="n">play</span><span class="p">,</span>
+                <span class="s2">&quot;mode&quot;</span><span class="p">:</span> <span class="s2">&quot;local&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;Local audio unavailable: </span><span class="si">{</span><span class="n">local_audio_info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;reason&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;local_state&quot;</span><span class="p">:</span> <span class="n">local_audio_info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;state&quot;</span><span class="p">),</span>
+            <span class="p">}</span>
+
+    <span class="n">result</span> <span class="o">=</span> <span class="n">_speak_local</span><span class="p">(</span>
+        <span class="n">text</span><span class="o">=</span><span class="n">text</span><span class="p">,</span>
+        <span class="n">backend</span><span class="o">=</span><span class="n">backend</span><span class="p">,</span>
+        <span class="n">voice</span><span class="o">=</span><span class="n">voice</span><span class="p">,</span>
+        <span class="n">play</span><span class="o">=</span><span class="n">play</span><span class="p">,</span>
+        <span class="n">output_path</span><span class="o">=</span><span class="n">output_path</span><span class="p">,</span>
+        <span class="n">fallback</span><span class="o">=</span><span class="n">fallback</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">result</span><span class="p">[</span><span class="s2">&quot;mode&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;local&quot;</span>
+    <span class="k">return</span> <span class="n">result</span></div>
+
+
+
+<span class="c1"># EOF</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Yusuke Watanabe.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
