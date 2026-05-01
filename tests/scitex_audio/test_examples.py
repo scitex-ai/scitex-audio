@@ -4,7 +4,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-EXAMPLES_DIR = Path(__file__).parent.parent / "examples"
+EXAMPLES_DIR = Path(__file__).resolve().parents[2] / "examples"
 QUICKSTART = EXAMPLES_DIR / "quickstart.py"
 
 

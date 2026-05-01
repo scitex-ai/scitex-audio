@@ -145,6 +145,7 @@ pip-delete-this-directory.txt
 
 # Unit test / coverage reports
 htmlcov/
+tests/coverage/
 .tox/
 .nox/
 .coverage
