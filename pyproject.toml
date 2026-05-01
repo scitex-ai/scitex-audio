@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "scitex-audio"
-version = "0.2.6"
+version = "0.2.11"
 description = "Text-to-Speech with multiple backends for scientific workflows"
 readme = "README.md"
 license = "AGPL-3.0-only"
@@ -23,7 +23,6 @@ keywords = [
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Science/Research",
-    "License :: OSI Approved :: GNU Affero General Public License v3",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.10",
@@ -34,20 +33,33 @@ classifiers = [
     "Topic :: Scientific/Engineering",
 ]
 dependencies = [
+    "mcp",
     "click>=8.0",
     "pydub",
     "soundfile",
     "scitex_dev",
+    "scitex-dev>=0.7.0",
 ]
 
 [project.optional-dependencies]
-pyttsx3 = ["pyttsx3"]
-gtts = ["gTTS"]
-# luxtts deps (excluding zipvoice which must be installed manually from git)
-# Install zipvoice separately: pip install git+https://github.com/ysharma3501/LuxTTS.git
-luxtts = ["torch", "torchaudio", "transformers", "huggingface-hub"]
-elevenlabs = ["elevenlabs"]
-mcp = ["fastmcp>=2.0"]
+elevenlabs = [
+    "elevenlabs",
+]
+gtts = [
+    "gTTS",
+]
+luxtts = [
+    "torch",
+    "torchaudio",
+    "transformers",
+    "huggingface-hub",
+]
+mcp = [
+    "fastmcp>=2.0",
+]
+pyttsx3 = [
+    "pyttsx3",
+]
 dev = [
     "pytest>=7.0",
     "pytest-cov>=4.0",
@@ -61,7 +73,11 @@ docs = [
     "sphinx-autodoc-typehints>=1.25",
 ]
 all = [
-    "scitex-audio[pyttsx3,gtts,luxtts,elevenlabs,mcp,dev,docs]",
+    "scitex-audio[elevenlabs]",
+    "scitex-audio[gtts]",
+    "scitex-audio[luxtts]",
+    "scitex-audio[mcp]",
+    "scitex-audio[pyttsx3]",
 ]
 
 [project.scripts]
@@ -71,6 +87,8 @@ scitex-audio = "scitex_audio._cli:main"
 scitex-audio = "scitex_audio"
 
 [project.entry-points."scitex_dev.skills"]
+
+scitex-audio = "scitex_audio"
 
 [project.entry-points."scitex_linter.plugins"]
 scitex-audio = "scitex_audio._linter_plugin:get_plugin"
@@ -90,7 +108,7 @@ packages = ["src/scitex_audio"]
 testpaths = ["tests"]
 python_files = ["test_*.py"]
 asyncio_mode = "auto"
-addopts = "--cov=scitex_audio --cov-report=term-missing --cov-report=html:htmlcov"
+addopts = "--cov=scitex_audio --cov-report=term-missing --cov-report=html:tests/coverage"
 
 [tool.ruff]
 line-length = 88
@@ -99,3 +117,6 @@ target-version = "py310"
 [tool.ruff.lint]
 select = ["E", "F", "I", "W"]
 ignore = ["E501"]
+
+[tool.scitex-linter]
+library_dirs = ["src", "tests", "examples", "apps", "config", "docs"]

@@ -1,5 +1,7 @@
 ---
 description: Complete CLI reference for scitex-audio with all subcommands, options, and examples.
+name: cli-commands
+tags: [scitex-audio, scitex-package]
 ---
 
 # CLI Commands

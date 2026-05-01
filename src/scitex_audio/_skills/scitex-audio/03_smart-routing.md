@@ -1,5 +1,7 @@
 ---
 description: Auto/local/remote modes, relay server setup, SSH tunneling for remote audio playback.
+name: smart-routing
+tags: [scitex-audio, scitex-package]
 ---
 
 # Smart Routing

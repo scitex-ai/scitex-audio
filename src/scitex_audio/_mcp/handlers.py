@@ -183,7 +183,7 @@ async def list_voices_handler(backend: str = "gtts") -> dict:
 async def play_audio_handler(path: str) -> dict:
     """Play an audio file."""
     try:
-        from ..engines._base import BaseTTS
+        from .._engines._base import BaseTTS
 
         path_obj = Path(path)
         if not path_obj.exists():

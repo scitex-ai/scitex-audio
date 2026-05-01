@@ -44,14 +44,25 @@ def mcp(ctx, as_json):
     type=int,
     help="Port for HTTP/SSE transport (default: 31293)",
 )
-def start(transport, host, port):
+@click.option("--dry-run", is_flag=True, help="Print launch plan without starting.")
+@click.option(
+    "-y", "--yes", is_flag=True, help="Suppress interactive confirmation (assume yes)."
+)
+def start(transport, host, port, dry_run, yes):
     """Start the MCP server for remote audio playback.
 
     \b
     Examples:
       scitex-audio mcp start
       scitex-audio mcp start -t http --port 31293
+      scitex-audio mcp start --dry-run
     """
+    if dry_run:
+        click.echo(
+            f"DRY RUN — would start scitex-audio MCP server "
+            f"(transport={transport}, host={host}, port={port})"
+        )
+        return
     try:
         from scitex_audio.mcp_server import FASTMCP_AVAILABLE, run_server
 
@@ -127,7 +138,14 @@ def doctor():
 @click.option("--json", "as_json", is_flag=True, help="Output as JSON")
 @click.pass_context
 def list_tools(ctx, verbose, compact, as_json):
-    """List available audio MCP tools."""
+    """List available audio MCP tools.
+
+    \b
+    Example:
+      $ scitex-audio mcp list-tools
+      $ scitex-audio mcp list-tools -vv
+      $ scitex-audio mcp list-tools --json
+    """
     try:
         from scitex.cli.mcp import list_tools as main_list_tools
 
@@ -169,16 +187,33 @@ def list_tools(ctx, verbose, compact, as_json):
                     click.echo()
 
 
-@mcp.command()
+@mcp.command(
+    "installation",
+    hidden=True,
+    context_settings={"ignore_unknown_options": True, "allow_extra_args": True},
+)
+@click.pass_context
+def installation_deprecated(ctx):
+    """(deprecated) Renamed to `show-installation`."""
+    click.echo(
+        "error: `scitex-audio mcp installation` was renamed to "
+        "`scitex-audio mcp show-installation`.\n"
+        "Re-run with: scitex-audio mcp show-installation",
+        err=True,
+    )
+    ctx.exit(2)
+
+
+@mcp.command("show-installation")
 @click.option("--json", "as_json", is_flag=True, help="Output as JSON")
-def installation(as_json):
+def show_installation(as_json):
     """
     Show MCP server installation instructions for Claude Code
 
     \b
     Example:
-      scitex-audio mcp installation
-      scitex-audio mcp installation --json
+      scitex-audio mcp show-installation
+      scitex-audio mcp show-installation --json
     """
     import json as json_mod
 

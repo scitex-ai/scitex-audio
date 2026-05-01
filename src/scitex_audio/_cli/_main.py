@@ -9,10 +9,15 @@ import sys
 
 import click
 
+from scitex_audio import __version__
+
 
 @click.group(
     context_settings={"help_option_names": ["-h", "--help"]},
     invoke_without_command=True,
+)
+@click.version_option(
+    __version__, "-V", "--version", message="scitex-audio %(version)s"
 )
 @click.option("--help-recursive", is_flag=True, help="Show help for all subcommands")
 @click.option(
@@ -27,6 +32,10 @@ def audio(ctx, help_recursive, as_json):
     Text-to-speech utilities
 
     \b
+    Config is loaded with the SciTeX precedence chain:
+      config.yaml -> $SCITEX_AUDIO_CONFIG -> ~/.scitex/audio/config.yaml -> defaults
+
+    \b
     Backends (fallback order):
       elevenlabs - ElevenLabs (paid, high quality)
       luxtts     - LuxTTS (open-source, offline, voice-cloning)
@@ -35,10 +44,10 @@ def audio(ctx, help_recursive, as_json):
 
     \b
     Examples:
-      scitex-audio speak "Hello world"
-      scitex-audio speak "Bonjour" --backend gtts --voice fr
-      scitex-audio backends              # List available backends
-      scitex-audio check                 # Check audio status (WSL)
+      scitex-audio speak-text "Hello world"
+      scitex-audio speak-text "Bonjour" --backend gtts --voice fr
+      scitex-audio list-backends         # List available backends
+      scitex-audio check-backends        # Check audio status (WSL)
     """
     if help_recursive:
         from . import print_help_recursive
@@ -54,7 +63,34 @@ def audio(ctx, help_recursive, as_json):
             click.echo(ctx.get_help())
 
 
-@audio.command()
+def _deprecated_redirect(old: str, new: str):
+    """Build a hidden Click command that exits 2 with a re-run hint."""
+
+    @click.pass_context
+    def _impl(ctx, **_):
+        click.echo(
+            f"error: `scitex-audio {old}` was renamed to `scitex-audio {new}`.\n"
+            f"Re-run with: scitex-audio {new} <args>",
+            err=True,
+        )
+        ctx.exit(2)
+
+    return click.command(
+        old,
+        hidden=True,
+        context_settings={"ignore_unknown_options": True, "allow_extra_args": True},
+    )(_impl)
+
+
+audio.add_command(_deprecated_redirect("speak", "speak-text"))
+audio.add_command(_deprecated_redirect("backends", "list-backends"))
+audio.add_command(_deprecated_redirect("check", "check-backends"))
+audio.add_command(_deprecated_redirect("stop", "stop-playback"))
+audio.add_command(_deprecated_redirect("transcribe", "transcribe-audio"))
+audio.add_command(_deprecated_redirect("env-template", "show-env-template"))
+
+
+@audio.command("speak-text")
 @click.argument("text")
 @click.option(
     "--backend",
@@ -76,7 +112,9 @@ def audio(ctx, help_recursive, as_json):
     is_flag=True,
     help="Output as structured JSON (Result envelope).",
 )
-def speak(text, backend, voice, output, no_play, rate, speed, no_fallback, as_json):
+def speak_text(
+    text, backend, voice, output, no_play, rate, speed, no_fallback, as_json
+):
     """
     Convert text to speech
 
@@ -141,7 +179,7 @@ def speak(text, backend, voice, output, no_play, rate, speed, no_fallback, as_js
         sys.exit(1)
 
 
-@audio.command(name="backends")
+@audio.command(name="list-backends")
 @click.option("--json", "as_json", is_flag=True, help="Output as JSON")
 def list_backends(as_json):
     """
@@ -191,9 +229,9 @@ def list_backends(as_json):
         sys.exit(1)
 
 
-@audio.command()
+@audio.command("check-backends")
 @click.option("--json", "as_json", is_flag=True, help="Output as JSON")
-def check(as_json):
+def check_backends(as_json):
     """
     Check audio status (especially for WSL)
 
@@ -260,22 +298,30 @@ def check(as_json):
         sys.exit(1)
 
 
-@audio.command()
+@audio.command("stop-playback")
 @click.option(
     "--json",
     "as_json",
     is_flag=True,
     help="Output as structured JSON (Result envelope).",
 )
-def stop(as_json):
+@click.option("--dry-run", is_flag=True, help="Print plan without stopping playback.")
+@click.option(
+    "-y", "--yes", is_flag=True, help="Suppress interactive confirmation (assume yes)."
+)
+def stop_playback(as_json, dry_run, yes):
     """
     Stop any currently playing speech
 
     \b
     Example:
-      scitex-audio stop
-      scitex-audio stop --json
+      scitex-audio stop-playback
+      scitex-audio stop-playback --json
+      scitex-audio stop-playback --dry-run
     """
+    if dry_run:
+        click.echo("DRY RUN — would stop any active speech playback")
+        return
     if as_json:
         from scitex_dev import wrap_as_cli
 
@@ -368,7 +414,7 @@ def relay(host, port, force):
         sys.exit(1)
 
 
-@audio.command()
+@audio.command("transcribe-audio")
 @click.argument("audio_path", type=click.Path(exists=True))
 @click.option("--language", "-l", default="ja", help="Language code (default: ja)")
 @click.option("--model", "-m", default="tiny", help="Whisper model (default: tiny)")
@@ -414,7 +460,7 @@ def transcribe(audio_path, language, model, as_json):
         sys.exit(1)
 
 
-@audio.command("env-template")
+@audio.command("show-env-template")
 @click.option(
     "--output",
     "-o",
@@ -426,19 +472,37 @@ def transcribe(audio_path, language, model, as_json):
     is_flag=True,
     help="Exclude sensitive variables (API keys)",
 )
-def env_template(output, no_sensitive):
+@click.option(
+    "--json",
+    "as_json",
+    is_flag=True,
+    help="Output as structured JSON (Result envelope).",
+)
+def env_template(output, no_sensitive, as_json):
     """
     Generate a template .src file for SCITEX_AUDIO_ENV_SRC
 
     \b
     Examples:
-      scitex-audio env-template                    # Print to stdout
-      scitex-audio env-template -o audio.src       # Write to file
-      scitex-audio env-template --no-sensitive      # Exclude API keys
+      scitex-audio show-env-template                    # Print to stdout
+      scitex-audio show-env-template -o audio.src       # Write to file
+      scitex-audio show-env-template --no-sensitive     # Exclude API keys
+      scitex-audio show-env-template --json             # JSON envelope
     """
     from scitex_audio._env_registry import generate_template
 
     content = generate_template(include_sensitive=not no_sensitive)
+
+    if as_json:
+        from scitex_dev import Result
+
+        click.echo(
+            Result(
+                success=True,
+                data={"template": content, "include_sensitive": not no_sensitive},
+            ).to_json()
+        )
+        return
 
     if output:
         from pathlib import Path
@@ -456,7 +520,14 @@ def env_template(output, no_sensitive):
 @click.option("--json", "as_json", is_flag=True, help="Output as JSON")
 @click.pass_context
 def list_python_apis(ctx, verbose, max_depth, as_json):
-    """List Python APIs for scitex-audio."""
+    """List Python APIs for scitex-audio.
+
+    \b
+    Example:
+      $ scitex-audio list-python-apis
+      $ scitex-audio list-python-apis -vv
+      $ scitex-audio list-python-apis --json
+    """
     try:
         from scitex.cli.introspect import api
 

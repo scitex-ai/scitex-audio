@@ -6,19 +6,20 @@
 
 # SciTeX Audio (<code>scitex-audio</code>)
 
+<!-- scitex-badges:start -->
+[![PyPI](https://img.shields.io/pypi/v/scitex-audio.svg)](https://pypi.org/project/scitex-audio/)
+[![Python](https://img.shields.io/pypi/pyversions/scitex-audio.svg)](https://pypi.org/project/scitex-audio/)
+[![Tests](https://github.com/ywatanabe1989/scitex-audio/actions/workflows/test.yml/badge.svg)](https://github.com/ywatanabe1989/scitex-audio/actions/workflows/test.yml)
+[![Install Test](https://github.com/ywatanabe1989/scitex-audio/actions/workflows/install-test.yml/badge.svg)](https://github.com/ywatanabe1989/scitex-audio/actions/workflows/install-test.yml)
+[![Coverage](https://codecov.io/gh/ywatanabe1989/scitex-audio/graph/badge.svg)](https://codecov.io/gh/ywatanabe1989/scitex-audio)
+[![Docs](https://readthedocs.org/projects/scitex-audio/badge/?version=latest)](https://scitex-audio.readthedocs.io/en/latest/)
+[![License: AGPL v3](https://img.shields.io/badge/license-AGPL_v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
+<!-- scitex-badges:end -->
+
 <p align="center">
   <a href="https://scitex.ai">
     <img src="docs/scitex-logo-blue-cropped.png" alt="SciTeX" width="400">
   </a>
-</p>
-
-<p align="center"><b>Text-to-Speech with multiple backends for scientific workflows</b></p>
-
-<p align="center">
-  <a href="https://badge.fury.io/py/scitex-audio"><img src="https://badge.fury.io/py/scitex-audio.svg" alt="PyPI version"></a>
-  <a href="https://scitex-audio.readthedocs.io/"><img src="https://readthedocs.org/projects/scitex-audio/badge/?version=latest" alt="Documentation"></a>
-  <a href="https://github.com/ywatanabe1989/scitex-audio/actions/workflows/test.yml"><img src="https://github.com/ywatanabe1989/scitex-audio/actions/workflows/test.yml/badge.svg" alt="Tests"></a>
-  <a href="https://www.gnu.org/licenses/agpl-3.0"><img src="https://img.shields.io/badge/License-AGPL--3.0-blue.svg" alt="License: AGPL-3.0"></a>
 </p>
 
 <p align="center">
@@ -29,20 +30,13 @@
 
 ## Problem and Solution
 
-
 | # | Problem | Solution |
 |---|---------|----------|
 | 1 | **TTS libraries balkanized** -- ElevenLabs REST + gTTS HTTP + pyttsx3 native each have different APIs, failure modes, voice formats | **`stx.audio.speak(text)`** -- one call; automatic fallback ElevenLabs → LuxTTS → gTTS → pyttsx3 when upstream fails or API key is missing |
 | 2 | **Offline TTS sounds robotic** -- espeak is a pi-era stopgap | **LuxTTS** -- offline 48 kHz voice-cloning on CPU; near-realtime after first-load warmup |
 | 3 | **Scripts can't alert users from a headless session** -- `print` gets lost in logs | **MCP tool `audio_speak`** -- agents and long-running scripts report status audibly to the operator, with desktop notification fallback |
 
-## Problem
-
-Scientific workflows increasingly rely on AI agents that often run in parallel on remote servers or headless environments. Researchers may prefer auditory feedback over text — for experiment completion notifications, error alerts, or accessibility — but have no direct access to audio hardware.
-
-## Solution
-
-SciTeX Audio provides a unified TTS interface with automatic backend fallback and **smart local/remote routing to speakers on your desktop**. It works on local machines, remote servers (via relay), and WSL environments with automatic audio path detection.
+## TTS Backends
 
 | Backend | Quality | Cost | Internet | Offline | Default Speed |
 |---------|---------|------|----------|---------|---------------|
@@ -212,7 +206,7 @@ scitex-audio mcp install
 </details>
 
 <details>
-<summary><strong>Skills — for AI Agent Discovery</strong></summary>
+<summary><strong>Skills</strong></summary>
 
 <br>
 
@@ -364,7 +358,9 @@ With this setup, every SSH session automatically has audio routed back to your s
 
 ## Part of SciTeX
 
-SciTeX Audio is part of [**SciTeX**](https://scitex.ai).
+`scitex-audio` is part of [**SciTeX**](https://scitex.ai). Install via
+the umbrella with `pip install scitex[audio]` to use as
+`scitex.audio` (Python) or `scitex audio ...` (CLI).
 
 The SciTeX system follows the Four Freedoms for Research below, inspired by [the Free Software Definition](https://www.gnu.org/philosophy/free-sw.en.html):
 

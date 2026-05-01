@@ -1,6 +1,7 @@
 ---
 name: scitex-audio-env-vars
 description: Environment variables read by scitex-audio at import / runtime. Follow SCITEX_<MODULE>_* convention — see general/10_arch-environment-variables.md.
+tags: [scitex-audio, scitex-package]
 ---
 
 # scitex-audio — Environment Variables

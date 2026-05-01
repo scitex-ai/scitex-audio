@@ -1,5 +1,7 @@
 ---
 description: Common TTS patterns for notifications, experiments, remote agents, and audio file generation.
+name: common-workflows
+tags: [scitex-audio, scitex-package]
 ---
 
 # Common Workflows

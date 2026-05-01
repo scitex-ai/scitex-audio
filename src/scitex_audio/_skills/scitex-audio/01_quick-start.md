@@ -1,5 +1,7 @@
 ---
 description: Basic speak() usage, return value structure, and first steps with scitex-audio.
+name: quick-start
+tags: [scitex-audio, scitex-package]
 ---
 
 # Quick Start
