@@ -104,7 +104,7 @@ tts = scitex_audio.get_tts("gtts")                   # get engine
 tts.speak("With engine", voice="fr")
 ```
 
-> **[Full API reference](https://scitex-audio.readthedocs.io/)**
+> **[Full API reference](https://scitex-audio.readthedocs.io/en/latest/api/scitex_audio.html)**
 
 </details>
 
@@ -125,7 +125,7 @@ scitex-audio list-python-apis             # List Python API tree
 scitex-audio mcp list-tools               # List MCP tools
 ```
 
-> **[Full CLI reference](https://scitex-audio.readthedocs.io/)**
+> **[Full CLI reference](https://scitex-audio.readthedocs.io/en/latest/quickstart.html)**
 
 </details>
 
@@ -201,7 +201,7 @@ Or install globally:
 scitex-audio mcp install
 ```
 
-> **[Full MCP specification](https://scitex-audio.readthedocs.io/)**
+> **[Full MCP specification](https://scitex-audio.readthedocs.io/en/latest/api/scitex_audio._mcp.html)**
 
 </details>
 
