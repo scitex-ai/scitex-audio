@@ -352,7 +352,9 @@ With this setup, every SSH session automatically has audio routed back to your s
 
 ## Part of SciTeX
 
-SciTeX Audio is part of [**SciTeX**](https://scitex.ai).
+`scitex-audio` is part of [**SciTeX**](https://scitex.ai). Install via
+the umbrella with `pip install scitex[audio]` to use as
+`scitex.audio` (Python) or `scitex audio ...` (CLI).
 
 The SciTeX system follows the Four Freedoms for Research below, inspired by [the Free Software Definition](https://www.gnu.org/philosophy/free-sw.en.html):
 
