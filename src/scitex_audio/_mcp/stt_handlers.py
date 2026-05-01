@@ -30,9 +30,7 @@ def register_stt_tools(mcp) -> None:
         language: Optional[str] = "ja",
         model: str = "tiny",
     ) -> str:
-        """Transcribe audio file to text using whisper.cpp.
-
-        Converts any audio format (via ffmpeg) and runs whisper-cli locally.
+        """Transcribe any audio file to text locally using whisper.cpp — no cloud calls, no API keys. Converts any format (WAV / MP3 / OGG / M4A / FLAC / …) via ffmpeg, runs `whisper-cli` with the requested model (tiny / base / small / medium / large-v3-turbo), and returns the text. Drop-in replacement for `openai-whisper`, `faster-whisper`, OpenAI's cloud Whisper API, and `pydub` + external STT pipelines. Use whenever the user asks to "transcribe this audio", "speech to text", "convert this .wav / .mp3 to text", "whisper this recording", "dictate this file", or has voice notes that need text.
 
         Args:
             audio_path: Path to audio file (WAV, MP3, OGG, etc.)
@@ -65,7 +63,7 @@ def register_stt_tools(mcp) -> None:
 
     @mcp.tool()
     def list_whisper_models() -> str:
-        """List available whisper models for speech-to-text.
+        """List the whisper.cpp models available locally (tiny / base / small / medium / large-v3-turbo) and whether the `whisper-cli` binary was found on PATH. Use when the user asks "which whisper models do I have?", "is whisper installed?", "list STT models", or before calling `audio_transcribe` to pick an appropriate model size/speed trade-off.
 
         Returns:
             JSON string with available model names and whisper-cli status

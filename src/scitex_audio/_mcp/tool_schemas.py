@@ -18,8 +18,14 @@ def get_tool_schemas() -> list[types.Tool]:
         types.Tool(
             name="speak",
             description=(
-                "Convert text to speech with fallback (elevenlabs -> luxtts -> gtts -> pyttsx3). "
-                "Requests are queued for sequential playback to prevent audio overlap."
+                "Say text out loud — auto-selects and falls back across TTS backends "
+                "(elevenlabs → luxtts → gtts → pyttsx3) and uses a sequential playback "
+                "queue so concurrent agents don't overlap. Drop-in replacement for "
+                "`pyttsx3.speak`, `gTTS(...).save + playback`, the `elevenlabs` Python "
+                "SDK, and `say`/`espeak`/`spd-say` shelling. Use whenever the user asks "
+                "to 'say X', 'speak this', 'voice notify me when done', 'read aloud', "
+                "'announce that …', or needs spoken output. Set `save=True` to also "
+                "keep the audio file, `wait=False` for fire-and-forget notifications."
             ),
             inputSchema={
                 "type": "object",
@@ -77,7 +83,13 @@ def get_tool_schemas() -> list[types.Tool]:
         ),
         types.Tool(
             name="generate_audio",
-            description="Generate speech audio file without playing",
+            description=(
+                "Render text to an audio file on disk (no playback) via any TTS "
+                "backend. Use whenever the user asks to 'save this as .mp3', "
+                "'generate audio for this text', 'make a narration file', 'export "
+                "spoken audio', or is building a dataset of synthesized speech. "
+                "Returns the saved path, optionally base64-encoded bytes."
+            ),
             inputSchema={
                 "type": "object",
                 "properties": {
@@ -110,12 +122,24 @@ def get_tool_schemas() -> list[types.Tool]:
         ),
         types.Tool(
             name="list_backends",
-            description="List available TTS backends and their status",
+            description=(
+                "Inspect which TTS backends are installed and reachable — elevenlabs, "
+                "luxtts, gtts, pyttsx3 — plus whether required env vars / API keys are "
+                "set. Use when the user asks 'which TTS engines do I have?', 'is "
+                "ElevenLabs configured?', 'what backends are available?', or is "
+                "debugging why `speak` fell back to a lower-quality engine."
+            ),
             inputSchema={"type": "object", "properties": {}},
         ),
         types.Tool(
             name="list_voices",
-            description="List available voices for a backend",
+            description=(
+                "List the voices a given TTS backend offers — e.g. ElevenLabs premade "
+                "voices (adam, sarah, george, bella), gTTS language codes (en, fr, ja, "
+                "…), pyttsx3 system voices. Use when the user asks 'what voices can I "
+                "use?', 'list ElevenLabs voices', 'which languages does gTTS support?', "
+                "or before passing a `voice` argument to `speak`/`generate_audio`."
+            ),
             inputSchema={
                 "type": "object",
                 "properties": {
@@ -130,7 +154,13 @@ def get_tool_schemas() -> list[types.Tool]:
         ),
         types.Tool(
             name="play_audio",
-            description="Play an audio file",
+            description=(
+                "Play an existing audio file (WAV / MP3 / OGG / …) through the "
+                "configured local or relay output. Drop-in replacement for `aplay`, "
+                "`paplay`, `ffplay`, `afplay`, `playsound`, `pygame.mixer`. Use when "
+                "the user asks to 'play this file', 'listen to /path/to/clip.mp3', "
+                "'play back the recording', or 'route this audio to my laptop'."
+            ),
             inputSchema={
                 "type": "object",
                 "properties": {
@@ -144,7 +174,12 @@ def get_tool_schemas() -> list[types.Tool]:
         ),
         types.Tool(
             name="list_audio_files",
-            description="List generated audio files",
+            description=(
+                "List previously generated audio files in the scitex-audio cache, "
+                "newest first. Use when the user asks 'what audio did I generate?', "
+                "'show recent TTS files', 'list the narrations', or before "
+                "`clear_audio_cache` / replaying a recent clip via `play_audio`."
+            ),
             inputSchema={
                 "type": "object",
                 "properties": {
@@ -158,7 +193,13 @@ def get_tool_schemas() -> list[types.Tool]:
         ),
         types.Tool(
             name="clear_audio_cache",
-            description="Clear generated audio files",
+            description=(
+                "Delete generated TTS audio files from the cache — by default "
+                "anything older than 24 h, or all of them with `max_age_hours=0`. "
+                "Use when the user asks to 'clear audio cache', 'clean up TTS "
+                "files', 'free disk from old narrations', or is tidying up after "
+                "bulk generation."
+            ),
             inputSchema={
                 "type": "object",
                 "properties": {
@@ -172,19 +213,35 @@ def get_tool_schemas() -> list[types.Tool]:
         ),
         types.Tool(
             name="speech_queue_status",
-            description="Get the current speech queue status (pending requests, currently playing, etc.)",
+            description=(
+                "Inspect the sequential speech queue — what's currently playing, "
+                "what's pending, whose agent_id is waiting. Use when the user asks "
+                "'is anything queued?', 'why isn't my speak firing?', 'who's "
+                "talking?', 'show the speech queue', or is debugging overlapped "
+                "agent notifications."
+            ),
             inputSchema={"type": "object", "properties": {}},
         ),
         types.Tool(
             name="check_audio_status",
-            description="Check WSL audio connectivity and available playback methods",
+            description=(
+                "Diagnose audio output — checks PulseAudio / ALSA / WSL audio "
+                "bridge / relay server availability, reports which playback method "
+                "will be used, and flags common WSL2 issues. Use when the user asks "
+                "'is audio working?', 'why can't I hear TTS?', 'debug WSL audio', "
+                "'check relay connection', or before a long session that depends "
+                "on reliable audio."
+            ),
             inputSchema={"type": "object", "properties": {}},
         ),
         types.Tool(
             name="announce_context",
             description=(
-                "Announce the current working directory and git branch (if in a git repo). "
-                "Useful for orientation when starting work in a new session."
+                "Speak out the current working directory and git branch — useful "
+                "startup ping so the user hears 'scitex-audio, branch develop' "
+                "when opening a new terminal or session. Use when the user asks "
+                "to 'announce context', 'tell me where I am', 'say the current "
+                "branch', or wants an audible orientation at session start."
             ),
             inputSchema={
                 "type": "object",

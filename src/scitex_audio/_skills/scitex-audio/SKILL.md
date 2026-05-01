@@ -43,15 +43,8 @@ rule and empirical verification table.
 
 ## Sub-skills
 
-### Core
-* [01_quick-start](01_quick-start.md) — Basic usage, first call, return values
-* [02_available-backends](02_available-backends.md) — All TTS backends, capabilities, install commands
-* [03_smart-routing](03_smart-routing.md) — Auto/local/remote modes, relay server, SSH tunneling
-
-### Workflows
-* [10_common-workflows](10_common-workflows.md) — Notification patterns, multi-backend, save audio
-* [11_cli-commands](11_cli-commands.md) — Complete CLI reference
-* [12_mcp-tools-for-ai-agents](12_mcp-tools-for-ai-agents.md) — MCP tools and installation
+* Core: [01_quick-start](01_quick-start.md), [02_available-backends](02_available-backends.md), [03_smart-routing](03_smart-routing.md)
+* Workflows: [10_common-workflows](10_common-workflows.md), [11_cli-commands](11_cli-commands.md), [12_mcp-tools-for-ai-agents](12_mcp-tools-for-ai-agents.md)
 
 ## MCP Tools
 
