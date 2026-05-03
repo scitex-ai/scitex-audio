@@ -1,7 +1,8 @@
 ---
-description: MCP tools available to AI agents for text-to-speech, backend listing, and audio status.
-name: mcp-tools-for-ai-agents
-tags: [scitex-audio, scitex-package]
+description: |
+  [TOPIC] Mcp Tools For Ai Agents
+  [DETAILS] MCP tools available to AI agents for text-to-speech, backend listing, and audio status.
+tags: [scitex-audio-mcp-tools-for-ai-agents]
 ---
 
 # MCP Tools for AI Agents

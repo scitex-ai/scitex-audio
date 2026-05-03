@@ -1,7 +1,8 @@
 ---
-description: Basic speak() usage, return value structure, and first steps with scitex-audio.
-name: quick-start
-tags: [scitex-audio, scitex-package]
+description: |
+  [TOPIC] Quick Start
+  [DETAILS] Basic speak() usage, return value structure, and first steps with scitex-audio.
+tags: [scitex-audio-quick-start]
 ---
 
 # Quick Start

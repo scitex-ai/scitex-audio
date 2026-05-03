@@ -1,5 +1,10 @@
 ---
-description: Unified text-to-speech (ElevenLabs / LuxTTS / gTTS / pyttsx3 with automatic fallback) AND local speech-to-text (whisper.cpp — tiny / base / small / medium / large-v3-turbo models). Smart local/relay routing so headless servers or WSL machines play audio on your laptop via a lightweight relay, SSH-tunnelable. Sequential playback queue prevents audio overlap when multiple agents speak concurrently. Drop-in replacement for raw `pyttsx3`, `gTTS`, `elevenlabs` SDK, `sounddevice` playback, `ffplay`/`aplay`/`paplay` shelling, and `openai-whisper` / `faster-whisper` Python libs. Use whenever the user asks to "say this", "speak", "play this text aloud", "voice notification", "read this out loud", "TTS this", "generate an audio file of …", "transcribe this audio", "speech to text", "whisper this .wav / .mp3", "convert audio to text", "play audio on my laptop from the server", "check WSL audio", "announce the branch / directory", or needs voice I/O in any form.
+name: scitex-audio
+description: |
+  [WHAT] Unified text-to-speech (ElevenLabs / LuxTTS / gTTS / pyttsx3 with automatic fallback) AND local speech-to-text (whisper.cpp — tiny / base / small / medium / large-v3-turbo models). Smart local/relay routing so headless servers or WSL machines play audio on your laptop via a lightweight relay, SSH-tunnelable. Sequential playback queue prevents audio overlap when multiple agents speak concurrently…
+  [WHEN] Use whenever the user asks to "say this", "speak", "play this text aloud", "voice notification", "read this out loud", "TTS this", "generate an audio file of …", "transcribe this audio", "speech to text", "whisper this .
+  [HOW] wav / .mp3", "convert audio to text", "play audio on my laptop from the server", "check WSL audio", "announce the branch / directory", or needs voice I/O in any form.
+tags: [scitex-audio]
 allowed-tools: mcp__scitex__audio_*
 primary_interface: mcp
 interfaces:
@@ -7,10 +12,7 @@ interfaces:
   cli: 1
   mcp: 3
   skills: 2
-  hook: 0
   http: 0
-name: scitex-audio
-tags: [scitex-audio, scitex-package]
 ---
 
 # scitex-audio

@@ -1,7 +1,8 @@
 ---
-description: Common TTS patterns for notifications, experiments, remote agents, and audio file generation.
-name: common-workflows
-tags: [scitex-audio, scitex-package]
+description: |
+  [TOPIC] Common Workflows
+  [DETAILS] Common TTS patterns for notifications, experiments, remote agents, and audio file generation.
+tags: [scitex-audio-common-workflows]
 ---
 
 # Common Workflows
