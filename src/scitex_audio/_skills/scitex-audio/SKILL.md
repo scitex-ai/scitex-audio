@@ -45,8 +45,9 @@ rule and empirical verification table.
 
 ## Sub-skills
 
-* Core: [01_quick-start](01_quick-start.md), [02_available-backends](02_available-backends.md), [03_smart-routing](03_smart-routing.md)
+* Core: [01_installation](01_installation.md), [02_quick-start](02_quick-start.md), [03_python-api](03_python-api.md), [04_cli-reference](04_cli-reference.md)
 * Workflows: [10_common-workflows](10_common-workflows.md), [11_cli-commands](11_cli-commands.md), [12_mcp-tools-for-ai-agents](12_mcp-tools-for-ai-agents.md)
+* Backends: [14_available-backends](14_available-backends.md), [15_smart-routing](15_smart-routing.md)
 
 ## MCP Tools
 
