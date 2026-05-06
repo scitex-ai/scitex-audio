@@ -577,6 +577,15 @@ def list_python_apis(ctx, verbose, max_depth, as_json):
                     click.echo(f"    {a['doc']}")
 
 
+# §1a: install-shell-completion + print-shell-completion (canonical leaves)
+try:
+    from scitex_dev._cli._completion import attach_shell_completion
+
+    attach_shell_completion(audio, prog_name="scitex-audio")
+except ImportError:
+    pass
+
+
 if __name__ == "__main__":
     audio()
 
