@@ -55,3 +55,14 @@ def group_to_json(ctx, group):
             "help": cmd.get_short_help_str(limit=200),
         }
     click.echo(Result(success=True, data={"commands": commands}).to_json())
+
+
+# audit §4 — inject version into root --help
+try:
+    from importlib.metadata import version as _v
+    main.help = (
+        f"scitex-audio (v{_v('scitex-audio')}) — "
+        + (main.help or "").lstrip()
+    )
+except Exception:
+    pass
