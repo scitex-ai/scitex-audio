@@ -194,17 +194,32 @@ def list_tools(ctx, verbose, compact, as_json):
 )
 @click.pass_context
 def installation_deprecated(ctx):
-    """(deprecated) Renamed to `show-installation`."""
+    """(deprecated) Renamed to `install`."""
     click.echo(
         "error: `scitex-audio mcp installation` was renamed to "
-        "`scitex-audio mcp show-installation`.\n"
-        "Re-run with: scitex-audio mcp show-installation",
+        "`scitex-audio mcp install`.\n"
+        "Re-run with: scitex-audio mcp install",
         err=True,
     )
     ctx.exit(2)
 
 
-@mcp.command("show-installation")
+@mcp.command(
+    "show-installation", hidden=True, context_settings={"ignore_unknown_options": True}
+)
+@click.pass_context
+def mcp_show_installation_deprecated(ctx):
+    """(deprecated) Renamed to `install`."""
+    click.echo(
+        "error: `scitex-audio mcp show-installation` was renamed to "
+        "`scitex-audio mcp install`.\n"
+        "Re-run with: scitex-audio mcp install",
+        err=True,
+    )
+    ctx.exit(2)
+
+
+@mcp.command("install")
 @click.option("--json", "as_json", is_flag=True, help="Output as JSON")
 def show_installation(as_json):
     """
@@ -212,8 +227,8 @@ def show_installation(as_json):
 
     \b
     Example:
-      scitex-audio mcp show-installation
-      scitex-audio mcp show-installation --json
+      scitex-audio mcp install
+      scitex-audio mcp install --json
     """
     import json as json_mod
 
