@@ -61,9 +61,15 @@ pyttsx3 = [
     "pyttsx3",
 ]
 dev = [
-    "pytest>=7.0",
-    "pytest-cov>=4.0",
+    "elevenlabs",
+    "fastmcp>=2.0",
+    "huggingface-hub",
     "pytest-asyncio",
+    "pytest-cov>=4.0",
+    "pytest>=7.0",
+    "torch",
+    "torchaudio",
+    "transformers",
 ]
 docs = [
     "sphinx>=7.0",
