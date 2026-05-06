@@ -224,7 +224,6 @@ def mcp_show_installation_deprecated(ctx):
 @click.option("--dry-run", is_flag=True, help="Accepted for §2; this verb is informational, never mutates state.")
 @click.option("--yes", "-y", is_flag=True, help="Accepted for §2; this verb is informational, never mutates state.")
 def show_installation(as_json, dry_run, yes):
-    del dry_run, yes  # audit §2 — no-op flags
     """
     Show MCP server installation instructions for Claude Code
 
@@ -233,6 +232,7 @@ def show_installation(as_json, dry_run, yes):
       scitex-audio mcp install
       scitex-audio mcp install --json
     """
+    del dry_run, yes  # audit §2 — no-op flags
     import json as json_mod
 
     config = {
