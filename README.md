@@ -69,6 +69,35 @@ pip install scitex-audio[luxtts]       # LuxTTS (voice cloning, offline)
 pip install scitex-audio[all]          # Everything
 ```
 
+## Architecture
+
+```
+src/scitex_audio/
+├── _engines/            # backend implementations (gtts, pyttsx3, elevenlabs, luxtts)
+├── _cli/                # `scitex-audio` Click CLI
+├── _mcp/                # MCP server entry
+├── _speak.py            # high-level speak() facade
+├── _tts.py              # text-to-speech dispatch
+├── _stt.py              # speech-to-text dispatch
+├── _relay.py            # cross-process audio relay
+├── _cross_process_lock.py # serialize concurrent playback
+├── _env_loader.py       # env-var driven backend selection
+└── mcp_server.py        # MCP tool registrations
+```
+
+## Demo
+
+```mermaid
+flowchart LR
+    User[speak text] --> Speak[scitex_audio.speak]
+    Speak --> Sel{backend?}
+    Sel -->|gtts| GTTS[gTTS engine]
+    Sel -->|pyttsx3| Local[pyttsx3 / espeak-ng]
+    Sel -->|elevenlabs| EL[ElevenLabs API]
+    Sel -->|luxtts| Lux[LuxTTS offline clone]
+    GTTS & Local & EL & Lux --> Relay[cross-process relay] --> Audio[(speaker / .mp3)]
+```
+
 ## Quick Start
 
 ```python
