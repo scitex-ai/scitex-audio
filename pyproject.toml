@@ -99,11 +99,6 @@ scitex-audio = "scitex_audio"
 [project.entry-points."scitex_dev.linter.plugins"]
 scitex-audio = "scitex_audio._linter_plugin:get_plugin"
 
-# Legacy entry-point group (dual-register during scitex-linter
-# deprecation window — will be dropped after the final shim release).
-[project.entry-points."scitex_linter.plugins"]
-scitex-audio = "scitex_audio._linter_plugin:get_plugin"
-
 [project.urls]
 Homepage = "https://github.com/ywatanabe1989/scitex-audio"
 Repository = "https://github.com/ywatanabe1989/scitex-audio"
