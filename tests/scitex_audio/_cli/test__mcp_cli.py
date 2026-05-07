@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """Tests for scitex_audio._cli._mcp_cli (MCP subcommand group)."""
 
-
 import pytest
 from click.testing import CliRunner
 
@@ -75,22 +74,22 @@ class TestMcpListTools:
         assert "tools" in result.output or "speak" in result.output
 
 
-class TestShowInstallation:
+class TestInstall:
     def test_text(self, runner):
-        result = runner.invoke(mcp, ["show-installation"])
+        result = runner.invoke(mcp, ["install"])
         assert result.exit_code == 0
         assert "scitex-audio" in result.output
         assert "mcpServers" in result.output
 
     def test_json(self, runner):
-        result = runner.invoke(mcp, ["show-installation", "--json"])
+        result = runner.invoke(mcp, ["install", "--json"])
         assert result.exit_code == 0
         assert "mcpServers" in result.output
 
     def test_old_installation_command_redirects(self, runner):
         result = runner.invoke(mcp, ["installation"])
         assert result.exit_code == 2
-        assert "show-installation" in result.output
+        assert "install" in result.output
 
 
 class TestMcpThroughRootGroup:
