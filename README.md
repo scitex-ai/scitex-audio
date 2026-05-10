@@ -15,7 +15,7 @@
 <p align="center"><b>Unified text-to-speech with automatic backend fallback</b></p>
 
 <p align="center">
-  <a href="https://scitex-audio.readthedocs.io/">Full Documentation</a> · <code>pip install scitex-audio</code>
+  <a href="https://scitex-audio.readthedocs.io/">Full Documentation</a> · <code>uv pip install scitex-audio[all]</code>
 </p>
 
 <!-- scitex-badges:start -->
