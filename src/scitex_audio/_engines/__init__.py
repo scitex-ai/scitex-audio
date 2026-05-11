@@ -16,25 +16,36 @@ Engines:
 
 # Import engines (fail gracefully if dependencies missing)
 # Note: BaseTTS and TTSBackend are internal - import from ._base if needed
-try:
-    from ._pyttsx3_engine import SystemTTS
-except ImportError:
-    SystemTTS = None
+from scitex_dev import try_import_optional
 
-try:
-    from ._gtts_engine import GoogleTTS
-except ImportError:
-    GoogleTTS = None
-
-try:
-    from ._elevenlabs_engine import ElevenLabsTTS
-except ImportError:
-    ElevenLabsTTS = None
-
-try:
-    from ._luxtts_engine import LuxTTS
-except ImportError:
-    LuxTTS = None
+SystemTTS = try_import_optional(
+    "._pyttsx3_engine",
+    attr="SystemTTS",
+    extra="pyttsx3",
+    pkg="scitex-audio",
+    package=__name__,
+)
+GoogleTTS = try_import_optional(
+    "._gtts_engine",
+    attr="GoogleTTS",
+    extra="gtts",
+    pkg="scitex-audio",
+    package=__name__,
+)
+ElevenLabsTTS = try_import_optional(
+    "._elevenlabs_engine",
+    attr="ElevenLabsTTS",
+    extra="elevenlabs",
+    pkg="scitex-audio",
+    package=__name__,
+)
+LuxTTS = try_import_optional(
+    "._luxtts_engine",
+    attr="LuxTTS",
+    extra="luxtts",
+    pkg="scitex-audio",
+    package=__name__,
+)
 
 __all__ = [
     "SystemTTS",

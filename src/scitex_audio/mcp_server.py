@@ -32,13 +32,12 @@ from ._env_loader import load_scitex_audio_env
 load_scitex_audio_env()
 
 # Graceful FastMCP dependency handling
-try:
-    from fastmcp import FastMCP
+from scitex_dev import try_import_optional
 
-    FASTMCP_AVAILABLE = True
-except ImportError:
-    FASTMCP_AVAILABLE = False
-    FastMCP = None  # type: ignore
+FastMCP = try_import_optional(
+    "fastmcp", attr="FastMCP", extra="mcp", pkg="scitex-audio"
+)
+FASTMCP_AVAILABLE = FastMCP is not None
 
 __all__ = [
     "mcp",
