@@ -1,0 +1,4 @@
+audit:
+  root-whitelist:
+    files:
+      - codecov.yml

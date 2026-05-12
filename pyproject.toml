@@ -116,6 +116,11 @@ python_files = ["test_*.py"]
 asyncio_mode = "auto"
 addopts = "--cov=scitex_audio --cov-report=term-missing --cov-report=html:tests/coverage"
 
+[tool.coverage.run]
+parallel = true
+source = ["scitex_audio"]
+concurrency = ["multiprocessing", "thread"]
+
 [tool.ruff]
 line-length = 88
 target-version = "py310"
