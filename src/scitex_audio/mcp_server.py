@@ -61,13 +61,14 @@ else:
 
 
 def _get_audio_dir() -> Path:
-    """Get the audio output directory."""
-    import os
+    """Get the directory where generated TTS files are written.
 
-    base_dir = Path(os.getenv("SCITEX_DIR", Path.home() / ".scitex"))
-    audio_dir = base_dir / "audio"
-    audio_dir.mkdir(parents=True, exist_ok=True)
-    return audio_dir
+    Returns ``~/.scitex/audio/runtime/tts/`` — under the ``runtime/``
+    carve-out (the only untracked subtree of the audio state dir).
+    """
+    from ._state_paths import tts_output_dir
+
+    return tts_output_dir()
 
 
 if FASTMCP_AVAILABLE:

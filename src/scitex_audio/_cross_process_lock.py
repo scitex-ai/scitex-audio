@@ -18,11 +18,21 @@ import time
 from contextlib import contextmanager
 from pathlib import Path
 
+from ._state_paths import audio_playback_lock_path, audio_state_base
+
 __all__ = ["AudioPlaybackLock", "acquire_audio_lock"]
 
-# Lock file location
+# Lock file location.
+#
+# The lock file lives under the ``runtime/`` carve-out of the audio state
+# dir (``~/.scitex/audio/runtime/locks/audio_playback.lock``). The rest of
+# ``~/.scitex/audio/`` is operator-tracked via dotfiles; ``runtime/`` is
+# the only untracked subtree where ephemeral artifacts may land.
 SCITEX_BASE_DIR = Path(os.getenv("SCITEX_DIR", Path.home() / ".scitex"))
-LOCK_FILE = SCITEX_BASE_DIR / "audio" / ".audio_playback.lock"
+# Kept for backwards compat: directory that holds the lock's enclosing
+# tracked root (i.e. ``~/.scitex/audio/``). Do not write to this directly.
+AUDIO_STATE_DIR = audio_state_base()
+LOCK_FILE = audio_playback_lock_path()
 
 
 class AudioPlaybackLock:
