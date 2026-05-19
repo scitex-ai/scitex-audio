@@ -14,35 +14,55 @@ import pytest
 class TestRelayClient:
     """Tests for RelayClient class."""
 
-    def test_init_with_url(self):
-        """Test client initialization with explicit URL."""
+    def test_init_with_url_client_base_url_equals_http_localhost_9999(self):
+        # Arrange
         from scitex_audio._relay import RelayClient
-
+        # Act
         client = RelayClient("http://localhost:9999")
+        # Act
+        # Assert
         assert client.base_url == "http://localhost:9999"
+
+    def test_init_with_url_client_timeout_equals_n_30(self):
+        # Arrange
+        from scitex_audio._relay import RelayClient
+        # Act
+        client = RelayClient("http://localhost:9999")
+        # Act
+        # Assert
         assert client.timeout == 30
+
 
     def test_init_with_trailing_slash(self):
         """Test URL trailing slash is stripped."""
+        # Arrange
         from scitex_audio._relay import RelayClient
 
+        # Act
         client = RelayClient("http://localhost:9999/")
+        # Assert
         assert client.base_url == "http://localhost:9999"
 
     def test_init_with_custom_timeout(self):
         """Test client initialization with custom timeout."""
+        # Arrange
         from scitex_audio._relay import RelayClient
 
+        # Act
         client = RelayClient("http://localhost:9999", timeout=60)
+        # Assert
         assert client.timeout == 60
 
     @patch("scitex_audio._relay.get_relay_url")
     def test_init_auto_detect_url(self, mock_get_url):
         """Test client auto-detects URL from environment."""
+        # Arrange
         from scitex_audio._relay import RelayClient
 
         mock_get_url.return_value = "http://auto-detected:31293"
+        # Act
         client = RelayClient()
+        # Assert
         assert client.base_url == "http://auto-detected:31293"
 
 
@@ -90,23 +110,32 @@ class TestRelayClientMethods:
 
         server.shutdown()
 
-    def test_health_check(self, mock_server):
+    def test_health_check_result_status_healthy(self, mock_server):
         """Test health check endpoint."""
+        # Arrange
         from scitex_audio._relay import RelayClient
 
         client = RelayClient(mock_server, timeout=5)
+        # Act
         result = client.health()
+        # Assert
         assert result["status"] == "healthy"
 
-    def test_is_available(self, mock_server):
+    def test_is_available_client_is_available_is_true(self, mock_server):
         """Test availability check."""
+        # Arrange
         from scitex_audio._relay import RelayClient
 
+        # Act
         client = RelayClient(mock_server, timeout=5)
+        # Assert
         assert client.is_available() is True
 
     def test_is_available_unreachable(self):
         """Test availability check for unreachable server."""
+        # Arrange
+        # Act
+        # Assert
         from scitex_audio._relay import RelayClient
 
         # Mock the health method to raise an exception
@@ -114,21 +143,36 @@ class TestRelayClientMethods:
         with patch.object(client, "health", side_effect=ConnectionError("unreachable")):
             assert client.is_available() is False
 
-    def test_speak(self, mock_server):
-        """Test speak request."""
+    def test_speak_result_success_is_true(self, mock_server):
+        # Arrange
         from scitex_audio._relay import RelayClient
-
         client = RelayClient(mock_server, timeout=5)
+        # Act
         result = client.speak("Hello test")
+        # Act
+        # Assert
         assert result["success"] is True
+
+    def test_speak_result_text_hello_test(self, mock_server):
+        # Arrange
+        from scitex_audio._relay import RelayClient
+        client = RelayClient(mock_server, timeout=5)
+        # Act
+        result = client.speak("Hello test")
+        # Act
+        # Assert
         assert result["text"] == "Hello test"
 
-    def test_list_backends(self, mock_server):
+
+    def test_list_backends_backends_in_result(self, mock_server):
         """Test list backends request."""
+        # Arrange
         from scitex_audio._relay import RelayClient
 
         client = RelayClient(mock_server, timeout=5)
+        # Act
         result = client.list_backends()
+        # Assert
         assert "backends" in result
 
 
@@ -137,22 +181,38 @@ class TestModuleFunctions:
 
     def test_get_relay_client_singleton(self):
         """Test relay client singleton."""
+        # Arrange
         from scitex_audio._relay import get_relay_client, reset_relay_client
 
         reset_relay_client()
         client1 = get_relay_client("http://test:1234")
+        # Act
         client2 = get_relay_client()
+        # Assert
         assert client1 is client2
 
-    def test_reset_relay_client(self):
-        """Test relay client reset."""
+    def test_reset_relay_client_client1_is_not_client2(self):
+        # Arrange
         from scitex_audio._relay import get_relay_client, reset_relay_client
-
         client1 = get_relay_client("http://test:1234")
         reset_relay_client()
+        # Act
         client2 = get_relay_client("http://test:5678")
+        # Act
+        # Assert
         assert client1 is not client2
+
+    def test_reset_relay_client_client2_base_url_equals_http_test_5678(self):
+        # Arrange
+        from scitex_audio._relay import get_relay_client, reset_relay_client
+        client1 = get_relay_client("http://test:1234")
+        reset_relay_client()
+        # Act
+        client2 = get_relay_client("http://test:5678")
+        # Act
+        # Assert
         assert client2.base_url == "http://test:5678"
+
 
 
 class TestBrandingFunctions:
@@ -160,6 +220,9 @@ class TestBrandingFunctions:
 
     def test_get_ssh_client_ip_with_ssh_client(self):
         """Test SSH client IP extraction from SSH_CLIENT."""
+        # Arrange
+        # Act
+        # Assert
         from scitex_audio._branding import get_ssh_client_ip
 
         with patch.dict(os.environ, {"SSH_CLIENT": "192.168.1.100 54321 22"}):
@@ -167,6 +230,9 @@ class TestBrandingFunctions:
 
     def test_get_ssh_client_ip_with_ssh_connection(self):
         """Test SSH client IP extraction from SSH_CONNECTION."""
+        # Arrange
+        # Act
+        # Assert
         from scitex_audio._branding import get_ssh_client_ip
 
         with patch.dict(
@@ -178,6 +244,9 @@ class TestBrandingFunctions:
 
     def test_get_ssh_client_ip_not_in_ssh(self):
         """Test SSH client IP when not in SSH session."""
+        # Arrange
+        # Act
+        # Assert
         from scitex_audio._branding import get_ssh_client_ip
 
         with patch.dict(os.environ, {}, clear=True):
@@ -187,6 +256,9 @@ class TestBrandingFunctions:
 
     def test_get_relay_url_from_env(self):
         """Test relay URL from environment variable."""
+        # Arrange
+        # Act
+        # Assert
         from scitex_audio._branding import get_relay_url
 
         with patch.dict(os.environ, {"SCITEX_AUDIO_RELAY_URL": "http://custom:8080"}):
@@ -194,6 +266,9 @@ class TestBrandingFunctions:
 
     def test_get_relay_url_from_host_port(self):
         """Test relay URL built from host and port."""
+        # Arrange
+        # Act
+        # Assert
         from scitex_audio._branding import get_relay_url
 
         env = {
@@ -212,6 +287,9 @@ class TestSpeakHandlers:
 
     def test_speak_local_handler_success(self):
         """Test local speak handler with play=False (skips sink check)."""
+        # Arrange
+        # Act
+        # Assert
         import asyncio
 
         from scitex_audio._mcp.speak_handlers import speak_local_handler
@@ -227,23 +305,26 @@ class TestSpeakHandlers:
         with patch.dict(os.environ, {"SCITEX_AUDIO_MODE": "local"}, clear=False):
             with patch("scitex_audio.speak", return_value=mock_result):
                 result = asyncio.run(speak_local_handler("Test text", play=False))
-                assert result["success"] is True
-                assert result["text"] == "Test text"
-                assert result["played_on"] == "server"
+                assert (result['success'] is True) and (result['text'] == 'Test text') and (result['played_on'] == 'server')
 
     def test_speak_local_handler_fails_when_mode_remote(self):
         """Test local speak handler fails when SCITEX_AUDIO_MODE=remote."""
+        # Arrange
+        # Act
+        # Assert
         import asyncio
 
         from scitex_audio._mcp.speak_handlers import speak_local_handler
 
         with patch.dict(os.environ, {"SCITEX_AUDIO_MODE": "remote"}, clear=False):
             result = asyncio.run(speak_local_handler("Test text"))
-            assert result["success"] is False
-            assert "SCITEX_AUDIO_MODE=remote" in result["error"]
+            assert (result['success'] is False) and ('SCITEX_AUDIO_MODE=remote' in result['error'])
 
     def test_speak_local_handler_fails_when_sink_suspended(self):
         """Test local speak handler fails when sink is SUSPENDED."""
+        # Arrange
+        # Act
+        # Assert
         import asyncio
 
         from scitex_audio._mcp.speak_handlers import speak_local_handler
@@ -255,11 +336,13 @@ class TestSpeakHandlers:
                 return_value=mock_sink,
             ):
                 result = asyncio.run(speak_local_handler("Test text", play=True))
-                assert result["success"] is False
-                assert "SUSPENDED" in result.get("sink_state", "")
+                assert (result['success'] is False) and ('SUSPENDED' in result.get('sink_state', ''))
 
     def test_speak_relay_handler_no_url(self):
         """Test relay handler when no URL configured."""
+        # Arrange
+        # Act
+        # Assert
         import asyncio
 
         from scitex_audio._mcp.speak_handlers import speak_relay_handler
@@ -270,9 +353,7 @@ class TestSpeakHandlers:
                 return_value=None,
             ):
                 result = asyncio.run(speak_relay_handler("Test"))
-                assert result["success"] is False
-                assert "not configured" in result["error"]
-                assert "instructions" in result
+                assert (result['success'] is False) and ('not configured' in result['error']) and ('instructions' in result)
 
 
 if __name__ == "__main__":

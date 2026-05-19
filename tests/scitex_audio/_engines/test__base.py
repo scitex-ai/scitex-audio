@@ -15,24 +15,73 @@ import pytest
 class TestTTSBackend:
     """Tests for TTSBackend class."""
 
-    def test_backend_constants(self):
-        """Test that backend constants are defined correctly."""
+    def test_backend_constants_ttsbackend_elevenlabs_equals_elevenlabs(self):
+        # Arrange
+        # Act
+        # Arrange
+        # Act
+        # Arrange
+        # Act
         from scitex_audio._engines._base import TTSBackend
 
+        # Act
+        # Assert
         assert TTSBackend.ELEVENLABS == "elevenlabs"
+
+    def test_backend_constants_ttsbackend_gtts_equals_gtts(self):
+        # Arrange
+        # Act
+        # Arrange
+        # Act
+        # Arrange
+        # Act
+        from scitex_audio._engines._base import TTSBackend
+
+        # Act
+        # Assert
         assert TTSBackend.GTTS == "gtts"
+
+    def test_backend_constants_ttsbackend_pyttsx3_equals_pyttsx3(self):
+        # Arrange
+        # Act
+        # Arrange
+        # Act
+        # Arrange
+        # Act
+        from scitex_audio._engines._base import TTSBackend
+
+        # Act
+        # Assert
         assert TTSBackend.PYTTSX3 == "pyttsx3"
+
+    def test_backend_constants_ttsbackend_edge_equals_edge(self):
+        # Arrange
+        # Act
+        # Arrange
+        # Act
+        # Arrange
+        # Act
+        from scitex_audio._engines._base import TTSBackend
+
+        # Act
+        # Assert
         assert TTSBackend.EDGE == "edge"
 
     def test_available_returns_list(self):
         """Test that available() returns a list."""
+        # Arrange
         from scitex_audio._engines._base import TTSBackend
 
+        # Act
         result = TTSBackend.available()
+        # Assert
         assert isinstance(result, list)
 
     def test_available_detects_gtts_when_installed(self):
         """Test that available() detects gTTS when installed."""
+        # Arrange
+        # Act
+        # Assert
         from scitex_audio._engines._base import TTSBackend
 
         with patch.dict("sys.modules", {"gtts": MagicMock()}):
@@ -43,10 +92,13 @@ class TestTTSBackend:
 
     def test_available_handles_missing_modules_gracefully(self):
         """Test that available() handles ImportError gracefully."""
+        # Arrange
         from scitex_audio._engines._base import TTSBackend
 
         # Should not raise even if modules are missing
+        # Act
         result = TTSBackend.available()
+        # Assert
         assert isinstance(result, list)
 
 
@@ -55,13 +107,16 @@ class TestBaseTTS:
 
     def test_cannot_instantiate_directly(self):
         """Test that BaseTTS cannot be instantiated directly."""
+        # Arrange
+        # Act
         from scitex_audio._engines._base import BaseTTS
 
+        # Assert
         with pytest.raises(TypeError):
             BaseTTS()
 
-    def test_config_stored_correctly(self):
-        """Test that config kwargs are stored."""
+    def test_config_stored_correctly_tts_config_key1_value1(self):
+        # Arrange
         from scitex_audio._engines._base import BaseTTS
 
         class ConcreteTTS(BaseTTS):
@@ -75,12 +130,36 @@ class TestBaseTTS:
             def name(self):
                 return "test"
 
+        # Act
         tts = ConcreteTTS(key1="value1", key2="value2")
+        # Act
+        # Assert
         assert tts.config["key1"] == "value1"
+
+    def test_config_stored_correctly_tts_config_key2_value2(self):
+        # Arrange
+        from scitex_audio._engines._base import BaseTTS
+
+        class ConcreteTTS(BaseTTS):
+            def synthesize(self, text, output_path):
+                return Path(output_path)
+
+            def get_voices(self):
+                return []
+
+            @property
+            def name(self):
+                return "test"
+
+        # Act
+        tts = ConcreteTTS(key1="value1", key2="value2")
+        # Act
+        # Assert
         assert tts.config["key2"] == "value2"
 
     def test_requires_api_key_default_false(self):
         """Test that requires_api_key defaults to False."""
+        # Arrange
         from scitex_audio._engines._base import BaseTTS
 
         class ConcreteTTS(BaseTTS):
@@ -94,11 +173,14 @@ class TestBaseTTS:
             def name(self):
                 return "test"
 
+        # Act
         tts = ConcreteTTS()
+        # Assert
         assert tts.requires_api_key is False
 
     def test_requires_internet_default_false(self):
         """Test that requires_internet defaults to False."""
+        # Arrange
         from scitex_audio._engines._base import BaseTTS
 
         class ConcreteTTS(BaseTTS):
@@ -112,11 +194,13 @@ class TestBaseTTS:
             def name(self):
                 return "test"
 
+        # Act
         tts = ConcreteTTS()
+        # Assert
         assert tts.requires_internet is False
 
-    def test_speak_with_output_path(self, tmp_path):
-        """Test speak() returns dict with path when output_path is provided."""
+    def test_speak_with_output_path_result_success_is_true(self, tmp_path):
+        # Arrange
         from scitex_audio._engines._base import BaseTTS
 
         class ConcreteTTS(BaseTTS):
@@ -135,17 +219,74 @@ class TestBaseTTS:
 
         tts = ConcreteTTS()
         output_file = tmp_path / "test.mp3"
-
         # Mock _play_audio to avoid actual playback
+        # Act
         with patch.object(tts, "_play_audio", return_value=True):
             result = tts.speak("Hello", output_path=str(output_file), play=True)
-
+        # Act
+        # Assert
         assert result["success"] is True
+
+    def test_speak_with_output_path_result_path_output_file(self, tmp_path):
+        # Arrange
+        from scitex_audio._engines._base import BaseTTS
+
+        class ConcreteTTS(BaseTTS):
+            def synthesize(self, text, output_path):
+                # Create a dummy file
+                path = Path(output_path)
+                path.write_text("dummy audio")
+                return path
+
+            def get_voices(self):
+                return []
+
+            @property
+            def name(self):
+                return "test"
+
+        tts = ConcreteTTS()
+        output_file = tmp_path / "test.mp3"
+        # Mock _play_audio to avoid actual playback
+        # Act
+        with patch.object(tts, "_play_audio", return_value=True):
+            result = tts.speak("Hello", output_path=str(output_file), play=True)
+        # Act
+        # Assert
         assert result["path"] == output_file
+
+    def test_speak_with_output_path_output_file_exists(self, tmp_path):
+        # Arrange
+        from scitex_audio._engines._base import BaseTTS
+
+        class ConcreteTTS(BaseTTS):
+            def synthesize(self, text, output_path):
+                # Create a dummy file
+                path = Path(output_path)
+                path.write_text("dummy audio")
+                return path
+
+            def get_voices(self):
+                return []
+
+            @property
+            def name(self):
+                return "test"
+
+        tts = ConcreteTTS()
+        output_file = tmp_path / "test.mp3"
+        # Mock _play_audio to avoid actual playback
+        # Act
+        with patch.object(tts, "_play_audio", return_value=True):
+            result = tts.speak("Hello", output_path=str(output_file), play=True)
+        # Act
+        # Assert
         assert output_file.exists()
 
-    def test_speak_without_output_path_returns_dict(self, tmp_path):
-        """Test speak() returns dict without path when no output_path is provided."""
+    def test_speak_without_output_path_returns_dict_result_success_is_true(
+        self, tmp_path
+    ):
+        # Arrange
         from scitex_audio._engines._base import BaseTTS
 
         class ConcreteTTS(BaseTTS):
@@ -162,15 +303,41 @@ class TestBaseTTS:
                 return "test"
 
         tts = ConcreteTTS()
-
+        # Act
         with patch.object(tts, "_play_audio", return_value=True):
             result = tts.speak("Hello", play=True)
-
+        # Act
+        # Assert
         assert result["success"] is True
+
+    def test_speak_without_output_path_returns_dict_path_not_in_result(self, tmp_path):
+        # Arrange
+        from scitex_audio._engines._base import BaseTTS
+
+        class ConcreteTTS(BaseTTS):
+            def synthesize(self, text, output_path):
+                path = Path(output_path)
+                path.write_text("dummy audio")
+                return path
+
+            def get_voices(self):
+                return []
+
+            @property
+            def name(self):
+                return "test"
+
+        tts = ConcreteTTS()
+        # Act
+        with patch.object(tts, "_play_audio", return_value=True):
+            result = tts.speak("Hello", play=True)
+        # Act
+        # Assert
         assert "path" not in result
 
     def test_speak_sets_voice_in_config(self, tmp_path):
         """Test that speak() sets voice in config when provided."""
+        # Arrange
         from scitex_audio._engines._base import BaseTTS
 
         class ConcreteTTS(BaseTTS):
@@ -189,13 +356,18 @@ class TestBaseTTS:
         tts = ConcreteTTS()
         output_file = tmp_path / "test.mp3"
 
+        # Act
         with patch.object(tts, "_play_audio"):
             tts.speak("Hello", output_path=str(output_file), voice="custom_voice")
 
+        # Assert
         assert tts.config.get("voice") == "custom_voice"
 
     def test_speak_without_play(self, tmp_path):
         """Test speak() does not play when play=False."""
+        # Arrange
+        # Act
+        # Assert
         from scitex_audio._engines._base import BaseTTS
 
         class ConcreteTTS(BaseTTS):
@@ -217,9 +389,13 @@ class TestBaseTTS:
         with patch.object(tts, "_play_audio") as mock_play:
             tts.speak("Hello", output_path=str(output_file), play=False)
             mock_play.assert_not_called()
+            assert not mock_play.called
 
     def test_play_audio_tries_multiple_players(self, tmp_path):
         """Test _play_audio tries multiple players."""
+        # Arrange
+        # Act
+        # Assert
         from scitex_audio._engines._base import BaseTTS
 
         class ConcreteTTS(BaseTTS):
@@ -242,9 +418,13 @@ class TestBaseTTS:
             mock_run.side_effect = FileNotFoundError("player not found")
             # Should not raise, just print warning
             tts._play_audio(test_file)
+            assert mock_run.called
 
     def test_play_audio_handles_timeout(self, tmp_path):
         """Test _play_audio handles timeout gracefully."""
+        # Arrange
+        # Act
+        # Assert
         import subprocess
 
         from scitex_audio._engines._base import BaseTTS
@@ -268,12 +448,14 @@ class TestBaseTTS:
             mock_run.side_effect = subprocess.TimeoutExpired("ffplay", 30)
             # Should not raise
             tts._play_audio(test_file)
+            assert mock_run.called
 
     @pytest.mark.skipif(
         not os.path.exists("/mnt/c/Windows"), reason="WSL-specific test"
     )
     def test_play_audio_windows_wsl_fallback(self, tmp_path):
         """Test Windows fallback in WSL environment."""
+        # Arrange
         from scitex_audio._engines._base import BaseTTS
 
         class ConcreteTTS(BaseTTS):
@@ -292,11 +474,16 @@ class TestBaseTTS:
         test_file.write_text("dummy")
 
         # Test that Windows fallback is attempted
+        # Act
         result = tts._play_audio_windows(test_file)
+        # Assert
         assert isinstance(result, bool)
 
     def test_play_audio_windows_returns_false_on_non_wsl(self, tmp_path):
         """Test _play_audio_windows returns False when not in WSL."""
+        # Arrange
+        # Act
+        # Assert
         from scitex_audio._engines._base import BaseTTS
 
         class ConcreteTTS(BaseTTS):
@@ -324,8 +511,10 @@ class TestAbstractMethodsEnforced:
 
     def test_synthesize_is_abstract(self):
         """Test that synthesize must be implemented."""
+        # Arrange
         from scitex_audio._engines._base import BaseTTS
 
+        # Act
         class IncompleteTTS(BaseTTS):
             def get_voices(self):
                 return []
@@ -334,13 +523,16 @@ class TestAbstractMethodsEnforced:
             def name(self):
                 return "test"
 
+        # Assert
         with pytest.raises(TypeError):
             IncompleteTTS()
 
     def test_get_voices_is_abstract(self):
         """Test that get_voices must be implemented."""
+        # Arrange
         from scitex_audio._engines._base import BaseTTS
 
+        # Act
         class IncompleteTTS(BaseTTS):
             def synthesize(self, text, output_path):
                 return Path(output_path)
@@ -349,13 +541,16 @@ class TestAbstractMethodsEnforced:
             def name(self):
                 return "test"
 
+        # Assert
         with pytest.raises(TypeError):
             IncompleteTTS()
 
     def test_name_is_abstract(self):
         """Test that name property must be implemented."""
+        # Arrange
         from scitex_audio._engines._base import BaseTTS
 
+        # Act
         class IncompleteTTS(BaseTTS):
             def synthesize(self, text, output_path):
                 return Path(output_path)
@@ -363,6 +558,7 @@ class TestAbstractMethodsEnforced:
             def get_voices(self):
                 return []
 
+        # Assert
         with pytest.raises(TypeError):
             IncompleteTTS()
 
