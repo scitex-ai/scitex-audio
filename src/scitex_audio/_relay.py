@@ -86,18 +86,29 @@ class RelayClient:
             ) from e
 
     def health(self) -> Dict[str, Any]:
-        """Check relay server health."""
+        """Check relay server health.
+
+        Returns the server's ``/health`` payload when reachable. If the
+        server is unreachable or lacks ``/health``, returns a fallback dict
+        with ``status == "unknown"`` rather than raising — callers wanting a
+        reachability boolean should use :meth:`is_available`.
+        """
         try:
             # Try MCP health endpoint
             return self._request("/health", method="GET")
         except Exception:
-            # Relay may not have /health, try simple request
+            # Relay may not have /health, or is unreachable.
             return {"status": "unknown", "url": self.base_url}
 
     def is_available(self) -> bool:
-        """Check if relay server is reachable."""
+        """Check if relay server is reachable.
+
+        Issues a real ``/health`` request and returns True only when the
+        server responds. A connection error (no listener, refused, timed
+        out) returns False.
+        """
         try:
-            self.health()
+            self._request("/health", method="GET")
             return True
         except Exception:
             return False

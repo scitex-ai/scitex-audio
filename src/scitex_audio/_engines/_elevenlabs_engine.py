@@ -68,6 +68,7 @@ class ElevenLabsTTS(BaseTTS):
         stability: float = 0.5,
         similarity_boost: float = 0.75,
         speed: float = 1.0,
+        client=None,
         **kwargs,
     ):
         super().__init__(**kwargs)
@@ -82,7 +83,9 @@ class ElevenLabsTTS(BaseTTS):
         self.similarity_boost = similarity_boost
         # Clamp speed to ElevenLabs API limits (0.7-1.2)
         self.speed = max(self.MIN_SPEED, min(self.MAX_SPEED, speed))
-        self._client = None
+        # Optional injected client (testing / custom transport). When None,
+        # the real ElevenLabs SDK is lazy-loaded on first `client` access.
+        self._client = client
 
     @property
     def name(self) -> str:

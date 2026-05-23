@@ -12,11 +12,13 @@ branches MUST NOT set this — drift goes silent.
 """
 
 import shutil
+from contextlib import nullcontext as does_not_raise
 
 import pytest
 
 
 def test_audit_all_clean():
+    # Arrange
     if shutil.which("scitex-dev") is None:
         pytest.skip(
             "scitex-dev not installed — add `scitex-dev[cli-audit]` "
@@ -24,4 +26,8 @@ def test_audit_all_clean():
         )
     from scitex_dev.testing import audit_all_for_package
 
-    audit_all_for_package('scitex-audio')
+    # Act
+    ctx = does_not_raise()
+    # Assert
+    with ctx:
+        audit_all_for_package("scitex-audio")

@@ -41,13 +41,16 @@ class SystemTTS(BaseTTS):
         rate: int = 150,  # Words per minute
         volume: float = 1.0,  # 0.0 to 1.0
         voice: Optional[str] = None,
+        engine=None,
         **kwargs,
     ):
         super().__init__(**kwargs)
         self.rate = rate
         self.volume = volume
         self.voice = voice
-        self._engine = None
+        # Optional injected pyttsx3 engine (testing). When None, the real
+        # pyttsx3 engine is lazy-initialized on first `engine` access.
+        self._engine = engine
 
     @property
     def name(self) -> str:

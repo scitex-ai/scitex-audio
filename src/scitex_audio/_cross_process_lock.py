@@ -125,11 +125,14 @@ class AudioPlaybackLock:
 
 
 @contextmanager
-def acquire_audio_lock(timeout: float | None = 60.0):
+def acquire_audio_lock(timeout: float | None = 60.0, lock_file: Path | None = None):
     """Context manager for acquiring the audio playback lock.
 
     Args:
         timeout: Maximum time to wait in seconds (default: 60s).
+        lock_file: Optional explicit lock-file path. Defaults to the
+            module-level ``LOCK_FILE``. Useful for tests, which can point
+            it at a temp file instead of the shared playback lock.
 
     Yields:
         True if lock was acquired.
@@ -137,7 +140,7 @@ def acquire_audio_lock(timeout: float | None = 60.0):
     Raises:
         TimeoutError: If lock could not be acquired within timeout.
     """
-    lock = AudioPlaybackLock()
+    lock = AudioPlaybackLock(lock_file=lock_file)
     try:
         if not lock.acquire(timeout=timeout):
             raise TimeoutError(f"Could not acquire audio lock within {timeout}s")

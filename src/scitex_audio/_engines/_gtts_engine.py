@@ -55,12 +55,30 @@ class GoogleTTS(BaseTTS):
         lang: str = "en",
         slow: bool = False,
         speed: float = 1.5,
+        gtts_factory=None,
         **kwargs,
     ):
         super().__init__(**kwargs)
         self.lang = lang
         self.slow = slow
         self.speed = speed  # 1.0 = normal, >1.0 = faster, <1.0 = slower
+        # Optional injected gTTS factory (testing). A callable with the
+        # gTTS(text=..., lang=..., slow=...) signature returning an object
+        # exposing .save(path) and .write_to_fp(buffer). When None, the real
+        # gTTS class is imported lazily at synthesis time.
+        self._gtts_factory = gtts_factory
+
+    def _resolve_gtts(self):
+        """Return the gTTS factory — injected or the real SDK class."""
+        if self._gtts_factory is not None:
+            return self._gtts_factory
+        try:
+            from gtts import gTTS
+        except ImportError:
+            raise ImportError(
+                "gTTS package not installed. Install with: pip install gTTS"
+            )
+        return gTTS
 
     @property
     def name(self) -> str:
@@ -72,12 +90,7 @@ class GoogleTTS(BaseTTS):
 
     def synthesize(self, text: str, output_path: str) -> Path:
         """Synthesize text using Google TTS with optional speed control."""
-        try:
-            from gtts import gTTS
-        except ImportError:
-            raise ImportError(
-                "gTTS package not installed. Install with: pip install gTTS"
-            )
+        gTTS = self._resolve_gtts()
 
         # Get language from config or use default
         lang = self.config.get("voice", self.lang)
@@ -119,13 +132,14 @@ class GoogleTTS(BaseTTS):
             AudioSegment with adjusted speed.
         """
         try:
-            from gtts import gTTS
             from pydub import AudioSegment
         except ImportError as e:
             raise ImportError(
                 "pydub package required for speed control. "
                 "Install with: pip install pydub"
             ) from e
+
+        gTTS = self._resolve_gtts()
 
         # Generate speech to memory buffer
         with io.BytesIO() as buffer:

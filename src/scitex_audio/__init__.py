@@ -24,7 +24,9 @@ from __future__ import annotations as _annotations
 import subprocess as _subprocess
 
 try:
-    from importlib.metadata import version as _v, PackageNotFoundError
+    from importlib.metadata import PackageNotFoundError
+    from importlib.metadata import version as _v
+
     try:
         __version__ = _v("scitex-audio")
     except PackageNotFoundError:
@@ -106,6 +108,7 @@ __all__ = [
     "stop_speech",
     "get_tts",
     "available_backends",
+    "announce_context",
     # Engine classes
     "TTS",
     "GoogleTTS",
@@ -207,6 +210,82 @@ def generate_bytes(
     """Generate TTS audio as raw bytes without playing."""
     tts = get_tts(backend, **kwargs)
     return tts.to_bytes(text, voice=voice)
+
+
+def announce_context(
+    include_full_path: bool = False,
+    speak_aloud: bool = True,
+    branch_resolver=None,
+    speak_fn=None,
+) -> dict:
+    """Announce the current working directory and git branch.
+
+    Builds an orientation sentence (e.g. ``"Working in scitex-audio, on
+    branch develop"``) and, by default, speaks it aloud. Useful when
+    starting work in a new session.
+
+    Parameters
+    ----------
+    include_full_path : bool
+        Include the absolute path instead of just the directory name.
+    speak_aloud : bool
+        Speak the announcement (default True). When False, only the
+        context dict is returned.
+    branch_resolver : callable, optional
+        Injectable callable ``(cwd: str) -> str | None`` returning the
+        git branch name (testing seam). Defaults to a real
+        ``git rev-parse`` subprocess.
+    speak_fn : callable, optional
+        Injectable speak function (testing seam). Defaults to
+        :func:`speak`.
+
+    Returns
+    -------
+    dict
+        ``{"directory": str, "directory_name": str, "git_branch": str | None,
+        "announced_text": str, "spoke": bool}``.
+    """
+    import os
+    import subprocess
+
+    cwd = os.getcwd()
+    dir_name = cwd if include_full_path else os.path.basename(cwd)
+
+    if branch_resolver is not None:
+        git_branch = branch_resolver(cwd)
+    else:
+        git_branch = None
+        try:
+            result = _subprocess.run(
+                ["git", "rev-parse", "--abbrev-ref", "HEAD"],
+                capture_output=True,
+                text=True,
+                cwd=cwd,
+                timeout=5,
+            )
+            if result.returncode == 0:
+                git_branch = result.stdout.strip()
+        except Exception:
+            pass
+
+    if git_branch:
+        text = f"Working in {dir_name}, on branch {git_branch}"
+    else:
+        text = f"Working in {dir_name}"
+
+    spoke = False
+    if speak_aloud:
+        _speak = speak_fn if speak_fn is not None else speak
+        _speak(text)
+        spoke = True
+
+    return {
+        "directory": cwd,
+        "directory_name": os.path.basename(cwd),
+        "git_branch": git_branch,
+        "announced_text": text,
+        "spoke": spoke,
+    }
 
 
 # EOF
