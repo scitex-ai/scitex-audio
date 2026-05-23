@@ -115,6 +115,9 @@ testpaths = ["tests"]
 python_files = ["test_*.py"]
 asyncio_mode = "auto"
 addopts = "--cov=scitex_audio --cov-report=term-missing --cov-report=html:tests/coverage"
+markers = [
+    "network: end-to-end test that reaches a real network service (e.g. gTTS)",
+]
 
 [tool.coverage.run]
 parallel = true
