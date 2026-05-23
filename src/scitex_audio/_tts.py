@@ -92,6 +92,8 @@ class TTS:
         api_key: Optional[str] = None,
         voice_name: Optional[str] = None,
         voice_id: Optional[str] = None,
+        client=None,
+        client_factory=None,
         **kwargs,
     ):
         """Initialize TTS.
@@ -100,6 +102,12 @@ class TTS:
             api_key: ElevenLabs API key. Defaults to ELEVENLABS_API_KEY env var.
             voice_name: Voice name (e.g., "Adam", "Sarah", "George" — free-tier).
             voice_id: Direct voice ID (overrides voice_name).
+            client: Optional pre-built client (testing). When given, the
+                lazy-load is skipped.
+            client_factory: Optional callable ``(api_key) -> client`` used by
+                the lazy ``client`` property instead of the real ElevenLabs
+                SDK (testing). Lets a test exercise the import-error path
+                without uninstalling the dependency.
             **kwargs: Additional config options (stability, speed, etc.)
         """
         self.api_key = (
@@ -117,21 +125,25 @@ class TTS:
             if normalized in self.VOICES:
                 self.config.voice_id = self.VOICES[normalized]
 
-        self._client = None
+        self._client = client
+        self._client_factory = client_factory
 
     @property
     def client(self):
         """Lazy-load ElevenLabs client."""
         if self._client is None:
-            try:
-                from elevenlabs.client import ElevenLabs
+            if self._client_factory is not None:
+                self._client = self._client_factory(self.api_key)
+            else:
+                try:
+                    from elevenlabs.client import ElevenLabs
 
-                self._client = ElevenLabs(api_key=self.api_key)
-            except ImportError:
-                raise ImportError(
-                    "elevenlabs package not installed. "
-                    "Install with: pip install elevenlabs"
-                )
+                    self._client = ElevenLabs(api_key=self.api_key)
+                except ImportError:
+                    raise ImportError(
+                        "elevenlabs package not installed. "
+                        "Install with: pip install elevenlabs"
+                    )
         return self._client
 
     def speak(
@@ -195,11 +207,19 @@ class TTS:
 
         return out_path if output_path else None
 
-    def _play_audio(self, path: Path) -> None:
+    def _play_audio(self, path: Path, runner=None) -> None:
         """Play audio file using available system player.
 
         Includes Windows fallback for WSL environments.
+
+        Args:
+            path: Audio file to play.
+            runner: Injectable subprocess runner (testing). A callable with
+                the ``subprocess.run`` signature; defaults to the real
+                ``subprocess.run`` when ``None``.
         """
+        run = runner if runner is not None else subprocess.run
+
         # Check if we're in WSL - if so, prefer Windows playback directly
         # to avoid double playback issues with Linux audio hanging
         if os.path.exists("/mnt/c/Windows"):
@@ -216,7 +236,7 @@ class TTS:
 
         for player_cmd in players:
             try:
-                subprocess.run(
+                run(
                     player_cmd,
                     check=True,
                     stdout=subprocess.DEVNULL,
