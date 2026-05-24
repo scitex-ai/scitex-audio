@@ -429,36 +429,41 @@ class TestSystemTTSEdgeCases:
         assert tts.rate == 50
 
 
+@pytest.fixture
+def _real_pyttsx3_engine():
+    """Skip when pyttsx3 / espeak isn't available — lifted into a fixture
+    so the test body keeps a single assertion. TQ007 counts every
+    ``pytest.skip`` / ``importorskip`` call as one assertion construct."""
+    pytest.importorskip("pyttsx3")
+    tts = SystemTTS()
+    try:
+        # Force engine init; if espeak missing, raises RuntimeError.
+        _ = tts.engine
+    except RuntimeError as e:
+        if "espeak" in str(e).lower():
+            pytest.skip("espeak not installed")
+        raise
+    return tts
+
+
 class TestSystemTTSIntegration:
     """Integration tests for SystemTTS (require pyttsx3 installed)."""
 
     @pytest.mark.slow
-    def test_real_engine_initialization_returns_non_none(self):
+    def test_real_engine_initialization_returns_non_none(self, _real_pyttsx3_engine):
         # Arrange
-        pytest.importorskip("pyttsx3")
-        tts = SystemTTS()
+        tts = _real_pyttsx3_engine
         # Act
-        try:
-            engine = tts.engine
-        except RuntimeError as e:
-            if "espeak" in str(e).lower():
-                pytest.skip("espeak not installed")
-            raise
+        engine = tts.engine
         # Assert
         assert engine is not None
 
     @pytest.mark.slow
-    def test_real_get_voices_returns_list_type(self):
+    def test_real_get_voices_returns_list_type(self, _real_pyttsx3_engine):
         # Arrange
-        pytest.importorskip("pyttsx3")
-        tts = SystemTTS()
+        tts = _real_pyttsx3_engine
         # Act
-        try:
-            voices = tts.get_voices()
-        except RuntimeError as e:
-            if "espeak" in str(e).lower():
-                pytest.skip("espeak not installed")
-            raise
+        voices = tts.get_voices()
         # Assert
         assert isinstance(voices, list)
 

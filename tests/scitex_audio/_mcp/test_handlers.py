@@ -811,6 +811,7 @@ class TestSpeakHandlerCloudRelay:
     def test_cloud_mode_returns_browser_relay_backend(self, swap):
         # Arrange
         swap.env("SCITEX_CLOUD", "true")
+        # Act
         with _StderrCapture():
             result = _run(_handlers.speak_handler(text="hello cloud"))
         # Assert
@@ -819,6 +820,7 @@ class TestSpeakHandlerCloudRelay:
     def test_cloud_mode_returns_cloud_relay_mode_string(self, swap):
         # Arrange
         swap.env("SCITEX_CLOUD", "true")
+        # Act
         with _StderrCapture():
             result = _run(_handlers.speak_handler(text="hello cloud"))
         # Assert
@@ -827,6 +829,7 @@ class TestSpeakHandlerCloudRelay:
     def test_cloud_mode_returns_success_true(self, swap):
         # Arrange
         swap.env("SCITEX_CLOUD", "true")
+        # Act
         with _StderrCapture():
             result = _run(_handlers.speak_handler(text="hello cloud"))
         # Assert
@@ -835,6 +838,7 @@ class TestSpeakHandlerCloudRelay:
     def test_cloud_mode_returns_played_true(self, swap):
         # Arrange
         swap.env("SCITEX_CLOUD", "true")
+        # Act
         with _StderrCapture():
             result = _run(_handlers.speak_handler(text="hello cloud"))
         # Assert
@@ -858,6 +862,7 @@ class TestSpeakHandlerCloudRelay:
         swap.env("SCITEX_CLOUD", "true")
         fake_sig = "myhost. myproject. main. "
         swap.attr(_handlers, "_get_signature", lambda: fake_sig)
+        # Act
         with _StderrCapture():
             result = _run(_handlers.speak_handler(text="msg", signature=True))
         # Assert
@@ -868,6 +873,7 @@ class TestSpeakHandlerCloudRelay:
         swap.env("SCITEX_CLOUD", "true")
         fake_sig = "myhost. myproject. main. "
         swap.attr(_handlers, "_get_signature", lambda: fake_sig)
+        # Act
         with _StderrCapture():
             result = _run(_handlers.speak_handler(text="msg", signature=True))
         # Assert
@@ -876,6 +882,7 @@ class TestSpeakHandlerCloudRelay:
     def test_no_signature_kwarg_omits_signature_key_in_envelope(self, swap):
         # Arrange
         swap.env("SCITEX_CLOUD", "true")
+        # Act
         with _StderrCapture():
             result = _run(_handlers.speak_handler(text="no sig"))
         # Assert
@@ -884,6 +891,7 @@ class TestSpeakHandlerCloudRelay:
     def test_no_signature_kwarg_omits_full_text_key_in_envelope(self, swap):
         # Arrange
         swap.env("SCITEX_CLOUD", "true")
+        # Act
         with _StderrCapture():
             result = _run(_handlers.speak_handler(text="no sig"))
         # Assert

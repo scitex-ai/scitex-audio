@@ -257,11 +257,13 @@ class TestBaseTTS:
         # Assert
         assert isinstance(result, bool)
 
+    @pytest.mark.skipif(
+        os.path.exists("/mnt/c/Windows"),
+        reason="WSL host present — non-WSL branch can't be reached",
+    )
     def test_play_audio_windows_returns_false_on_non_wsl_host(self, tmp_path):
         # Arrange — when /mnt/c/Windows is absent, production short-circuits
         # to False. This box is non-WSL, so we can observe the real path.
-        if os.path.exists("/mnt/c/Windows"):
-            pytest.skip("WSL host present — non-WSL branch can't be reached")
         tts = _ConcreteTTS()
         test_file = tmp_path / "test.wav"
         test_file.write_text("dummy")
