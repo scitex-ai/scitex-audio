@@ -41,6 +41,8 @@ class SystemTTS(BaseTTS):
         rate: int = 150,  # Words per minute
         volume: float = 1.0,  # 0.0 to 1.0
         voice: Optional[str] = None,
+        *,
+        engine_factory=None,
         **kwargs,
     ):
         super().__init__(**kwargs)
@@ -48,6 +50,10 @@ class SystemTTS(BaseTTS):
         self.volume = volume
         self.voice = voice
         self._engine = None
+        # Allows tests to inject a hand-rolled fake engine without
+        # patching `pyttsx3` in `sys.modules`. Defaults to
+        # `pyttsx3.init` resolved lazily so import remains optional.
+        self._engine_factory = engine_factory
 
     @property
     def name(self) -> str:
@@ -58,9 +64,12 @@ class SystemTTS(BaseTTS):
         """Lazy-load pyttsx3 engine."""
         if self._engine is None:
             try:
-                import pyttsx3
+                if self._engine_factory is not None:
+                    self._engine = self._engine_factory()
+                else:
+                    import pyttsx3
 
-                self._engine = pyttsx3.init()
+                    self._engine = pyttsx3.init()
                 self._engine.setProperty("rate", self.rate)
                 self._engine.setProperty("volume", self.volume)
 

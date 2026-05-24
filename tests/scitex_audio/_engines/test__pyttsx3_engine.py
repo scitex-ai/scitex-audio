@@ -1,465 +1,428 @@
 #!/usr/bin/env python3
-# Timestamp: 2026-01-04
-# File: tests/scitex/audio/engines/test_pyttsx3_engine.py
+# Timestamp: 2026-05-23
+# File: tests/scitex_audio/_engines/test__pyttsx3_engine.py
 
-"""Tests for scitex.audio.engines.pyttsx3_engine module."""
+"""Tests for scitex_audio._engines._pyttsx3_engine.
 
+Rewritten to honour the no-mocks rule. The pyttsx3 engine is the
+canonical "external library with side effects" collaborator; the
+production class now accepts an `engine_factory=` keyword-only
+parameter that lets tests inject a hand-rolled `_FakeEngine` without
+patching `sys.modules`.
+
+Tests that previously verified `setProperty.assert_any_call(...)` are
+re-shaped to assert on the fake's recorded state (`engine.properties`,
+`engine.said`, etc.), which is real observable production state
+rather than mock-internal accounting.
+"""
+
+import os
 import sys
-from unittest.mock import MagicMock, patch
+from dataclasses import dataclass, field
+from pathlib import Path
+from typing import Any
 
 import pytest
 
+from scitex_audio._engines._base import BaseTTS
+from scitex_audio._engines._pyttsx3_engine import SystemTTS
 
-def _make_pyttsx3_mock(mock_engine=None):
-    """Create a mock pyttsx3 module with an optional engine mock."""
-    mock_module = MagicMock()
-    if mock_engine is not None:
-        mock_module.init.return_value = mock_engine
-    return mock_module
+
+@dataclass
+class _FakeVoice:
+    name: str
+    id: str
+    languages: list = field(default_factory=list)
+
+
+class _FakeEngine:
+    """Hand-rolled fake of the pyttsx3 engine API surface used by SystemTTS."""
+
+    def __init__(self, voices=None) -> None:
+        self.properties: dict[str, Any] = {}
+        self.voices = voices if voices is not None else []
+        self.saved: list[tuple[str, str]] = []
+        self.said: list[str] = []
+        self.run_calls = 0
+
+    def setProperty(self, name: str, value: Any) -> None:
+        self.properties[name] = value
+
+    def getProperty(self, name: str):
+        if name == "voices":
+            return self.voices
+        return self.properties.get(name)
+
+    def save_to_file(self, text: str, path: str) -> None:
+        self.saved.append((text, path))
+        # Write a placeholder so callers that check the file get something.
+        Path(path).write_bytes(b"FAKE_AUDIO")
+
+    def say(self, text: str) -> None:
+        self.said.append(text)
+
+    def runAndWait(self) -> None:
+        self.run_calls += 1
+
+
+def _make_tts(engine: _FakeEngine, **kwargs) -> SystemTTS:
+    """Build a SystemTTS bound to a hand-rolled fake engine."""
+    return SystemTTS(engine_factory=lambda: engine, **kwargs)
+
+
+@pytest.fixture
+def no_pyttsx3():
+    """Hide pyttsx3 from `sys.modules` so production import path raises."""
+    saved = sys.modules.get("pyttsx3", "__MISSING__")
+    sys.modules["pyttsx3"] = None
+    try:
+        yield
+    finally:
+        if saved == "__MISSING__":
+            sys.modules.pop("pyttsx3", None)
+        else:
+            sys.modules["pyttsx3"] = saved
 
 
 class TestSystemTTS:
     """Tests for SystemTTS class."""
 
-    def test_name_property_calls_make_pyttsx3_mock(self):
-        """Test that name returns 'pyttsx3'."""
+    def test_name_property_returns_pyttsx3(self):
         # Arrange
+        tts = _make_tts(_FakeEngine())
         # Act
+        value = tts.name
         # Assert
-        mock_pyttsx3 = _make_pyttsx3_mock()
-        with patch.dict(sys.modules, {"pyttsx3": mock_pyttsx3}):
-            from scitex_audio._engines._pyttsx3_engine import SystemTTS
+        assert value == "pyttsx3"
 
-            tts = SystemTTS()
-            assert tts.name == "pyttsx3"
-
-    def test_default_rate_tts_rate_equals_n_150(self):
-        """Test default rate is 150 WPM."""
+    def test_default_rate_is_one_hundred_fifty(self):
         # Arrange
-        from scitex_audio._engines._pyttsx3_engine import SystemTTS
-
-        # Act
         tts = SystemTTS()
-        # Assert
-        assert tts.rate == 150
-
-    def test_default_volume_tts_volume_equals_n_1_0(self):
-        """Test default volume is 1.0."""
-        # Arrange
-        from scitex_audio._engines._pyttsx3_engine import SystemTTS
-
         # Act
-        tts = SystemTTS()
+        value = tts.rate
         # Assert
-        assert tts.volume == 1.0
+        assert value == 150
+
+    def test_default_volume_is_one(self):
+        # Arrange
+        tts = SystemTTS()
+        # Act
+        value = tts.volume
+        # Assert
+        assert value == 1.0
 
     def test_default_voice_is_none(self):
-        """Test default voice is None."""
         # Arrange
-        from scitex_audio._engines._pyttsx3_engine import SystemTTS
-
-        # Act
         tts = SystemTTS()
+        # Act
+        value = tts.voice
         # Assert
-        assert tts.voice is None
+        assert value is None
 
-    def test_custom_rate_initialization(self):
-        """Test initializing with custom rate."""
+    def test_custom_rate_initialization_preserves_rate(self):
         # Arrange
-        from scitex_audio._engines._pyttsx3_engine import SystemTTS
-
         # Act
         tts = SystemTTS(rate=200)
         # Assert
         assert tts.rate == 200
 
-    def test_custom_volume_initialization(self):
-        """Test initializing with custom volume."""
+    def test_custom_volume_initialization_preserves_volume(self):
         # Arrange
-        from scitex_audio._engines._pyttsx3_engine import SystemTTS
-
         # Act
         tts = SystemTTS(volume=0.5)
         # Assert
         assert tts.volume == 0.5
 
-    def test_custom_voice_initialization(self):
-        """Test initializing with custom voice."""
+    def test_custom_voice_initialization_preserves_voice(self):
         # Arrange
-        from scitex_audio._engines._pyttsx3_engine import SystemTTS
-
         # Act
         tts = SystemTTS(voice="en-us")
         # Assert
         assert tts.voice == "en-us"
 
-    def test_engine_lazy_loading(self):
-        """Test engine is lazily loaded."""
+    def test_engine_is_lazy_until_first_access(self):
         # Arrange
-        from scitex_audio._engines._pyttsx3_engine import SystemTTS
-
         # Act
         tts = SystemTTS()
-        # Engine should not be initialized yet
         # Assert
         assert tts._engine is None
 
-    def test_engine_property_initializes_pyttsx3(self):
-        """Test engine property initializes pyttsx3."""
+    def test_engine_property_sets_rate_on_engine(self):
         # Arrange
+        fake = _FakeEngine()
+        tts = _make_tts(fake)
         # Act
+        _ = tts.engine
         # Assert
-        mock_engine = MagicMock()
-        mock_pyttsx3 = _make_pyttsx3_mock(mock_engine)
+        assert fake.properties["rate"] == 150
 
-        with patch.dict(sys.modules, {"pyttsx3": mock_pyttsx3}):
-            from scitex_audio._engines._pyttsx3_engine import SystemTTS
-
-            tts = SystemTTS()
-            engine = tts.engine
-
-            assert engine is mock_engine
-            mock_engine.setProperty.assert_any_call("rate", 150)
-            mock_engine.setProperty.assert_any_call("volume", 1.0)
-
-    def test_engine_sets_voice_when_provided(self):
-        """Test engine sets voice when provided."""
+    def test_engine_property_sets_volume_on_engine(self):
         # Arrange
+        fake = _FakeEngine()
+        tts = _make_tts(fake)
         # Act
+        _ = tts.engine
         # Assert
-        mock_engine = MagicMock()
-        mock_voice = MagicMock()
-        mock_voice.name = "English"
-        mock_voice.id = "en-us"
-        mock_engine.getProperty.return_value = [mock_voice]
-        mock_pyttsx3 = _make_pyttsx3_mock(mock_engine)
+        assert fake.properties["volume"] == 1.0
 
-        with patch.dict(sys.modules, {"pyttsx3": mock_pyttsx3}):
-            from scitex_audio._engines._pyttsx3_engine import SystemTTS
+    def test_engine_property_returns_factory_built_engine(self):
+        # Arrange
+        fake = _FakeEngine()
+        tts = _make_tts(fake)
+        # Act
+        engine = tts.engine
+        # Assert
+        assert engine is fake
 
-            tts = SystemTTS(voice="English")
+    def test_engine_sets_voice_id_when_voice_matches_name(self):
+        # Arrange
+        fake = _FakeEngine(voices=[_FakeVoice(name="English", id="en-us")])
+        tts = _make_tts(fake, voice="English")
+        # Act
+        _ = tts.engine
+        # Assert
+        assert fake.properties["voice"] == "en-us"
+
+    def test_missing_pyttsx3_module_raises_importerror_on_engine_access(
+        self, no_pyttsx3
+    ):
+        # Arrange
+        tts = SystemTTS()  # No engine_factory -> falls back to real import
+        # Act
+        ctx = pytest.raises((ImportError, TypeError))
+        # Assert
+        with ctx:
             _ = tts.engine
-
-            # Should have called setProperty with voice
-            mock_engine.setProperty.assert_any_call("voice", "en-us")
-            assert mock_engine.setProperty.called
-
-    def test_engine_import_error_handling(self):
-        """Test ImportError is raised when pyttsx3 not installed."""
-        # Arrange
-        # Act
-        # Assert
-        from scitex_audio._engines._pyttsx3_engine import SystemTTS
-
-        tts = SystemTTS()
-
-        # Remove pyttsx3 from sys.modules so import fails
-        with patch.dict(sys.modules, {"pyttsx3": None}):
-            with pytest.raises((ImportError, TypeError)):
-                _ = tts.engine
 
     def test_inherits_from_base_tts(self):
-        """Test that SystemTTS inherits from BaseTTS."""
-        # Arrange
-        from scitex_audio._engines._base import BaseTTS
-        # Act
-        from scitex_audio._engines._pyttsx3_engine import SystemTTS
-
-        # Assert
-        assert issubclass(SystemTTS, BaseTTS)
-
-    def test_synthesize_saves_to_file(self, tmp_path):
-        """Test synthesize saves audio to file."""
         # Arrange
         # Act
+        result = issubclass(SystemTTS, BaseTTS)
         # Assert
-        mock_engine = MagicMock()
-        mock_pyttsx3 = _make_pyttsx3_mock(mock_engine)
+        assert result is True
 
-        with patch.dict(sys.modules, {"pyttsx3": mock_pyttsx3}):
-            from scitex_audio._engines._pyttsx3_engine import SystemTTS
-
-            tts = SystemTTS()
-            output_file = tmp_path / "test.mp3"
-
-            result = tts.synthesize("Hello world", str(output_file))
-
-            mock_engine.save_to_file.assert_called_once_with(
-                "Hello world", str(output_file)
-            )
-            mock_engine.runAndWait.assert_called_once()
-            assert result == output_file
-
-    def test_synthesize_uses_voice_from_config(self, tmp_path):
-        """Test synthesize uses voice from config."""
+    def test_synthesize_records_save_to_file_invocation(self, tmp_path):
         # Arrange
+        fake = _FakeEngine()
+        tts = _make_tts(fake)
+        output_file = tmp_path / "test.mp3"
         # Act
+        tts.synthesize("Hello world", str(output_file))
         # Assert
-        mock_engine = MagicMock()
-        mock_voice = MagicMock()
-        mock_voice.name = "English"
-        mock_voice.id = "en-us"
-        mock_engine.getProperty.return_value = [mock_voice]
-        mock_pyttsx3 = _make_pyttsx3_mock(mock_engine)
+        assert fake.saved == [("Hello world", str(output_file))]
 
-        with patch.dict(sys.modules, {"pyttsx3": mock_pyttsx3}):
-            from scitex_audio._engines._pyttsx3_engine import SystemTTS
-
-            tts = SystemTTS()
-            tts.config["voice"] = "English"
-            output_file = tmp_path / "test.mp3"
-
-            tts.synthesize("Hello", str(output_file))
-
-            # Voice should be set
-            mock_engine.setProperty.assert_called()
-            assert mock_engine.setProperty.called
-
-    def test_speak_direct_method(self):
-        """Test speak_direct speaks without saving to file."""
+    def test_synthesize_runs_engine_after_save(self, tmp_path):
         # Arrange
+        fake = _FakeEngine()
+        tts = _make_tts(fake)
+        output_file = tmp_path / "test.mp3"
         # Act
+        tts.synthesize("Hello world", str(output_file))
         # Assert
-        mock_engine = MagicMock()
-        mock_pyttsx3 = _make_pyttsx3_mock(mock_engine)
+        assert fake.run_calls == 1
 
-        with patch.dict(sys.modules, {"pyttsx3": mock_pyttsx3}):
-            from scitex_audio._engines._pyttsx3_engine import SystemTTS
-
-            tts = SystemTTS()
-            tts.speak_direct("Hello world")
-
-            mock_engine.say.assert_called_once_with("Hello world")
-            mock_engine.runAndWait.assert_called_once()
-            assert mock_engine.runAndWait.call_count == 1
-
-    def test_speak_direct_with_voice_config(self):
-        """Test speak_direct uses voice from config."""
+    def test_synthesize_returns_output_path_unchanged(self, tmp_path):
         # Arrange
+        fake = _FakeEngine()
+        tts = _make_tts(fake)
+        output_file = tmp_path / "test.mp3"
         # Act
+        result = tts.synthesize("Hello world", str(output_file))
         # Assert
-        mock_engine = MagicMock()
-        mock_voice = MagicMock()
-        mock_voice.name = "English"
-        mock_voice.id = "en-us"
-        mock_engine.getProperty.return_value = [mock_voice]
-        mock_pyttsx3 = _make_pyttsx3_mock(mock_engine)
+        assert result == output_file
 
-        with patch.dict(sys.modules, {"pyttsx3": mock_pyttsx3}):
-            from scitex_audio._engines._pyttsx3_engine import SystemTTS
-
-            tts = SystemTTS()
-            tts.config["voice"] = "English"
-            tts.speak_direct("Hello")
-
-            mock_engine.say.assert_called_once_with("Hello")
-            assert mock_engine.say.called
-
-    def test_get_voices_returns_list(self):
-        """Test get_voices returns a list of voice dictionaries."""
+    def test_synthesize_applies_voice_from_config(self, tmp_path):
         # Arrange
+        fake = _FakeEngine(voices=[_FakeVoice(name="English", id="en-us")])
+        tts = _make_tts(fake)
+        tts.config["voice"] = "English"
+        output_file = tmp_path / "test.mp3"
         # Act
+        tts.synthesize("Hello", str(output_file))
         # Assert
-        mock_engine = MagicMock()
-        mock_voice1 = MagicMock()
-        mock_voice1.name = "English"
-        mock_voice1.id = "en-us"
-        mock_voice1.languages = ["en"]
+        assert fake.properties["voice"] == "en-us"
 
-        mock_voice2 = MagicMock()
-        mock_voice2.name = "Spanish"
-        mock_voice2.id = "es-es"
-        mock_voice2.languages = ["es"]
-
-        mock_engine.getProperty.return_value = [mock_voice1, mock_voice2]
-        mock_pyttsx3 = _make_pyttsx3_mock(mock_engine)
-
-        with patch.dict(sys.modules, {"pyttsx3": mock_pyttsx3}):
-            from scitex_audio._engines._pyttsx3_engine import SystemTTS
-
-            tts = SystemTTS()
-            voices = tts.get_voices()
-
-            assert (isinstance(voices, list)) and (len(voices) == 2) and (voices[0]['name'] == 'English') and (voices[0]['id'] == 'en-us') and (voices[0]['type'] == 'system') and (voices[0]['languages'] == ['en'])
-
-    def test_get_voices_handles_missing_languages_attr(self):
-        """Test get_voices handles voices without languages attribute."""
+    def test_speak_direct_passes_text_to_say(self):
         # Arrange
+        fake = _FakeEngine()
+        tts = _make_tts(fake)
         # Act
+        tts.speak_direct("Hello world")
         # Assert
-        mock_engine = MagicMock()
-        mock_voice = MagicMock(spec=["name", "id"])  # No languages attr
-        mock_voice.name = "Test Voice"
-        mock_voice.id = "test-id"
-        del mock_voice.languages  # Ensure it's not there
+        assert fake.said == ["Hello world"]
 
-        mock_engine.getProperty.return_value = [mock_voice]
-        mock_pyttsx3 = _make_pyttsx3_mock(mock_engine)
-
-        with patch.dict(sys.modules, {"pyttsx3": mock_pyttsx3}):
-            from scitex_audio._engines._pyttsx3_engine import SystemTTS
-
-            tts = SystemTTS()
-            voices = tts.get_voices()
-
-            assert (len(voices) == 1) and (voices[0]['name'] == 'Test Voice') and (voices[0]['languages'] == [])
-
-    def test_set_voice_by_name(self):
-        """Test _set_voice sets voice by name."""
+    def test_speak_direct_runs_engine_after_say(self):
         # Arrange
+        fake = _FakeEngine()
+        tts = _make_tts(fake)
         # Act
+        tts.speak_direct("Hello world")
         # Assert
-        mock_engine = MagicMock()
-        mock_voice = MagicMock()
-        mock_voice.name = "English Voice"
-        mock_voice.id = "en-voice-id"
-        mock_engine.getProperty.return_value = [mock_voice]
-        mock_pyttsx3 = _make_pyttsx3_mock(mock_engine)
+        assert fake.run_calls == 1
 
-        with patch.dict(sys.modules, {"pyttsx3": mock_pyttsx3}):
-            from scitex_audio._engines._pyttsx3_engine import SystemTTS
-
-            tts = SystemTTS()
-            tts._set_voice("English")
-
-            mock_engine.setProperty.assert_called_with("voice", "en-voice-id")
-            assert mock_engine.setProperty.called
-
-    def test_set_voice_by_id(self):
-        """Test _set_voice sets voice by exact ID."""
+    def test_speak_direct_applies_voice_from_config(self):
         # Arrange
+        fake = _FakeEngine(voices=[_FakeVoice(name="English", id="en-us")])
+        tts = _make_tts(fake)
+        tts.config["voice"] = "English"
         # Act
+        tts.speak_direct("Hello")
         # Assert
-        mock_engine = MagicMock()
-        mock_voice = MagicMock()
-        mock_voice.name = "English Voice"
-        mock_voice.id = "en-voice-id"
-        mock_engine.getProperty.return_value = [mock_voice]
-        mock_pyttsx3 = _make_pyttsx3_mock(mock_engine)
+        assert fake.properties["voice"] == "en-us"
 
-        with patch.dict(sys.modules, {"pyttsx3": mock_pyttsx3}):
-            from scitex_audio._engines._pyttsx3_engine import SystemTTS
-
-            tts = SystemTTS()
-            tts._set_voice("en-voice-id")
-
-            mock_engine.setProperty.assert_called_with("voice", "en-voice-id")
-            assert mock_engine.setProperty.called
-
-    def test_set_voice_not_found_keeps_default(self):
-        """Test _set_voice keeps default when voice not found."""
+    def test_get_voices_returns_two_voice_dicts(self):
         # Arrange
+        fake = _FakeEngine(
+            voices=[
+                _FakeVoice(name="English", id="en-us", languages=["en"]),
+                _FakeVoice(name="Spanish", id="es-es", languages=["es"]),
+            ]
+        )
+        tts = _make_tts(fake)
         # Act
+        voices = tts.get_voices()
         # Assert
-        mock_engine = MagicMock()
-        mock_voice = MagicMock()
-        mock_voice.name = "English Voice"
-        mock_voice.id = "en-voice-id"
-        mock_engine.getProperty.return_value = [mock_voice]
-        mock_pyttsx3 = _make_pyttsx3_mock(mock_engine)
+        assert len(voices) == 2
 
-        with patch.dict(sys.modules, {"pyttsx3": mock_pyttsx3}):
-            from scitex_audio._engines._pyttsx3_engine import SystemTTS
+    def test_get_voices_preserves_first_voice_name(self):
+        # Arrange
+        fake = _FakeEngine(
+            voices=[
+                _FakeVoice(name="English", id="en-us", languages=["en"]),
+                _FakeVoice(name="Spanish", id="es-es", languages=["es"]),
+            ]
+        )
+        tts = _make_tts(fake)
+        # Act
+        voices = tts.get_voices()
+        # Assert
+        assert voices[0]["name"] == "English"
 
-            tts = SystemTTS()
-            # Access engine to trigger lazy initialization (sets rate, volume)
-            _ = tts.engine
-            initial_calls = mock_engine.setProperty.call_count
-            tts._set_voice("NonExistent Voice")
+    def test_get_voices_preserves_first_voice_id(self):
+        # Arrange
+        fake = _FakeEngine(
+            voices=[_FakeVoice(name="English", id="en-us", languages=["en"])]
+        )
+        tts = _make_tts(fake)
+        # Act
+        voices = tts.get_voices()
+        # Assert
+        assert voices[0]["id"] == "en-us"
 
-            # Should not have made additional setProperty calls for voice
-            # since the voice was not found in the available voices
-            assert mock_engine.setProperty.call_count == initial_calls
+    def test_get_voices_tags_each_voice_as_system_type(self):
+        # Arrange
+        fake = _FakeEngine(
+            voices=[_FakeVoice(name="English", id="en-us", languages=["en"])]
+        )
+        tts = _make_tts(fake)
+        # Act
+        voices = tts.get_voices()
+        # Assert
+        assert voices[0]["type"] == "system"
+
+    def test_get_voices_preserves_first_voice_languages(self):
+        # Arrange
+        fake = _FakeEngine(
+            voices=[_FakeVoice(name="English", id="en-us", languages=["en"])]
+        )
+        tts = _make_tts(fake)
+        # Act
+        voices = tts.get_voices()
+        # Assert
+        assert voices[0]["languages"] == ["en"]
+
+    def test_get_voices_defaults_languages_to_empty_when_missing(self):
+        # Arrange
+        class _VoiceNoLanguages:
+            name = "Test Voice"
+            id = "test-id"
+
+        fake = _FakeEngine(voices=[_VoiceNoLanguages()])
+        tts = _make_tts(fake)
+        # Act
+        voices = tts.get_voices()
+        # Assert
+        assert voices[0]["languages"] == []
+
+    def test_set_voice_matches_by_name_substring(self):
+        # Arrange
+        fake = _FakeEngine(voices=[_FakeVoice(name="English Voice", id="en-voice-id")])
+        tts = _make_tts(fake)
+        # Act
+        tts._set_voice("English")
+        # Assert
+        assert fake.properties["voice"] == "en-voice-id"
+
+    def test_set_voice_matches_by_exact_id(self):
+        # Arrange
+        fake = _FakeEngine(voices=[_FakeVoice(name="English Voice", id="en-voice-id")])
+        tts = _make_tts(fake)
+        # Act
+        tts._set_voice("en-voice-id")
+        # Assert
+        assert fake.properties["voice"] == "en-voice-id"
+
+    def test_set_voice_no_match_keeps_voice_unset(self):
+        # Arrange
+        fake = _FakeEngine(voices=[_FakeVoice(name="English Voice", id="en-voice-id")])
+        tts = _make_tts(fake)
+        _ = tts.engine  # trigger lazy init (sets rate, volume; not voice)
+        # Act
+        tts._set_voice("NonExistent Voice")
+        # Assert
+        assert "voice" not in fake.properties
 
 
 class TestSystemTTSEdgeCases:
     """Edge case tests for SystemTTS."""
 
-    def test_espeak_runtime_error_handling(self):
-        """Test handling of eSpeak RuntimeError."""
+    def test_espeak_runtime_error_is_rewritten_with_install_hint(self):
         # Arrange
+        def factory():
+            raise RuntimeError("eSpeak not installed")
+
+        tts = SystemTTS(engine_factory=factory)
         # Act
+        ctx = pytest.raises(RuntimeError, match="espeak")
         # Assert
-        mock_pyttsx3 = _make_pyttsx3_mock()
-        mock_pyttsx3.init.side_effect = RuntimeError("eSpeak not installed")
+        with ctx:
+            _ = tts.engine
 
-        with patch.dict(sys.modules, {"pyttsx3": mock_pyttsx3}):
-            from scitex_audio._engines._pyttsx3_engine import SystemTTS
-
-            tts = SystemTTS()
-            with pytest.raises(RuntimeError) as exc_info:
-                _ = tts.engine
-
-            assert "espeak" in str(exc_info.value).lower()
-
-    def test_other_runtime_error_propagates(self):
-        """Test that non-eSpeak RuntimeErrors propagate."""
+    def test_other_runtime_error_propagates_unchanged(self):
         # Arrange
+        def factory():
+            raise RuntimeError("Some other error")
+
+        tts = SystemTTS(engine_factory=factory)
         # Act
+        ctx = pytest.raises(RuntimeError, match="Some other error")
         # Assert
-        mock_pyttsx3 = _make_pyttsx3_mock()
-        mock_pyttsx3.init.side_effect = RuntimeError("Some other error")
+        with ctx:
+            _ = tts.engine
 
-        with patch.dict(sys.modules, {"pyttsx3": mock_pyttsx3}):
-            from scitex_audio._engines._pyttsx3_engine import SystemTTS
-
-            tts = SystemTTS()
-            with pytest.raises(RuntimeError) as exc_info:
-                _ = tts.engine
-
-            assert "other error" in str(exc_info.value).lower()
-
-    def test_volume_boundary_values_tts_min_volume_equals_n_0_0(self):
+    def test_minimum_volume_zero_is_preserved(self):
         # Arrange
-        from scitex_audio._engines._pyttsx3_engine import SystemTTS
-        # Minimum volume
-        # Act
-        tts_min = SystemTTS(volume=0.0)
-        # Act
-        # Assert
-        assert tts_min.volume == 0.0
-
-    def test_volume_boundary_values_tts_max_volume_equals_n_1_0_tts_min_volume_equals_n_0_0(self):
-        # Arrange
-        from scitex_audio._engines._pyttsx3_engine import SystemTTS
-        # Minimum volume
-        # Act
-        tts_min = SystemTTS(volume=0.0)
-        # Act
-        # Assert
-        assert tts_min.volume == 0.0
-
-    def test_volume_boundary_values_tts_max_volume_equals_n_1_0_tts_max_volume_equals_n_1_0(self):
-        # Arrange
-        from scitex_audio._engines._pyttsx3_engine import SystemTTS
-        # Minimum volume
         # Act
         tts_min = SystemTTS(volume=0.0)
         # Assert
         assert tts_min.volume == 0.0
-        # Maximum volume
+
+    def test_maximum_volume_one_is_preserved(self):
+        # Arrange
+        # Act
         tts_max = SystemTTS(volume=1.0)
-        # Act
         # Assert
         assert tts_max.volume == 1.0
 
-
-
-    def test_rate_can_be_very_high(self):
-        """Test rate can be set to high values."""
+    def test_high_rate_value_is_preserved(self):
         # Arrange
-        from scitex_audio._engines._pyttsx3_engine import SystemTTS
-
         # Act
         tts = SystemTTS(rate=500)
         # Assert
         assert tts.rate == 500
 
-    def test_rate_can_be_very_low(self):
-        """Test rate can be set to low values."""
+    def test_low_rate_value_is_preserved(self):
         # Arrange
-        from scitex_audio._engines._pyttsx3_engine import SystemTTS
-
         # Act
         tts = SystemTTS(rate=50)
         # Assert
@@ -470,49 +433,37 @@ class TestSystemTTSIntegration:
     """Integration tests for SystemTTS (require pyttsx3 installed)."""
 
     @pytest.mark.slow
-    def test_real_engine_initialization(self):
-        """Test real pyttsx3 engine initialization."""
+    def test_real_engine_initialization_returns_non_none(self):
         # Arrange
-        # Act
-        # Assert
         pytest.importorskip("pyttsx3")
-
-        from scitex_audio._engines._pyttsx3_engine import SystemTTS
-
+        tts = SystemTTS()
+        # Act
         try:
-            tts = SystemTTS()
-            # Access engine to trigger initialization
             engine = tts.engine
-            assert engine is not None
         except RuntimeError as e:
-            # May fail if espeak not installed
             if "espeak" in str(e).lower():
                 pytest.skip("espeak not installed")
             raise
+        # Assert
+        assert engine is not None
 
     @pytest.mark.slow
-    def test_real_get_voices(self):
-        """Test getting real system voices."""
+    def test_real_get_voices_returns_list_type(self):
         # Arrange
-        # Act
-        # Assert
         pytest.importorskip("pyttsx3")
-
-        from scitex_audio._engines._pyttsx3_engine import SystemTTS
-
+        tts = SystemTTS()
+        # Act
         try:
-            tts = SystemTTS()
             voices = tts.get_voices()
-            assert (isinstance(voices, list)) and (len(voices) >= 0)
         except RuntimeError as e:
             if "espeak" in str(e).lower():
                 pytest.skip("espeak not installed")
             raise
+        # Assert
+        assert isinstance(voices, list)
 
 
 if __name__ == "__main__":
-    import os
-
-    import pytest
-
     pytest.main([os.path.abspath(__file__)])
+
+# EOF
