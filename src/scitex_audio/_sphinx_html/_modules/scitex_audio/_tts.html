@@ -1,0 +1,484 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>scitex_audio._tts &mdash; scitex-audio 0.2.12 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=1e30946d"></script>
+      <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            scitex-audio
+              <img src="../../_static/scitex-logo-banner.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../backends.html">Backends</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../relay.html">Remote Audio Relay</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../env_vars.html">Environment Variables</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../api/scitex_audio.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/engines.html">Engines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/mcp.html">MCP Handlers</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">scitex-audio</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+          <li class="breadcrumb-item"><a href="../scitex_audio.html">scitex_audio</a></li>
+      <li class="breadcrumb-item active">scitex_audio._tts</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for scitex_audio._tts</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python3</span>
+<span class="c1"># Timestamp: &quot;2025-12-11 (ywatanabe)&quot;</span>
+<span class="c1"># File: /home/ywatanabe/proj/scitex-code/src/scitex/audio/_tts.py</span>
+<span class="c1"># ----------------------------------------</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Text-to-Speech implementation using ElevenLabs API.</span>
+
+<span class="sd">This module provides TTS functionality that can be used:</span>
+<span class="sd">1. Directly via the ElevenLabs Python SDK</span>
+<span class="sd">2. Via MCP server integration</span>
+
+<span class="sd">Environment Variables:</span>
+<span class="sd">    ELEVENLABS_API_KEY: Your ElevenLabs API key</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">subprocess</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">tempfile</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Optional</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;TTS&quot;</span><span class="p">,</span> <span class="s2">&quot;speak&quot;</span><span class="p">]</span>
+
+
+<span class="nd">@dataclass</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">TTSConfig</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Configuration for TTS.&quot;&quot;&quot;</span>
+
+    <span class="n">voice_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;pNInz6obpgDQGcFmaJgB&quot;</span>  <span class="c1"># Adam (default; free-tier compatible)</span>
+    <span class="n">voice_name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">model_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;eleven_multilingual_v2&quot;</span>
+    <span class="n">stability</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.5</span>
+    <span class="n">similarity_boost</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.75</span>
+    <span class="n">style</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="n">speed</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span>
+    <span class="n">output_format</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;mp3_44100_128&quot;</span>
+
+
+<div class="viewcode-block" id="TTS">
+<a class="viewcode-back" href="../../api/scitex_audio.html#scitex_audio.TTS">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">TTS</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Text-to-Speech using ElevenLabs API.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">        # Basic usage</span>
+<span class="sd">        tts = TTS()</span>
+<span class="sd">        tts.speak(&quot;Hello, world!&quot;)</span>
+
+<span class="sd">        # With custom voice</span>
+<span class="sd">        tts = TTS(voice_name=&quot;Adam&quot;)</span>
+<span class="sd">        tts.speak(&quot;Processing complete&quot;)</span>
+
+<span class="sd">        # Save to file without playing</span>
+<span class="sd">        tts.speak(&quot;Test&quot;, output_path=&quot;/tmp/test.mp3&quot;, play=False)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># Popular voice presets (free-tier premade voices first, paid library voices at end)</span>
+    <span class="n">VOICES</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;adam&quot;</span><span class="p">:</span> <span class="s2">&quot;pNInz6obpgDQGcFmaJgB&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;sarah&quot;</span><span class="p">:</span> <span class="s2">&quot;EXAVITQu4vr4xnSDxMaL&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;laura&quot;</span><span class="p">:</span> <span class="s2">&quot;FGY2WhTYpPnrIDTdsKH5&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;charlie&quot;</span><span class="p">:</span> <span class="s2">&quot;IKne3meq5aSn9XLyUdCD&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;george&quot;</span><span class="p">:</span> <span class="s2">&quot;JBFqnCBsd6RMkjVDRZzb&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;callum&quot;</span><span class="p">:</span> <span class="s2">&quot;N2lVS1w4EtoT3dr4eOWO&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;river&quot;</span><span class="p">:</span> <span class="s2">&quot;SAz9YHcvj6GT2YYXdXww&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;liam&quot;</span><span class="p">:</span> <span class="s2">&quot;TX3LPaxmHKxFdv7VOQHJ&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;alice&quot;</span><span class="p">:</span> <span class="s2">&quot;Xb7hH8MSUJpSbSDYk0k2&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;matilda&quot;</span><span class="p">:</span> <span class="s2">&quot;XrExE9yKIg1WjnnlVkGX&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;will&quot;</span><span class="p">:</span> <span class="s2">&quot;bIHbv24MWmeRgasZH58o&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;jessica&quot;</span><span class="p">:</span> <span class="s2">&quot;cgSgspJ2msm6clMCkdW9&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;eric&quot;</span><span class="p">:</span> <span class="s2">&quot;cjVigY5qzO86Huf0OWal&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;bella&quot;</span><span class="p">:</span> <span class="s2">&quot;hpp4J3VqNfWAUOO0d1Us&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;chris&quot;</span><span class="p">:</span> <span class="s2">&quot;iP95p4xoKVk53GoZ742B&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;brian&quot;</span><span class="p">:</span> <span class="s2">&quot;nPczCjzI2devNBz1zQrb&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;daniel&quot;</span><span class="p">:</span> <span class="s2">&quot;onwK4e9ZLuTAKqWW03F9&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;lily&quot;</span><span class="p">:</span> <span class="s2">&quot;pFZP5JQG7iQjIQuC4Bku&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;roger&quot;</span><span class="p">:</span> <span class="s2">&quot;CwhRBWXzGAHq8TQ4Fs17&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;harry&quot;</span><span class="p">:</span> <span class="s2">&quot;SOYHLrjzK2X1ezoPC6cr&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;rachel&quot;</span><span class="p">:</span> <span class="s2">&quot;21m00Tcm4TlvDq8ikWAM&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;antoni&quot;</span><span class="p">:</span> <span class="s2">&quot;ErXwobaYiN019PkySvjV&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;domi&quot;</span><span class="p">:</span> <span class="s2">&quot;AZnzlk1XvdvUeBnXmlld&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;elli&quot;</span><span class="p">:</span> <span class="s2">&quot;MF3mGyEYCl7XYWbV9V6O&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;josh&quot;</span><span class="p">:</span> <span class="s2">&quot;TxGEqnHWrfWFTfGW9XjX&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;sam&quot;</span><span class="p">:</span> <span class="s2">&quot;yoZ06aMxZJJ28mfd3POQ&quot;</span><span class="p">,</span>
+    <span class="p">}</span>
+
+<div class="viewcode-block" id="TTS.__init__">
+<a class="viewcode-back" href="../../api/scitex_audio.html#scitex_audio.TTS.__init__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">api_key</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">voice_name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">voice_id</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize TTS.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            api_key: ElevenLabs API key. Defaults to ELEVENLABS_API_KEY env var.</span>
+<span class="sd">            voice_name: Voice name (e.g., &quot;Adam&quot;, &quot;Sarah&quot;, &quot;George&quot; — free-tier).</span>
+<span class="sd">            voice_id: Direct voice ID (overrides voice_name).</span>
+<span class="sd">            **kwargs: Additional config options (stability, speed, etc.)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">api_key</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">api_key</span>
+            <span class="ow">or</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;SCITEX_AUDIO_ELEVENLABS_API_KEY&quot;</span><span class="p">)</span>
+            <span class="ow">or</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;ELEVENLABS_API_KEY&quot;</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="n">TTSConfig</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">voice_id</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">voice_id</span> <span class="o">=</span> <span class="n">voice_id</span>
+        <span class="k">elif</span> <span class="n">voice_name</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">voice_name</span> <span class="o">=</span> <span class="n">voice_name</span>
+            <span class="n">normalized</span> <span class="o">=</span> <span class="n">voice_name</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">normalized</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">VOICES</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">voice_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">VOICES</span><span class="p">[</span><span class="n">normalized</span><span class="p">]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_client</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">client</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Lazy-load ElevenLabs client.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_client</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="kn">from</span><span class="w"> </span><span class="nn">elevenlabs.client</span><span class="w"> </span><span class="kn">import</span> <span class="n">ElevenLabs</span>
+
+                <span class="bp">self</span><span class="o">.</span><span class="n">_client</span> <span class="o">=</span> <span class="n">ElevenLabs</span><span class="p">(</span><span class="n">api_key</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">api_key</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span>
+                    <span class="s2">&quot;elevenlabs package not installed. &quot;</span>
+                    <span class="s2">&quot;Install with: pip install elevenlabs&quot;</span>
+                <span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_client</span>
+
+<div class="viewcode-block" id="TTS.speak">
+<a class="viewcode-back" href="../../api/scitex_audio.html#scitex_audio.TTS.speak">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">speak</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">output_path</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">play</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">voice_name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">voice_id</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Path</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Convert text to speech and optionally play it.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            text: Text to convert to speech.</span>
+<span class="sd">            output_path: Path to save audio file. Auto-generated if None.</span>
+<span class="sd">            play: Whether to play the audio after generation.</span>
+<span class="sd">            voice_name: Override voice name for this call.</span>
+<span class="sd">            voice_id: Override voice ID for this call.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">            Path to the generated audio file, or None if only played.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Determine voice</span>
+        <span class="n">vid</span> <span class="o">=</span> <span class="n">voice_id</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">voice_id</span>
+        <span class="k">if</span> <span class="n">voice_name</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">voice_id</span><span class="p">:</span>
+            <span class="n">normalized</span> <span class="o">=</span> <span class="n">voice_name</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+            <span class="n">vid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">VOICES</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">normalized</span><span class="p">,</span> <span class="n">vid</span><span class="p">)</span>
+
+        <span class="c1"># Generate audio</span>
+        <span class="n">audio</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">text_to_speech</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span>
+            <span class="n">text</span><span class="o">=</span><span class="n">text</span><span class="p">,</span>
+            <span class="n">voice_id</span><span class="o">=</span><span class="n">vid</span><span class="p">,</span>
+            <span class="n">model_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">model_id</span><span class="p">,</span>
+            <span class="n">voice_settings</span><span class="o">=</span><span class="p">{</span>
+                <span class="s2">&quot;stability&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">stability</span><span class="p">,</span>
+                <span class="s2">&quot;similarity_boost&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">similarity_boost</span><span class="p">,</span>
+                <span class="s2">&quot;style&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">style</span><span class="p">,</span>
+                <span class="s2">&quot;speed&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">speed</span><span class="p">,</span>
+            <span class="p">},</span>
+            <span class="n">output_format</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">output_format</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Determine output path</span>
+        <span class="k">if</span> <span class="n">output_path</span><span class="p">:</span>
+            <span class="n">out_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">output_path</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">suffix</span> <span class="o">=</span> <span class="s2">&quot;.mp3&quot;</span> <span class="k">if</span> <span class="s2">&quot;mp3&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">output_format</span> <span class="k">else</span> <span class="s2">&quot;.wav&quot;</span>
+            <span class="n">fd</span><span class="p">,</span> <span class="n">tmp_path</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mkstemp</span><span class="p">(</span><span class="n">suffix</span><span class="o">=</span><span class="n">suffix</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="s2">&quot;scitex_tts_&quot;</span><span class="p">)</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">fd</span><span class="p">)</span>
+            <span class="n">out_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">tmp_path</span><span class="p">)</span>
+
+        <span class="c1"># Write audio to file</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">out_path</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">chunk</span> <span class="ow">in</span> <span class="n">audio</span><span class="p">:</span>
+                <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">chunk</span><span class="p">)</span>
+
+        <span class="c1"># Play if requested</span>
+        <span class="k">if</span> <span class="n">play</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_play_audio</span><span class="p">(</span><span class="n">out_path</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">out_path</span> <span class="k">if</span> <span class="n">output_path</span> <span class="k">else</span> <span class="kc">None</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_play_audio</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Play audio file using available system player.</span>
+
+<span class="sd">        Includes Windows fallback for WSL environments.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Check if we&#39;re in WSL - if so, prefer Windows playback directly</span>
+        <span class="c1"># to avoid double playback issues with Linux audio hanging</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="s2">&quot;/mnt/c/Windows&quot;</span><span class="p">):</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_play_audio_windows</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+                <span class="k">return</span>
+            <span class="c1"># Fall through to Linux players if Windows playback fails</span>
+
+        <span class="n">players</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="p">[</span><span class="s2">&quot;mpv&quot;</span><span class="p">,</span> <span class="s2">&quot;--no-video&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">path</span><span class="p">)],</span>
+            <span class="p">[</span><span class="s2">&quot;ffplay&quot;</span><span class="p">,</span> <span class="s2">&quot;-nodisp&quot;</span><span class="p">,</span> <span class="s2">&quot;-autoexit&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">path</span><span class="p">)],</span>
+            <span class="p">[</span><span class="s2">&quot;aplay&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">path</span><span class="p">)],</span>
+            <span class="p">[</span><span class="s2">&quot;afplay&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">path</span><span class="p">)],</span>  <span class="c1"># macOS</span>
+        <span class="p">]</span>
+
+        <span class="k">for</span> <span class="n">player_cmd</span> <span class="ow">in</span> <span class="n">players</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
+                    <span class="n">player_cmd</span><span class="p">,</span>
+                    <span class="n">check</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                    <span class="n">stdout</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">DEVNULL</span><span class="p">,</span>
+                    <span class="n">stderr</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">DEVNULL</span><span class="p">,</span>
+                    <span class="n">timeout</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span>
+                <span class="p">)</span>
+                <span class="k">return</span>
+            <span class="k">except</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">TimeoutExpired</span><span class="p">:</span>
+                <span class="c1"># Audio playback hung, don&#39;t try more players</span>
+                <span class="k">return</span>
+            <span class="k">except</span> <span class="p">(</span><span class="n">subprocess</span><span class="o">.</span><span class="n">CalledProcessError</span><span class="p">,</span> <span class="ne">FileNotFoundError</span><span class="p">):</span>
+                <span class="k">continue</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Warning: No audio player found. Audio saved to: </span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_play_audio_windows</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Play audio via Windows PowerShell SoundPlayer (WSL fallback).</span>
+
+<span class="sd">        Uses headless SoundPlayer - no GUI popup.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">shutil</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">tempfile</span>
+
+        <span class="c1"># Check if we&#39;re in WSL</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="s2">&quot;/mnt/c/Windows&quot;</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+        <span class="n">powershell</span> <span class="o">=</span> <span class="n">shutil</span><span class="o">.</span><span class="n">which</span><span class="p">(</span><span class="s2">&quot;powershell.exe&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">powershell</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c1"># SoundPlayer only supports WAV, so convert if needed</span>
+            <span class="n">wav_path</span> <span class="o">=</span> <span class="n">path</span>
+            <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">suffix</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;.mp3&quot;</span><span class="p">,</span> <span class="s2">&quot;.ogg&quot;</span><span class="p">,</span> <span class="s2">&quot;.m4a&quot;</span><span class="p">):</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="kn">from</span><span class="w"> </span><span class="nn">pydub</span><span class="w"> </span><span class="kn">import</span> <span class="n">AudioSegment</span>
+
+                    <span class="n">fd</span><span class="p">,</span> <span class="n">tmp_wav</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mkstemp</span><span class="p">(</span><span class="n">suffix</span><span class="o">=</span><span class="s2">&quot;.wav&quot;</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="s2">&quot;scitex_&quot;</span><span class="p">)</span>
+                    <span class="n">os</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">fd</span><span class="p">)</span>
+                    <span class="n">wav_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">tmp_wav</span><span class="p">)</span>
+                    <span class="n">audio</span> <span class="o">=</span> <span class="n">AudioSegment</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">path</span><span class="p">))</span>
+                    <span class="n">audio</span><span class="o">.</span><span class="n">export</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">wav_path</span><span class="p">),</span> <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;wav&quot;</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+                    <span class="k">pass</span>
+
+            <span class="n">result</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
+                <span class="p">[</span><span class="s2">&quot;wslpath&quot;</span><span class="p">,</span> <span class="s2">&quot;-w&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">wav_path</span><span class="p">)],</span>
+                <span class="n">capture_output</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="n">text</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="n">timeout</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="n">result</span><span class="o">.</span><span class="n">returncode</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">False</span>
+
+            <span class="n">windows_path</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+
+            <span class="n">ps_command</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">$player = New-Object System.Media.SoundPlayer</span>
+<span class="s2">$player.SoundLocation = &quot;</span><span class="si">{</span><span class="n">windows_path</span><span class="si">}</span><span class="s2">&quot;</span>
+<span class="s2">$player.PlaySync()</span>
+<span class="s2">&quot;&quot;&quot;</span>
+            <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
+                <span class="p">[</span><span class="n">powershell</span><span class="p">,</span> <span class="s2">&quot;-NoProfile&quot;</span><span class="p">,</span> <span class="s2">&quot;-Command&quot;</span><span class="p">,</span> <span class="n">ps_command</span><span class="p">],</span>
+                <span class="n">stdout</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">DEVNULL</span><span class="p">,</span>
+                <span class="n">stderr</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">DEVNULL</span><span class="p">,</span>
+                <span class="n">timeout</span><span class="o">=</span><span class="mi">60</span><span class="p">,</span>
+            <span class="p">)</span>
+
+            <span class="c1"># Clean up temp WAV</span>
+            <span class="k">if</span> <span class="n">wav_path</span> <span class="o">!=</span> <span class="n">path</span> <span class="ow">and</span> <span class="n">wav_path</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">wav_path</span><span class="o">.</span><span class="n">unlink</span><span class="p">()</span>
+                <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                    <span class="k">pass</span>
+
+            <span class="k">return</span> <span class="kc">True</span>
+
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+<div class="viewcode-block" id="TTS.list_voices">
+<a class="viewcode-back" href="../../api/scitex_audio.html#scitex_audio.TTS.list_voices">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">list_voices</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;List available voices from ElevenLabs.&quot;&quot;&quot;</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">voices</span><span class="o">.</span><span class="n">get_all</span><span class="p">()</span>
+        <span class="k">return</span> <span class="p">[</span>
+            <span class="p">{</span><span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="s2">&quot;voice_id&quot;</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">voice_id</span><span class="p">,</span> <span class="s2">&quot;labels&quot;</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">labels</span><span class="p">}</span>
+            <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">response</span><span class="o">.</span><span class="n">voices</span>
+        <span class="p">]</span></div>
+</div>
+
+
+
+<span class="c1"># Module-level convenience function</span>
+<span class="n">_default_tts</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">TTS</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">speak</span><span class="p">(</span>
+    <span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">voice</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">play</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">output_path</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Path</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Convenience function for quick TTS.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        text: Text to speak.</span>
+<span class="sd">        voice: Voice name (e.g., &quot;Rachel&quot;, &quot;Adam&quot;).</span>
+<span class="sd">        play: Whether to play audio.</span>
+<span class="sd">        output_path: Optional path to save audio.</span>
+<span class="sd">        **kwargs: Additional TTS config options.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">        Path to audio file if output_path specified, else None.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">        import scitex</span>
+
+<span class="sd">        # Simple speak</span>
+<span class="sd">        scitex.audio.speak(&quot;Hello!&quot;)</span>
+
+<span class="sd">        # With specific voice</span>
+<span class="sd">        scitex.audio.speak(&quot;Processing complete&quot;, voice=&quot;Adam&quot;)</span>
+
+<span class="sd">        # Save without playing</span>
+<span class="sd">        scitex.audio.speak(&quot;Test&quot;, play=False, output_path=&quot;/tmp/test.mp3&quot;)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">global</span> <span class="n">_default_tts</span>
+
+    <span class="k">if</span> <span class="n">_default_tts</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">kwargs</span><span class="p">:</span>
+        <span class="n">_default_tts</span> <span class="o">=</span> <span class="n">TTS</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">_default_tts</span><span class="o">.</span><span class="n">speak</span><span class="p">(</span>
+        <span class="n">text</span><span class="o">=</span><span class="n">text</span><span class="p">,</span>
+        <span class="n">voice_name</span><span class="o">=</span><span class="n">voice</span><span class="p">,</span>
+        <span class="n">play</span><span class="o">=</span><span class="n">play</span><span class="p">,</span>
+        <span class="n">output_path</span><span class="o">=</span><span class="n">output_path</span><span class="p">,</span>
+    <span class="p">)</span>
+
+
+<span class="c1"># EOF</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Yusuke Watanabe.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

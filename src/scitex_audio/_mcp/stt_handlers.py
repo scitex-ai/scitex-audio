@@ -62,7 +62,7 @@ def register_stt_tools(mcp) -> None:
             )
 
     @mcp.tool()
-    def list_whisper_models() -> str:
+    def audio_available_models() -> str:
         """List the whisper.cpp models available locally (tiny / base / small / medium / large-v3-turbo) and whether the `whisper-cli` binary was found on PATH. Use when the user asks "which whisper models do I have?", "is whisper installed?", "list STT models", or before calling `audio_transcribe` to pick an appropriate model size/speed trade-off.
 
         Returns:

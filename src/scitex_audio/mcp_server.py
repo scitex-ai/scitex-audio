@@ -32,13 +32,12 @@ from ._env_loader import load_scitex_audio_env
 load_scitex_audio_env()
 
 # Graceful FastMCP dependency handling
-try:
-    from fastmcp import FastMCP
+from scitex_dev import try_import_optional
 
-    FASTMCP_AVAILABLE = True
-except ImportError:
-    FASTMCP_AVAILABLE = False
-    FastMCP = None  # type: ignore
+FastMCP = try_import_optional(
+    "fastmcp", attr="FastMCP", extra="mcp", pkg="scitex-audio"
+)
+FASTMCP_AVAILABLE = FastMCP is not None
 
 __all__ = [
     "mcp",
@@ -62,13 +61,14 @@ else:
 
 
 def _get_audio_dir() -> Path:
-    """Get the audio output directory."""
-    import os
+    """Get the directory where generated TTS files are written.
 
-    base_dir = Path(os.getenv("SCITEX_DIR", Path.home() / ".scitex"))
-    audio_dir = base_dir / "audio"
-    audio_dir.mkdir(parents=True, exist_ok=True)
-    return audio_dir
+    Returns ``~/.scitex/audio/runtime/tts/`` — under the ``runtime/``
+    carve-out (the only untracked subtree of the audio state dir).
+    """
+    from ._state_paths import tts_output_dir
+
+    return tts_output_dir()
 
 
 if FASTMCP_AVAILABLE:
@@ -214,50 +214,82 @@ if FASTMCP_AVAILABLE:
                 indent=2,
             )
 
+    # Tool bodies live in `_mcp/server_tools.py` (importable + testable
+    # without fastmcp). Each `@mcp.tool()` here is a thin wrapper whose
+    # NAME matches its public `scitex_audio` Python counterpart so the
+    # MCP surface stays 1:1 with the Python API (audit-mcp-tools §6).
+    from ._mcp import server_tools as _st
+
     @mcp.tool()
-    def list_backends() -> str:
+    def audio_available_backends() -> str:
         """List available TTS backends and their status.
 
         Returns
         -------
             JSON string with available backends and fallback order
         """
-        try:
-            from . import FALLBACK_ORDER, available_backends
-
-            backends = available_backends()
-            return json.dumps(
-                {
-                    "success": True,
-                    "available": backends,
-                    "fallback_order": FALLBACK_ORDER,
-                    "timestamp": datetime.now().isoformat(),
-                },
-                indent=2,
-            )
-        except Exception as e:
-            return json.dumps({"success": False, "error": str(e)}, indent=2)
+        return _st.available_backends_tool()
 
     @mcp.tool()
-    def check_audio_status() -> str:
+    def audio_check_wsl_audio() -> str:
         """Check WSL audio connectivity and available playback methods.
 
         Returns
         -------
             JSON string with audio status information
         """
-        try:
-            from . import check_wsl_audio
-
-            status = check_wsl_audio()
-            status["success"] = True
-            status["timestamp"] = datetime.now().isoformat()
-            return json.dumps(status, indent=2)
-        except Exception as e:
-            return json.dumps({"success": False, "error": str(e)}, indent=2)
+        return _st.check_wsl_audio_tool()
 
     @mcp.tool()
-    def announce_context(include_full_path: bool = False) -> str:
+    def audio_check_local_audio_available() -> str:
+        """Check whether local audio playback is usable on this host.
+
+        Reports the PulseAudio sink state (RUNNING / IDLE / SUSPENDED /
+        NO_SINK) and any WSL Windows fallback, so an agent can decide
+        whether to play locally or route to a relay.
+
+        Returns
+        -------
+            JSON string with the local-audio availability report
+        """
+        return _st.check_local_audio_available_tool()
+
+    @mcp.tool()
+    def audio_stop_speech() -> str:
+        """Stop any currently playing speech.
+
+        Returns
+        -------
+            JSON string confirming the stop request
+        """
+        return _st.stop_speech_tool()
+
+    @mcp.tool()
+    def audio_generate_bytes(
+        text: str,
+        backend: Optional[str] = None,
+        voice: Optional[str] = None,
+        output_path: Optional[str] = None,
+    ) -> str:
+        """Generate TTS audio to a file without playing it.
+
+        Args:
+            text: Text to synthesize
+            backend: TTS backend (None -> fallback chain)
+            voice: Voice/language override
+            output_path: Explicit output file (None -> timestamped file
+                in the audio runtime dir)
+
+        Returns
+        -------
+            JSON string with the written path and byte count
+        """
+        return _st.generate_bytes_tool(
+            text, backend=backend, voice=voice, output_path=output_path
+        )
+
+    @mcp.tool()
+    def audio_announce_context(include_full_path: bool = False) -> str:
         """Announce the current working directory and git branch.
 
         Useful for orientation when starting work in a new session.
@@ -269,50 +301,7 @@ if FASTMCP_AVAILABLE:
         -------
             JSON string with context information and speak result
         """
-        import subprocess
-
-        try:
-            cwd = Path.cwd()
-            dir_name = str(cwd) if include_full_path else cwd.name
-
-            # Try to get git branch
-            git_branch = None
-            try:
-                result = subprocess.run(
-                    ["git", "rev-parse", "--abbrev-ref", "HEAD"],
-                    capture_output=True,
-                    text=True,
-                    timeout=5,
-                    cwd=str(cwd),
-                )
-                if result.returncode == 0:
-                    git_branch = result.stdout.strip()
-            except Exception:
-                pass
-
-            # Build announcement text
-            if git_branch:
-                text = f"Working in {dir_name}, on branch {git_branch}"
-            else:
-                text = f"Working in {dir_name}"
-
-            # Speak the announcement using the unified audio_speak tool
-            speak_result = audio_speak(text=text)
-
-            return json.dumps(
-                {
-                    "success": True,
-                    "directory": str(cwd),
-                    "directory_name": cwd.name,
-                    "git_branch": git_branch,
-                    "announced_text": text,
-                    "speak_result": json.loads(speak_result),
-                },
-                indent=2,
-            )
-
-        except Exception as e:
-            return json.dumps({"success": False, "error": str(e)}, indent=2)
+        return _st.announce_context_tool(include_full_path=include_full_path)
 
     # Register STT tools
     from ._mcp.stt_handlers import register_stt_tools

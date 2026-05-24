@@ -164,14 +164,45 @@ def list_tools(ctx, verbose, compact, as_json):
                 "name": "audio_speak",
                 "description": "Convert text to speech with fallback",
             },
-            {"name": "list_backends", "description": "List available TTS backends"},
             {
-                "name": "check_audio_status",
+                "name": "audio_transcribe",
+                "description": "Transcribe an audio file to text via whisper.cpp",
+            },
+            {
+                "name": "audio_available_backends",
+                "description": "List available TTS backends",
+            },
+            {
+                "name": "audio_available_models",
+                "description": "List locally available whisper STT models",
+            },
+            {
+                "name": "audio_check_wsl_audio",
                 "description": "Check WSL audio connectivity",
             },
             {
-                "name": "announce_context",
+                "name": "audio_check_local_audio_available",
+                "description": "Check whether local audio playback is usable",
+            },
+            {
+                "name": "audio_stop_speech",
+                "description": "Stop any currently playing speech",
+            },
+            {
+                "name": "audio_generate_bytes",
+                "description": "Generate TTS audio to a file without playing",
+            },
+            {
+                "name": "audio_announce_context",
                 "description": "Announce current directory and branch",
+            },
+            {
+                "name": "audio_skills_list",
+                "description": "List bundled scitex-audio skill pages",
+            },
+            {
+                "name": "audio_skills_get",
+                "description": "Fetch one scitex-audio skill page",
             },
         ]
         if as_json:
@@ -194,27 +225,54 @@ def list_tools(ctx, verbose, compact, as_json):
 )
 @click.pass_context
 def installation_deprecated(ctx):
-    """(deprecated) Renamed to `show-installation`."""
+    """(deprecated) Renamed to `install`."""
     click.echo(
         "error: `scitex-audio mcp installation` was renamed to "
-        "`scitex-audio mcp show-installation`.\n"
-        "Re-run with: scitex-audio mcp show-installation",
+        "`scitex-audio mcp install`.\n"
+        "Re-run with: scitex-audio mcp install",
         err=True,
     )
     ctx.exit(2)
 
 
-@mcp.command("show-installation")
+@mcp.command(
+    "show-installation", hidden=True, context_settings={"ignore_unknown_options": True}
+)
+@click.pass_context
+def mcp_show_installation_deprecated(ctx):
+    """(deprecated) Renamed to `install`."""
+    click.echo(
+        "error: `scitex-audio mcp show-installation` was renamed to "
+        "`scitex-audio mcp install`.\n"
+        "Re-run with: scitex-audio mcp install",
+        err=True,
+    )
+    ctx.exit(2)
+
+
+@mcp.command("install")
 @click.option("--json", "as_json", is_flag=True, help="Output as JSON")
-def show_installation(as_json):
+@click.option(
+    "--dry-run",
+    is_flag=True,
+    help="Accepted for §2; this verb is informational, never mutates state.",
+)
+@click.option(
+    "--yes",
+    "-y",
+    is_flag=True,
+    help="Accepted for §2; this verb is informational, never mutates state.",
+)
+def show_installation(as_json, dry_run, yes):
     """
     Show MCP server installation instructions for Claude Code
 
     \b
     Example:
-      scitex-audio mcp show-installation
-      scitex-audio mcp show-installation --json
+      scitex-audio mcp install
+      scitex-audio mcp install --json
     """
+    del dry_run, yes  # audit §2 — no-op flags
     import json as json_mod
 
     config = {

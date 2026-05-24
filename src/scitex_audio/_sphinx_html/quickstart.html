@@ -1,0 +1,250 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Quick Start &mdash; scitex-audio 0.2.12 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=1e30946d"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Backends" href="backends.html" />
+    <link rel="prev" title="SciTeX Audio" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            scitex-audio
+              <img src="_static/scitex-logo-banner.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Quick Start</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#installation">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#python-api">Python API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#cli">CLI</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#mcp-server">MCP Server</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#claude-code-setup">Claude Code Setup</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="backends.html">Backends</a></li>
+<li class="toctree-l1"><a class="reference internal" href="relay.html">Remote Audio Relay</a></li>
+<li class="toctree-l1"><a class="reference internal" href="env_vars.html">Environment Variables</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="api/scitex_audio.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/engines.html">Engines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/mcp.html">MCP Handlers</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">scitex-audio</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Quick Start</li>
+      <li class="wy-breadcrumbs-aside">
+              <a href="https://github.com/ywatanabe1989/scitex-audio/blob/main/docs/sphinx/quickstart.rst" class="fa fa-github"> Edit on GitHub</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="quick-start">
+<h1>Quick Start<a class="headerlink" href="#quick-start" title="Link to this heading"></a></h1>
+<section id="installation">
+<h2>Installation<a class="headerlink" href="#installation" title="Link to this heading"></a></h2>
+<p>Requires Python &gt;= 3.10.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>scitex-audio
+</pre></div>
+</div>
+<p>Install with specific backends:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>scitex-audio<span class="o">[</span>gtts<span class="o">]</span><span class="w">         </span><span class="c1"># Google TTS</span>
+pip<span class="w"> </span>install<span class="w"> </span>scitex-audio<span class="o">[</span>pyttsx3<span class="o">]</span><span class="w">      </span><span class="c1"># System TTS (+ apt install espeak-ng)</span>
+pip<span class="w"> </span>install<span class="w"> </span>scitex-audio<span class="o">[</span>elevenlabs<span class="o">]</span><span class="w">   </span><span class="c1"># ElevenLabs (paid, high quality)</span>
+pip<span class="w"> </span>install<span class="w"> </span>scitex-audio<span class="o">[</span>luxtts<span class="o">]</span><span class="w">       </span><span class="c1"># LuxTTS (offline, voice cloning)</span>
+pip<span class="w"> </span>install<span class="w"> </span>scitex-audio<span class="o">[</span>all<span class="o">]</span><span class="w">          </span><span class="c1"># Everything</span>
+</pre></div>
+</div>
+</section>
+<section id="python-api">
+<h2>Python API<a class="headerlink" href="#python-api" title="Link to this heading"></a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">scitex_audio</span><span class="w"> </span><span class="kn">import</span> <span class="n">speak</span><span class="p">,</span> <span class="n">available_backends</span><span class="p">,</span> <span class="n">get_tts</span>
+
+<span class="c1"># Check available backends</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">available_backends</span><span class="p">())</span>  <span class="c1"># [&#39;gtts&#39;, &#39;pyttsx3&#39;]</span>
+
+<span class="c1"># Speak with auto-selected best backend</span>
+<span class="n">speak</span><span class="p">(</span><span class="s2">&quot;Hello from SciTeX Audio!&quot;</span><span class="p">)</span>
+
+<span class="c1"># Choose backend and voice</span>
+<span class="n">speak</span><span class="p">(</span><span class="s2">&quot;Bonjour&quot;</span><span class="p">,</span> <span class="n">backend</span><span class="o">=</span><span class="s2">&quot;gtts&quot;</span><span class="p">,</span> <span class="n">voice</span><span class="o">=</span><span class="s2">&quot;fr&quot;</span><span class="p">)</span>
+
+<span class="c1"># Control speed</span>
+<span class="n">speak</span><span class="p">(</span><span class="s2">&quot;Fast speech&quot;</span><span class="p">,</span> <span class="n">backend</span><span class="o">=</span><span class="s2">&quot;gtts&quot;</span><span class="p">,</span> <span class="n">speed</span><span class="o">=</span><span class="mf">1.5</span><span class="p">)</span>
+<span class="n">speak</span><span class="p">(</span><span class="s2">&quot;LuxTTS speech&quot;</span><span class="p">,</span> <span class="n">backend</span><span class="o">=</span><span class="s2">&quot;luxtts&quot;</span><span class="p">,</span> <span class="n">speed</span><span class="o">=</span><span class="mf">2.0</span><span class="p">)</span>
+
+<span class="c1"># Save without playing</span>
+<span class="n">speak</span><span class="p">(</span><span class="s2">&quot;Save this&quot;</span><span class="p">,</span> <span class="n">output_path</span><span class="o">=</span><span class="s2">&quot;output.mp3&quot;</span><span class="p">,</span> <span class="n">play</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+<span class="c1"># Get raw audio bytes</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scitex_audio</span><span class="w"> </span><span class="kn">import</span> <span class="n">generate_bytes</span>
+<span class="n">audio_bytes</span> <span class="o">=</span> <span class="n">generate_bytes</span><span class="p">(</span><span class="s2">&quot;As bytes&quot;</span><span class="p">)</span>
+
+<span class="c1"># Use engine directly</span>
+<span class="n">tts</span> <span class="o">=</span> <span class="n">get_tts</span><span class="p">(</span><span class="s2">&quot;gtts&quot;</span><span class="p">)</span>
+<span class="n">tts</span><span class="o">.</span><span class="n">speak</span><span class="p">(</span><span class="s2">&quot;With engine&quot;</span><span class="p">,</span> <span class="n">voice</span><span class="o">=</span><span class="s2">&quot;fr&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="cli">
+<h2>CLI<a class="headerlink" href="#cli" title="Link to this heading"></a></h2>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Basic speech</span>
+scitex-audio<span class="w"> </span>speak<span class="w"> </span><span class="s2">&quot;Hello world&quot;</span>
+scitex-audio<span class="w"> </span>speak<span class="w"> </span><span class="s2">&quot;Bonjour&quot;</span><span class="w"> </span>--backend<span class="w"> </span>gtts<span class="w"> </span>--voice<span class="w"> </span>fr
+
+<span class="c1"># Backend management</span>
+scitex-audio<span class="w"> </span>backends<span class="w">              </span><span class="c1"># List available backends</span>
+scitex-audio<span class="w"> </span>check<span class="w">                 </span><span class="c1"># Audio status (WSL detection)</span>
+scitex-audio<span class="w"> </span>stop<span class="w">                  </span><span class="c1"># Stop current playback</span>
+
+<span class="c1"># Relay server (for remote audio)</span>
+scitex-audio<span class="w"> </span>relay<span class="w"> </span>--port<span class="w"> </span><span class="m">31293</span>
+
+<span class="c1"># MCP server (for AI agents)</span>
+scitex-audio<span class="w"> </span>mcp<span class="w"> </span>start
+scitex-audio<span class="w"> </span>mcp<span class="w"> </span>list-tools
+
+<span class="c1"># Introspection</span>
+scitex-audio<span class="w"> </span>list-python-apis<span class="w">      </span><span class="c1"># Full Python API tree</span>
+scitex-audio<span class="w"> </span>--help-recursive<span class="w">      </span><span class="c1"># All commands and options</span>
+</pre></div>
+</div>
+</section>
+<section id="mcp-server">
+<h2>MCP Server<a class="headerlink" href="#mcp-server" title="Link to this heading"></a></h2>
+<p>AI agents can use the MCP protocol for text-to-speech:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Start MCP server (stdio transport, for Claude/other agents)</span>
+scitex-audio<span class="w"> </span>mcp<span class="w"> </span>start
+
+<span class="c1"># HTTP transport (for remote agents)</span>
+scitex-audio<span class="w"> </span>mcp<span class="w"> </span>start<span class="w"> </span>-t<span class="w"> </span>http<span class="w"> </span>--port<span class="w"> </span><span class="m">31293</span>
+</pre></div>
+</div>
+<p>Available MCP tools:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">audio_speak</span></code> — Convert text to speech with backend fallback</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">list_backends</span></code> — List available TTS backends and status</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">check_audio_status</span></code> — Check audio connectivity (WSL/PulseAudio)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">announce_context</span></code> — Announce current directory and git branch</p></li>
+</ul>
+<section id="claude-code-setup">
+<h3>Claude Code Setup<a class="headerlink" href="#claude-code-setup" title="Link to this heading"></a></h3>
+<p>Add <code class="docutils literal notranslate"><span class="pre">.mcp.json</span></code> to your project root. Use <code class="docutils literal notranslate"><span class="pre">SCITEX_AUDIO_ENV_SRC</span></code> to load
+all configuration from a <code class="docutils literal notranslate"><span class="pre">.src</span></code> file — this keeps <code class="docutils literal notranslate"><span class="pre">.mcp.json</span></code> static
+across environments:</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;mcpServers&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;scitex-audio&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;scitex-audio&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;args&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;mcp&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;start&quot;</span><span class="p">],</span>
+<span class="w">      </span><span class="nt">&quot;env&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;SCITEX_AUDIO_ENV_SRC&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;${SCITEX_AUDIO_ENV_SRC}&quot;</span>
+<span class="w">      </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Switch environments via your shell profile:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Local machine (has speakers)</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">SCITEX_AUDIO_ENV_SRC</span><span class="o">=</span>~/.scitex/audio/local.src
+
+<span class="c1"># Remote server (no speakers, uses relay)</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">SCITEX_AUDIO_ENV_SRC</span><span class="o">=</span>~/.scitex/audio/remote.src
+</pre></div>
+</div>
+<p>Generate a template <code class="docutils literal notranslate"><span class="pre">.src</span></code> file:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>scitex-audio<span class="w"> </span>env-template<span class="w"> </span>-o<span class="w"> </span>~/.scitex/audio/local.src
+</pre></div>
+</div>
+<p>Or install globally:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>scitex-audio<span class="w"> </span>mcp<span class="w"> </span>install
+</pre></div>
+</div>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="index.html" class="btn btn-neutral float-left" title="SciTeX Audio" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="backends.html" class="btn btn-neutral float-right" title="Backends" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Yusuke Watanabe.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

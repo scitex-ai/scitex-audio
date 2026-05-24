@@ -6,7 +6,7 @@ TTS engine implementations.
 Base Engine
 -----------
 
-.. automodule:: scitex_audio.engines._base
+.. automodule:: scitex_audio._engines._base
    :members:
    :undoc-members:
    :show-inheritance:
@@ -14,7 +14,7 @@ Base Engine
 Google TTS
 ----------
 
-.. automodule:: scitex_audio.engines._gtts_engine
+.. automodule:: scitex_audio._engines._gtts_engine
    :members:
    :undoc-members:
    :show-inheritance:
@@ -22,7 +22,7 @@ Google TTS
 ElevenLabs
 ----------
 
-.. automodule:: scitex_audio.engines._elevenlabs_engine
+.. automodule:: scitex_audio._engines._elevenlabs_engine
    :members:
    :undoc-members:
    :show-inheritance:
@@ -30,7 +30,7 @@ ElevenLabs
 LuxTTS
 ------
 
-.. automodule:: scitex_audio.engines._luxtts_engine
+.. automodule:: scitex_audio._engines._luxtts_engine
    :members:
    :undoc-members:
    :show-inheritance:
@@ -38,7 +38,7 @@ LuxTTS
 System TTS (pyttsx3)
 --------------------
 
-.. automodule:: scitex_audio.engines._pyttsx3_engine
+.. automodule:: scitex_audio._engines._pyttsx3_engine
    :members:
    :undoc-members:
    :show-inheritance:

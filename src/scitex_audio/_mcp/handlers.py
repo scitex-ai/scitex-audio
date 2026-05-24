@@ -25,13 +25,14 @@ __all__ = [
 
 
 def _get_audio_dir() -> Path:
-    """Get the audio output directory."""
-    import os
+    """Get the directory where generated TTS files are written.
 
-    base_dir = Path(os.getenv("SCITEX_DIR", Path.home() / ".scitex"))
-    audio_dir = base_dir / "audio"
-    audio_dir.mkdir(parents=True, exist_ok=True)
-    return audio_dir
+    Returns ``~/.scitex/audio/runtime/tts/`` — under the ``runtime/``
+    carve-out (the only untracked subtree of the audio state dir).
+    """
+    from .._state_paths import tts_output_dir
+
+    return tts_output_dir()
 
 
 def _get_signature() -> str:
@@ -71,16 +72,29 @@ async def generate_audio_handler(
     voice: str | None = None,
     output_path: str | None = None,
     return_base64: bool = False,
+    speak_fn=None,
+    audio_dir=None,
 ) -> dict:
-    """Generate audio file without playing."""
+    """Generate audio file without playing.
+
+    Args:
+        speak_fn: Injectable TTS function (testing). Defaults to
+            ``scitex_audio.speak``.
+        audio_dir: Injectable output directory (testing). Defaults to
+            ``_get_audio_dir()``.
+    """
     try:
-        from .. import speak as tts_speak
+        if speak_fn is not None:
+            tts_speak = speak_fn
+        else:
+            from .. import speak as tts_speak
 
         loop = asyncio.get_event_loop()
 
         if not output_path:
+            base_dir = audio_dir if audio_dir is not None else _get_audio_dir()
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            output_path = str(_get_audio_dir() / f"tts_{timestamp}.mp3")
+            output_path = str(base_dir / f"tts_{timestamp}.mp3")
 
         def do_generate():
             return tts_speak(
@@ -115,15 +129,28 @@ async def generate_audio_handler(
         return {"success": False, "error": str(e)}
 
 
-async def list_backends_handler() -> dict:
-    """List available TTS backends."""
-    try:
-        from .. import FALLBACK_ORDER, available_backends
+async def list_backends_handler(available_fn=None, fallback_order=None) -> dict:
+    """List available TTS backends.
 
-        backends = available_backends()
+    Args:
+        available_fn: Injectable available-backends function (testing).
+            Defaults to ``scitex_audio.available_backends``.
+        fallback_order: Injectable fallback order (testing). Defaults to
+            ``scitex_audio.FALLBACK_ORDER``.
+    """
+    try:
+        if available_fn is None or fallback_order is None:
+            from .. import FALLBACK_ORDER, available_backends
+
+            if available_fn is None:
+                available_fn = available_backends
+            if fallback_order is None:
+                fallback_order = FALLBACK_ORDER
+
+        backends = available_fn()
 
         info = []
-        for b in FALLBACK_ORDER:
+        for b in fallback_order:
             available = b in backends
             desc = {
                 "elevenlabs": "ElevenLabs - Paid, high quality",
@@ -138,9 +165,9 @@ async def list_backends_handler() -> dict:
                 }
             )
 
-        # Determine actual default based on FALLBACK_ORDER
+        # Determine actual default based on fallback order
         default = None
-        for b in FALLBACK_ORDER:
+        for b in fallback_order:
             if b in backends:
                 default = b
                 break
@@ -156,10 +183,18 @@ async def list_backends_handler() -> dict:
         return {"success": False, "error": str(e)}
 
 
-async def list_voices_handler(backend: str = "gtts") -> dict:
-    """List available voices for a backend."""
+async def list_voices_handler(backend: str = "gtts", get_tts_fn=None) -> dict:
+    """List available voices for a backend.
+
+    Args:
+        get_tts_fn: Injectable engine factory (testing). Defaults to
+            ``scitex_audio.get_tts``.
+    """
     try:
-        from .. import get_tts
+        if get_tts_fn is not None:
+            get_tts = get_tts_fn
+        else:
+            from .. import get_tts
 
         loop = asyncio.get_event_loop()
 
@@ -180,8 +215,13 @@ async def list_voices_handler(backend: str = "gtts") -> dict:
         return {"success": False, "error": str(e)}
 
 
-async def play_audio_handler(path: str) -> dict:
-    """Play an audio file."""
+async def play_audio_handler(path: str, player=None) -> dict:
+    """Play an audio file.
+
+    Args:
+        player: Injectable playback callable taking a ``Path`` (testing).
+            Defaults to ``BaseTTS._play_audio``.
+    """
     try:
         from .._engines._base import BaseTTS
 
@@ -191,8 +231,12 @@ async def play_audio_handler(path: str) -> dict:
 
         loop = asyncio.get_event_loop()
 
+        play = (
+            player if player is not None else (lambda p: BaseTTS._play_audio(None, p))
+        )
+
         def do_play():
-            BaseTTS._play_audio(None, path_obj)
+            play(path_obj)
 
         await loop.run_in_executor(None, do_play)
 
@@ -206,10 +250,15 @@ async def play_audio_handler(path: str) -> dict:
         return {"success": False, "error": str(e)}
 
 
-async def list_audio_files_handler(limit: int = 20) -> dict:
-    """List generated audio files."""
+async def list_audio_files_handler(limit: int = 20, audio_dir=None) -> dict:
+    """List generated audio files.
+
+    Args:
+        audio_dir: Injectable directory to scan (testing). Defaults to
+            ``_get_audio_dir()``.
+    """
     try:
-        audio_dir = _get_audio_dir()
+        audio_dir = audio_dir if audio_dir is not None else _get_audio_dir()
         if not audio_dir.exists():
             return {"success": True, "files": [], "count": 0}
 
@@ -244,10 +293,15 @@ async def list_audio_files_handler(limit: int = 20) -> dict:
         return {"success": False, "error": str(e)}
 
 
-async def clear_audio_cache_handler(max_age_hours: float = 24) -> dict:
-    """Clear audio cache."""
+async def clear_audio_cache_handler(max_age_hours: float = 24, audio_dir=None) -> dict:
+    """Clear audio cache.
+
+    Args:
+        audio_dir: Injectable directory to clear (testing). Defaults to
+            ``_get_audio_dir()``.
+    """
     try:
-        audio_dir = _get_audio_dir()
+        audio_dir = audio_dir if audio_dir is not None else _get_audio_dir()
         if not audio_dir.exists():
             return {"success": True, "deleted": 0}
 
@@ -278,10 +332,18 @@ async def clear_audio_cache_handler(max_age_hours: float = 24) -> dict:
         return {"success": False, "error": str(e)}
 
 
-async def check_audio_status_handler() -> dict:
-    """Check WSL audio connectivity and available playback methods."""
+async def check_audio_status_handler(status_fn=None) -> dict:
+    """Check WSL audio connectivity and available playback methods.
+
+    Args:
+        status_fn: Injectable status probe (testing). Defaults to
+            ``scitex_audio.check_wsl_audio``.
+    """
     try:
-        from .. import check_wsl_audio
+        if status_fn is not None:
+            check_wsl_audio = status_fn
+        else:
+            from .. import check_wsl_audio
 
         status = check_wsl_audio()
         status["success"] = True
@@ -323,6 +385,9 @@ async def speak_handler(
     wait: bool = True,
     signature: bool = False,
     num_threads: int | None = None,
+    speak_fn=None,
+    audio_dir=None,
+    signature_fn=None,
 ) -> dict:
     """Convert text to speech with fallback.
 
@@ -331,6 +396,12 @@ async def speak_handler(
         output_path: Explicit path to save the audio file (overrides save flag).
         signature: If True, prepend hostname/project/branch to text.
         num_threads: CPU thread count for LuxTTS backend (None=default).
+        speak_fn: Injectable TTS function (testing). Defaults to
+            ``scitex_audio.speak``.
+        audio_dir: Injectable output directory (testing). Defaults to
+            ``_get_audio_dir()``.
+        signature_fn: Injectable signature builder (testing). Defaults to
+            :func:`_get_signature`.
     """
     import os
 
@@ -339,7 +410,8 @@ async def speak_handler(
         final_text = text
         sig = None
         if signature:
-            sig = _get_signature()
+            build_sig = signature_fn if signature_fn is not None else _get_signature
+            sig = build_sig()
             final_text = sig + text
 
         # SciTeX Cloud container mode: relay speech to browser via OSC escape
@@ -360,13 +432,17 @@ async def speak_handler(
             return result
 
         # Local mode: use scitex.audio directly
-        from .. import speak as tts_speak
+        if speak_fn is not None:
+            tts_speak = speak_fn
+        else:
+            from .. import speak as tts_speak
 
         loop = asyncio.get_event_loop()
 
         if output_path is None and save:
+            base_dir = audio_dir if audio_dir is not None else _get_audio_dir()
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            output_path = str(_get_audio_dir() / f"tts_{timestamp}.mp3")
+            output_path = str(base_dir / f"tts_{timestamp}.mp3")
 
         def do_speak():
             return tts_speak(
@@ -427,8 +503,20 @@ async def speech_queue_status_handler() -> dict:
         return {"success": False, "error": str(e)}
 
 
-async def announce_context_handler(include_full_path: bool = False) -> dict:
-    """Announce current working directory and git branch."""
+async def announce_context_handler(
+    include_full_path: bool = False,
+    branch_resolver=None,
+    speak_fn=None,
+) -> dict:
+    """Announce current working directory and git branch.
+
+    Args:
+        branch_resolver: Injectable callable returning the git branch name
+            (or None) for ``cwd`` (testing). Defaults to a real ``git
+            rev-parse`` subprocess.
+        speak_fn: Injectable speak handler (testing). Defaults to
+            :func:`speak_handler`.
+    """
     try:
         import os
         import subprocess
@@ -436,25 +524,29 @@ async def announce_context_handler(include_full_path: bool = False) -> dict:
         cwd = os.getcwd()
         dir_name = cwd if include_full_path else os.path.basename(cwd)
 
-        branch = None
-        try:
-            result = subprocess.run(
-                ["git", "rev-parse", "--abbrev-ref", "HEAD"],
-                capture_output=True,
-                text=True,
-                cwd=cwd,
-            )
-            if result.returncode == 0:
-                branch = result.stdout.strip()
-        except Exception:
-            pass
+        if branch_resolver is not None:
+            branch = branch_resolver(cwd)
+        else:
+            branch = None
+            try:
+                result = subprocess.run(
+                    ["git", "rev-parse", "--abbrev-ref", "HEAD"],
+                    capture_output=True,
+                    text=True,
+                    cwd=cwd,
+                )
+                if result.returncode == 0:
+                    branch = result.stdout.strip()
+            except Exception:
+                pass
 
         if branch:
             text = f"Working in {dir_name}, on branch {branch}"
         else:
             text = f"Working in {dir_name}"
 
-        speak_result = await speak_handler(text=text, speed=1.5)
+        speak = speak_fn if speak_fn is not None else speak_handler
+        speak_result = await speak(text=text, speed=1.5)
 
         return {
             "success": True,

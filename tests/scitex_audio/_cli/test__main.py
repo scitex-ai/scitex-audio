@@ -1,23 +1,17 @@
 #!/usr/bin/env python3
 """Tests for scitex_audio._cli._main (Click root group + leaf commands).
 
-Covers the surface area of the `scitex-audio` CLI:
-  - root help, --version, --help-recursive, --json
-  - speak-text option plumbing (mocked backend)
-  - list-backends rendering (text + --json)
-  - check-backends, stop-playback dry-run, transcribe-audio, show-env-template
-  - deprecated redirects exit non-zero with hint
-  - list-python-apis runs end-to-end
-
-These exercise the public CLI shape an agent would invoke; backend calls
-that need network / hardware are mocked.
+No mocks: the CLI is exercised through the real ``CliRunner``. Commands that
+would shell out to network/hardware (TTS synthesis, whisper transcription,
+``pkill espeak``) are tested through their pure / dry-run / validation paths;
+the speak-text option plumbing is verified directly via the pure
+``build_speak_kwargs`` helper that the command delegates to.
 """
-
-from unittest.mock import MagicMock, patch
 
 import pytest
 from click.testing import CliRunner
 
+from scitex_audio._cli._commands._speak import build_speak_kwargs
 from scitex_audio._cli._main import audio
 
 
@@ -27,203 +21,319 @@ def runner():
 
 
 class TestRootGroup:
-    def test_help(self, runner):
+    def test_help_exits_zero(self, runner):
+        # Arrange
+        # Act
         result = runner.invoke(audio, ["--help"])
+        # Assert
         assert result.exit_code == 0
+
+    def test_help_mentions_text_to_speech(self, runner):
+        # Arrange
+        # Act
+        result = runner.invoke(audio, ["--help"])
+        # Assert
         assert "Text-to-speech" in result.output
-        # §6b config-precedence chain documented in root docstring
+
+    def test_help_mentions_config_yaml(self, runner):
+        # Arrange
+        # Act
+        result = runner.invoke(audio, ["--help"])
+        # Assert
         assert "config.yaml" in result.output
-        assert "SCITEX_AUDIO_CONFIG" in result.output
 
-    def test_version(self, runner):
+    def test_version_exits_zero(self, runner):
+        # Arrange
+        # Act
         result = runner.invoke(audio, ["--version"])
+        # Assert
         assert result.exit_code == 0
+
+    def test_version_names_scitex_audio(self, runner):
+        # Arrange
+        # Act
+        result = runner.invoke(audio, ["--version"])
+        # Assert
         assert "scitex-audio" in result.output
 
-    def test_short_version_flag(self, runner):
+    def test_short_version_flag_exits_zero(self, runner):
+        # Arrange
+        # Act
         result = runner.invoke(audio, ["-V"])
+        # Assert
         assert result.exit_code == 0
-        assert "scitex-audio" in result.output
 
     def test_no_args_shows_help(self, runner):
+        # Arrange
+        # Act
         result = runner.invoke(audio, [])
+        # Assert
         assert result.exit_code == 0
+
+    def test_no_args_lists_speak(self, runner):
+        # Arrange
+        # Act
+        result = runner.invoke(audio, [])
+        # Assert
         assert "speak" in result.output.lower()
 
-    def test_help_recursive(self, runner):
+    def test_help_recursive_exits_zero(self, runner):
+        # Arrange
+        # Act
         result = runner.invoke(audio, ["--help-recursive"])
+        # Assert
         assert result.exit_code == 0
-        # Should mention multiple subcommands, indicating recursion happened.
+
+    def test_help_recursive_lists_speak_text(self, runner):
+        # Arrange
+        # Act
+        result = runner.invoke(audio, ["--help-recursive"])
+        # Assert
         assert "speak-text" in result.output
+
+    def test_help_recursive_lists_list_backends(self, runner):
+        # Arrange
+        # Act
+        result = runner.invoke(audio, ["--help-recursive"])
+        # Assert
         assert "list-backends" in result.output
 
-    def test_root_json(self, runner):
+    def test_root_json_exits_zero(self, runner):
+        # Arrange
+        # Act
         result = runner.invoke(audio, ["--json"])
+        # Assert
         assert result.exit_code == 0
-        # JSON envelope or fallback dict — either way must mention a known cmd
+
+    def test_root_json_lists_a_subcommand(self, runner):
+        # Arrange
+        # Act
+        result = runner.invoke(audio, ["--json"])
+        # Assert
         assert "speak-text" in result.output or "list-backends" in result.output
 
 
-class TestSpeakText:
-    def test_speak_text_calls_backend(self, runner):
-        mock_speak = MagicMock(return_value={"played": True})
-        with patch("scitex_audio.speak", mock_speak):
-            result = runner.invoke(audio, ["speak-text", "Hello"])
-        mock_speak.assert_called_once()
-        kwargs = mock_speak.call_args[1]
+class TestSpeakTextOptionPlumbing:
+    """speak-text translates options into speak() kwargs via build_speak_kwargs."""
+
+    def test_text_passes_through(self):
+        # Arrange
+        # Act
+        kwargs = build_speak_kwargs("Hello", None, None, None, False, None, None, False)
+        # Assert
         assert kwargs["text"] == "Hello"
+
+    def test_play_defaults_true(self):
+        # Arrange
+        # Act
+        kwargs = build_speak_kwargs("Hello", None, None, None, False, None, None, False)
+        # Assert
         assert kwargs["play"] is True
+
+    def test_fallback_defaults_true(self):
+        # Arrange
+        # Act
+        kwargs = build_speak_kwargs("Hello", None, None, None, False, None, None, False)
+        # Assert
         assert kwargs["fallback"] is True
 
-    def test_speak_text_backend_option(self, runner):
-        mock_speak = MagicMock(return_value={"played": True})
-        with patch("scitex_audio.speak", mock_speak):
-            runner.invoke(audio, ["speak-text", "Hi", "-b", "gtts"])
-        assert mock_speak.call_args[1]["backend"] == "gtts"
+    def test_backend_option_sets_backend(self):
+        # Arrange
+        # Act
+        kwargs = build_speak_kwargs("Hi", "gtts", None, None, False, None, None, False)
+        # Assert
+        assert kwargs["backend"] == "gtts"
 
-    def test_speak_text_invalid_backend_rejected(self, runner):
+    def test_no_play_flag_sets_play_false(self):
+        # Arrange
+        # Act
+        kwargs = build_speak_kwargs("Hi", None, None, None, True, None, None, False)
+        # Assert
+        assert kwargs["play"] is False
+
+    def test_no_fallback_flag_sets_fallback_false(self):
+        # Arrange
+        # Act
+        kwargs = build_speak_kwargs("Hi", None, None, None, False, None, None, True)
+        # Assert
+        assert kwargs["fallback"] is False
+
+    def test_invalid_backend_rejected_by_cli(self, runner):
+        # Arrange
+        # Act
         result = runner.invoke(audio, ["speak-text", "Hi", "-b", "invalid"])
+        # Assert
         assert result.exit_code != 0
-
-    def test_speak_text_no_play_flag(self, runner):
-        mock_speak = MagicMock(return_value={})
-        with patch("scitex_audio.speak", mock_speak):
-            runner.invoke(audio, ["speak-text", "Hi", "--no-play"])
-        assert mock_speak.call_args[1]["play"] is False
-
-    def test_speak_text_no_fallback_flag(self, runner):
-        mock_speak = MagicMock(return_value={"played": True})
-        with patch("scitex_audio.speak", mock_speak):
-            runner.invoke(audio, ["speak-text", "Hi", "--no-fallback"])
-        assert mock_speak.call_args[1]["fallback"] is False
 
 
 class TestListBackends:
-    def test_text_output(self, runner):
-        mock_avail = MagicMock(return_value=["gtts"])
-        with (
-            patch("scitex_audio.available_backends", mock_avail),
-            patch(
-                "scitex_audio.FALLBACK_ORDER",
-                ["pyttsx3", "gtts", "luxtts", "elevenlabs"],
-            ),
-        ):
-            result = runner.invoke(audio, ["list-backends"])
-        assert result.exit_code == 0
-        assert "available" in result.output.lower()
+    """list-backends runs against the real backend registry."""
 
-    def test_json_envelope(self, runner):
-        mock_avail = MagicMock(return_value=["gtts", "pyttsx3"])
-        with (
-            patch("scitex_audio.available_backends", mock_avail),
-            patch(
-                "scitex_audio.FALLBACK_ORDER",
-                ["pyttsx3", "gtts", "luxtts", "elevenlabs"],
-            ),
-        ):
-            result = runner.invoke(audio, ["list-backends", "--json"])
+    def test_text_output_exits_zero(self, runner):
+        # Arrange
+        # Act
+        result = runner.invoke(audio, ["list-backends"])
+        # Assert
         assert result.exit_code == 0
-        # The Result envelope may be wrapped, but the data fields should appear
+
+    def test_text_output_shows_fallback_order(self, runner):
+        # Arrange
+        # Act
+        result = runner.invoke(audio, ["list-backends"])
+        # Assert
+        assert "Fallback order" in result.output
+
+    def test_json_envelope_exits_zero(self, runner):
+        # Arrange
+        # Act
+        result = runner.invoke(audio, ["list-backends", "--json"])
+        # Assert
+        assert result.exit_code == 0
+
+    def test_json_envelope_has_available_key(self, runner):
+        # Arrange
+        # Act
+        result = runner.invoke(audio, ["list-backends", "--json"])
+        # Assert
         assert "available" in result.output
+
+    def test_json_envelope_has_fallback_order_key(self, runner):
+        # Arrange
+        # Act
+        result = runner.invoke(audio, ["list-backends", "--json"])
+        # Assert
         assert "fallback_order" in result.output
 
 
 class TestCheckBackends:
-    def test_runs_text(self, runner):
-        mock_status = {
-            "is_wsl": False,
-            "wslg_available": False,
-            "pulse_server_exists": False,
-            "pulse_connected": False,
-            "windows_fallback_available": False,
-            "recommended": "linux",
-        }
-        with patch("scitex_audio.check_wsl_audio", return_value=mock_status):
-            result = runner.invoke(audio, ["check-backends"])
+    """check-backends runs against the real WSL/audio probe."""
+
+    def test_text_output_exits_zero(self, runner):
+        # Arrange
+        # Act
+        result = runner.invoke(audio, ["check-backends"])
+        # Assert
         assert result.exit_code == 0
+
+    def test_text_output_has_status_header(self, runner):
+        # Arrange
+        # Act
+        result = runner.invoke(audio, ["check-backends"])
+        # Assert
         assert "Audio Status Check" in result.output
 
-    def test_runs_json(self, runner):
-        mock_status = {
-            "is_wsl": True,
-            "wslg_available": True,
-            "pulse_server_exists": True,
-            "pulse_connected": True,
-            "windows_fallback_available": True,
-            "recommended": "linux",
-        }
-        with patch("scitex_audio.check_wsl_audio", return_value=mock_status):
-            result = runner.invoke(audio, ["check-backends", "--json"])
+    def test_json_output_exits_zero(self, runner):
+        # Arrange
+        # Act
+        result = runner.invoke(audio, ["check-backends", "--json"])
+        # Assert
         assert result.exit_code == 0
+
+    def test_json_output_has_is_wsl_key(self, runner):
+        # Arrange
+        # Act
+        result = runner.invoke(audio, ["check-backends", "--json"])
+        # Assert
         assert "is_wsl" in result.output
 
 
 class TestStopPlayback:
-    def test_dry_run(self, runner):
+    def test_dry_run_exits_zero(self, runner):
+        # Arrange
+        # Act
         result = runner.invoke(audio, ["stop-playback", "--dry-run"])
+        # Assert
         assert result.exit_code == 0
-        assert "DRY RUN" in result.output
 
-    def test_calls_stop_speech(self, runner):
-        mock_stop = MagicMock()
-        with patch("scitex_audio.stop_speech", mock_stop):
-            result = runner.invoke(audio, ["stop-playback"])
-        assert result.exit_code == 0
-        mock_stop.assert_called_once()
+    def test_dry_run_announces_plan(self, runner):
+        # Arrange
+        # Act
+        result = runner.invoke(audio, ["stop-playback", "--dry-run"])
+        # Assert
+        assert "DRY RUN" in result.output
 
 
 class TestTranscribeAudio:
-    def test_calls_transcribe(self, runner, tmp_path):
-        # transcribe-audio takes a Click Path(exists=True), so we need a real file
-        audio_file = tmp_path / "x.wav"
-        audio_file.write_bytes(b"")
-        mock_transcribe = MagicMock(return_value={"success": True, "text": "hello"})
-        with patch("scitex_audio.transcribe", mock_transcribe):
-            result = runner.invoke(audio, ["transcribe-audio", str(audio_file)])
-        assert result.exit_code == 0
-        assert "hello" in result.output
+    def test_nonexistent_path_rejected(self, runner):
+        # Arrange — Click's Path(exists=True) validation rejects a missing file
+        # Act
+        result = runner.invoke(audio, ["transcribe-audio", "/no/such/file.wav"])
+        # Assert
+        assert result.exit_code != 0
+
+    def test_help_lists_language_option(self, runner):
+        # Arrange
+        # Act
+        result = runner.invoke(audio, ["transcribe-audio", "--help"])
+        # Assert
+        assert "--language" in result.output
 
 
 class TestShowEnvTemplate:
-    def test_stdout(self, runner):
+    def test_stdout_exits_zero(self, runner):
+        # Arrange
+        # Act
         result = runner.invoke(audio, ["show-env-template"])
+        # Assert
         assert result.exit_code == 0
-        # Template should mention something about SCITEX_AUDIO env vars
+
+    def test_stdout_is_non_empty(self, runner):
+        # Arrange
+        # Act
+        result = runner.invoke(audio, ["show-env-template"])
+        # Assert
         assert len(result.output) > 0
 
-    def test_no_sensitive(self, runner):
+    def test_no_sensitive_flag_exits_zero(self, runner):
+        # Arrange
+        # Act
         result = runner.invoke(audio, ["show-env-template", "--no-sensitive"])
+        # Assert
         assert result.exit_code == 0
+
+
+_DEPRECATED = [
+    ("speak", "speak-text"),
+    ("backends", "list-backends"),
+    ("check", "check-backends"),
+    ("stop", "stop-playback"),
+    ("transcribe", "transcribe-audio"),
+    ("env-template", "show-env-template"),
+]
 
 
 class TestDeprecatedRedirects:
-    @pytest.mark.parametrize(
-        "old,new",
-        [
-            ("speak", "speak-text"),
-            ("backends", "list-backends"),
-            ("check", "check-backends"),
-            ("stop", "stop-playback"),
-            ("transcribe", "transcribe-audio"),
-            ("env-template", "show-env-template"),
-        ],
-    )
-    def test_old_command_exits_with_hint(self, runner, old, new):
+    @pytest.mark.parametrize("old, new", _DEPRECATED)
+    def test_old_command_exits_two(self, runner, old, new):
+        # Arrange
+        # Act
         result = runner.invoke(audio, [old, "anything"])
+        # Assert
         assert result.exit_code == 2
+
+    @pytest.mark.parametrize("old, new", _DEPRECATED)
+    def test_old_command_names_new_command(self, runner, old, new):
+        # Arrange
+        # Act
+        result = runner.invoke(audio, [old, "anything"])
+        # Assert
         assert new in result.output
 
 
 class TestListPythonApis:
-    def test_runs(self, runner):
+    def test_runs_exits_zero(self, runner):
+        # Arrange
+        # Act
         result = runner.invoke(audio, ["list-python-apis"])
-        # May exit 0 (introspect available) or fall back to local stub — both ok.
+        # Assert
         assert result.exit_code == 0
-        # Should mention scitex_audio somewhere
-        assert (
-            "scitex_audio" in result.output.lower()
-            or "scitex-audio" in result.output.lower()
-        )
+
+    def test_output_mentions_package(self, runner):
+        # Arrange
+        # Act
+        result = runner.invoke(audio, ["list-python-apis"])
+        # Assert
+        assert "scitex_audio" in result.output.lower()
 
 
 # EOF

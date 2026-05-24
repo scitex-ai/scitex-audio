@@ -18,11 +18,21 @@ import time
 from contextlib import contextmanager
 from pathlib import Path
 
+from ._state_paths import audio_playback_lock_path, audio_state_base
+
 __all__ = ["AudioPlaybackLock", "acquire_audio_lock"]
 
-# Lock file location
+# Lock file location.
+#
+# The lock file lives under the ``runtime/`` carve-out of the audio state
+# dir (``~/.scitex/audio/runtime/locks/audio_playback.lock``). The rest of
+# ``~/.scitex/audio/`` is operator-tracked via dotfiles; ``runtime/`` is
+# the only untracked subtree where ephemeral artifacts may land.
 SCITEX_BASE_DIR = Path(os.getenv("SCITEX_DIR", Path.home() / ".scitex"))
-LOCK_FILE = SCITEX_BASE_DIR / "audio" / ".audio_playback.lock"
+# Kept for backwards compat: directory that holds the lock's enclosing
+# tracked root (i.e. ``~/.scitex/audio/``). Do not write to this directly.
+AUDIO_STATE_DIR = audio_state_base()
+LOCK_FILE = audio_playback_lock_path()
 
 
 class AudioPlaybackLock:
@@ -115,11 +125,14 @@ class AudioPlaybackLock:
 
 
 @contextmanager
-def acquire_audio_lock(timeout: float | None = 60.0):
+def acquire_audio_lock(timeout: float | None = 60.0, lock_file: Path | None = None):
     """Context manager for acquiring the audio playback lock.
 
     Args:
         timeout: Maximum time to wait in seconds (default: 60s).
+        lock_file: Optional explicit lock-file path. Defaults to the
+            module-level ``LOCK_FILE``. Useful for tests, which can point
+            it at a temp file instead of the shared playback lock.
 
     Yields:
         True if lock was acquired.
@@ -127,7 +140,7 @@ def acquire_audio_lock(timeout: float | None = 60.0):
     Raises:
         TimeoutError: If lock could not be acquired within timeout.
     """
-    lock = AudioPlaybackLock()
+    lock = AudioPlaybackLock(lock_file=lock_file)
     try:
         if not lock.acquire(timeout=timeout):
             raise TimeoutError(f"Could not acquire audio lock within {timeout}s")

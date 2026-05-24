@@ -6,25 +6,28 @@
 
 # SciTeX Audio (<code>scitex-audio</code>)
 
-<!-- scitex-badges:start -->
-[![PyPI](https://img.shields.io/pypi/v/scitex-audio.svg)](https://pypi.org/project/scitex-audio/)
-[![Python](https://img.shields.io/pypi/pyversions/scitex-audio.svg)](https://pypi.org/project/scitex-audio/)
-[![Tests](https://github.com/ywatanabe1989/scitex-audio/actions/workflows/test.yml/badge.svg)](https://github.com/ywatanabe1989/scitex-audio/actions/workflows/test.yml)
-[![Install Test](https://github.com/ywatanabe1989/scitex-audio/actions/workflows/install-test.yml/badge.svg)](https://github.com/ywatanabe1989/scitex-audio/actions/workflows/install-test.yml)
-[![Coverage](https://codecov.io/gh/ywatanabe1989/scitex-audio/graph/badge.svg)](https://codecov.io/gh/ywatanabe1989/scitex-audio)
-[![Docs](https://readthedocs.org/projects/scitex-audio/badge/?version=latest)](https://scitex-audio.readthedocs.io/en/latest/)
-[![License: AGPL v3](https://img.shields.io/badge/license-AGPL_v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
-<!-- scitex-badges:end -->
-
 <p align="center">
   <a href="https://scitex.ai">
     <img src="docs/scitex-logo-blue-cropped.png" alt="SciTeX" width="400">
   </a>
 </p>
 
+<p align="center"><b>Unified text-to-speech with automatic backend fallback</b></p>
+
 <p align="center">
-  <a href="https://scitex-audio.readthedocs.io/">Full Documentation</a> · <code>pip install scitex-audio</code>
+  <a href="https://scitex-audio.readthedocs.io/">Full Documentation</a> · <code>uv pip install scitex-audio[all]</code>
 </p>
+
+<!-- scitex-badges:start -->
+<p align="center">
+  <a href="https://pypi.org/project/scitex-audio/"><img src="https://img.shields.io/pypi/v/scitex-audio?label=pypi" alt="pypi"></a>
+  <a href="https://pypi.org/project/scitex-audio/"><img src="https://img.shields.io/pypi/pyversions/scitex-audio?label=python" alt="python"></a>
+  <a href="https://github.com/ywatanabe1989/scitex-audio/actions/workflows/rtd-sphinx-build-on-ubuntu-latest.yml"><img src="https://img.shields.io/github/actions/workflow/status/ywatanabe1989/scitex-audio/rtd-sphinx-build-on-ubuntu-latest.yml?branch=develop&label=docs" alt="docs"></a>
+  <a href="https://github.com/ywatanabe1989/scitex-audio/actions/workflows/pytest-matrix-on-ubuntu-py3-11-3-12-3-13.yml"><img src="https://img.shields.io/github/actions/workflow/status/ywatanabe1989/scitex-audio/pytest-matrix-on-ubuntu-py3-11-3-12-3-13.yml?branch=develop&label=tests" alt="tests"></a>
+  <a href="https://codecov.io/gh/ywatanabe1989/scitex-audio"><img src="https://img.shields.io/codecov/c/github/ywatanabe1989/scitex-audio/develop?label=cov" alt="cov"></a>
+  <a href="https://www.gnu.org/licenses/agpl-3.0"><img src="https://img.shields.io/badge/license-AGPL_v3-blue.svg" alt="License: AGPL v3"></a>
+</p>
+<!-- scitex-badges:end -->
 
 ---
 
@@ -65,6 +68,35 @@ pip install scitex-audio[luxtts]       # LuxTTS (voice cloning, offline)
 pip install scitex-audio[all]          # Everything
 ```
 
+## Architecture
+
+```
+src/scitex_audio/
+├── _engines/            # backend implementations (gtts, pyttsx3, elevenlabs, luxtts)
+├── _cli/                # `scitex-audio` Click CLI
+├── _mcp/                # MCP server entry
+├── _speak.py            # high-level speak() facade
+├── _tts.py              # text-to-speech dispatch
+├── _stt.py              # speech-to-text dispatch
+├── _relay.py            # cross-process audio relay
+├── _cross_process_lock.py # serialize concurrent playback
+├── _env_loader.py       # env-var driven backend selection
+└── mcp_server.py        # MCP tool registrations
+```
+
+## Demo
+
+```mermaid
+flowchart LR
+    User[speak text] --> Speak[scitex_audio.speak]
+    Speak --> Sel{backend?}
+    Sel -->|gtts| GTTS[gTTS engine]
+    Sel -->|pyttsx3| Local[pyttsx3 / espeak-ng]
+    Sel -->|elevenlabs| EL[ElevenLabs API]
+    Sel -->|luxtts| Lux[LuxTTS offline clone]
+    GTTS & Local & EL & Lux --> Relay[cross-process relay] --> Audio[(speaker / .mp3)]
+```
+
 ## Quick Start
 
 ```python
@@ -85,7 +117,7 @@ speak("Save this", output_path="output.mp3", play=False)
 
 ## Four Interfaces
 
-<details>
+<details open>
 <summary><strong>Python API</strong></summary>
 
 <br>
@@ -104,7 +136,7 @@ tts = scitex_audio.get_tts("gtts")                   # get engine
 tts.speak("With engine", voice="fr")
 ```
 
-> **[Full API reference](https://scitex-audio.readthedocs.io/)**
+> **[Full API reference](https://scitex-audio.readthedocs.io/en/latest/api/scitex_audio.html)**
 
 </details>
 
@@ -125,7 +157,7 @@ scitex-audio list-python-apis             # List Python API tree
 scitex-audio mcp list-tools               # List MCP tools
 ```
 
-> **[Full CLI reference](https://scitex-audio.readthedocs.io/)**
+> **[Full CLI reference](https://scitex-audio.readthedocs.io/en/latest/quickstart.html)**
 
 </details>
 
@@ -201,7 +233,7 @@ Or install globally:
 scitex-audio mcp install
 ```
 
-> **[Full MCP specification](https://scitex-audio.readthedocs.io/)**
+> **[Full MCP specification](https://scitex-audio.readthedocs.io/en/latest/api/scitex_audio._mcp.html)**
 
 </details>
 

@@ -1,0 +1,409 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>scitex_audio._mcp.speak_handlers &mdash; scitex-audio 0.2.12 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=1e30946d"></script>
+      <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            scitex-audio
+              <img src="../../../_static/scitex-logo-banner.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../backends.html">Backends</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../relay.html">Remote Audio Relay</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../env_vars.html">Environment Variables</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/scitex_audio.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/engines.html">Engines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/mcp.html">MCP Handlers</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">scitex-audio</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+          <li class="breadcrumb-item"><a href="../../scitex_audio.html">scitex_audio</a></li>
+      <li class="breadcrumb-item active">scitex_audio._mcp.speak_handlers</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for scitex_audio._mcp.speak_handlers</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python3</span>
+<span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="c1"># Timestamp: &quot;2026-02-06 23:02:43 (ywatanabe)&quot;</span>
+<span class="c1"># File: /home/ywatanabe/proj/scitex-python/src/scitex/audio/_mcp/speak_handlers.py</span>
+
+<span class="sd">&quot;&quot;&quot;Speak handlers for scitex.audio MCP server.</span>
+
+<span class="sd">Provides speak_local_handler and speak_relay_handler for explicit control</span>
+<span class="sd">over audio playback location (server vs relay).</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">&quot;speak_local_handler&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;speak_relay_handler&quot;</span><span class="p">,</span>
+<span class="p">]</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_get_audio_dir</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Get the directory where generated TTS files are written.</span>
+
+<span class="sd">    Returns ``~/.scitex/audio/runtime/tts/`` — under the ``runtime/``</span>
+<span class="sd">    carve-out (the only untracked subtree of the audio state dir).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">.._state_paths</span><span class="w"> </span><span class="kn">import</span> <span class="n">tts_output_dir</span>
+
+    <span class="k">return</span> <span class="n">tts_output_dir</span><span class="p">()</span>
+
+
+<span class="c1"># Import from common module</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.._audio_check</span><span class="w"> </span><span class="kn">import</span> <span class="n">check_local_audio_available</span> <span class="k">as</span> <span class="n">check_audio_sink_state</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_get_signature</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Get signature string with hostname, project, and branch.&quot;&quot;&quot;</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">socket</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">subprocess</span>
+
+    <span class="n">hostname</span> <span class="o">=</span> <span class="n">socket</span><span class="o">.</span><span class="n">gethostname</span><span class="p">()</span>
+    <span class="n">cwd</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">()</span>
+    <span class="n">project</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">cwd</span><span class="p">)</span>
+
+    <span class="n">branch</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
+            <span class="p">[</span><span class="s2">&quot;git&quot;</span><span class="p">,</span> <span class="s2">&quot;rev-parse&quot;</span><span class="p">,</span> <span class="s2">&quot;--abbrev-ref&quot;</span><span class="p">,</span> <span class="s2">&quot;HEAD&quot;</span><span class="p">],</span>
+            <span class="n">capture_output</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">text</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">cwd</span><span class="o">=</span><span class="n">cwd</span><span class="p">,</span>
+            <span class="n">timeout</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">result</span><span class="o">.</span><span class="n">returncode</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">branch</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="k">pass</span>
+
+    <span class="n">parts</span> <span class="o">=</span> <span class="p">[</span><span class="n">hostname</span><span class="p">,</span> <span class="n">project</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">branch</span><span class="p">:</span>
+        <span class="n">parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">branch</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="s2">&quot;. &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">parts</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;. &quot;</span>
+
+
+<div class="viewcode-block" id="speak_local_handler">
+<a class="viewcode-back" href="../../../api/mcp.html#scitex_audio._mcp.speak_handlers.speak_local_handler">[docs]</a>
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">speak_local_handler</span><span class="p">(</span>
+    <span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">backend</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">voice</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">rate</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">150</span><span class="p">,</span>
+    <span class="n">speed</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.5</span><span class="p">,</span>
+    <span class="n">play</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">save</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">fallback</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">agent_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">signature</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Play audio on the LOCAL/SERVER machine.</span>
+
+<span class="sd">    Use when running Claude Code directly on your local machine.</span>
+<span class="sd">    Audio plays on the machine where the MCP server is running.</span>
+
+<span class="sd">    Returns success=False if:</span>
+<span class="sd">    - SCITEX_AUDIO_MODE=remote (should use relay instead)</span>
+<span class="sd">    - Audio sink is SUSPENDED (no output device)</span>
+<span class="sd">    - Playback was requested but failed</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Check if mode is set to remote - local playback should not be used</span>
+    <span class="n">audio_mode</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;SCITEX_AUDIO_MODE&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">audio_mode</span> <span class="o">==</span> <span class="s2">&quot;remote&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s2">&quot;success&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+            <span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="s2">&quot;SCITEX_AUDIO_MODE=remote but speak_local was called&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;reason&quot;</span><span class="p">:</span> <span class="s2">&quot;Environment configured for remote audio playback&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;instructions&quot;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="s2">&quot;Use speak_relay instead, or&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;Set SCITEX_AUDIO_MODE=local to enable local playback&quot;</span><span class="p">,</span>
+            <span class="p">],</span>
+        <span class="p">}</span>
+
+    <span class="c1"># Check if audio sink is usable before attempting playback</span>
+    <span class="k">if</span> <span class="n">play</span><span class="p">:</span>
+        <span class="n">sink_state</span> <span class="o">=</span> <span class="n">check_audio_sink_state</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">sink_state</span><span class="p">[</span><span class="s2">&quot;available&quot;</span><span class="p">]:</span>
+            <span class="k">return</span> <span class="p">{</span>
+                <span class="s2">&quot;success&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                <span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;Audio output not available: </span><span class="si">{</span><span class="n">sink_state</span><span class="p">[</span><span class="s1">&#39;reason&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;sink_state&quot;</span><span class="p">:</span> <span class="n">sink_state</span><span class="p">[</span><span class="s2">&quot;state&quot;</span><span class="p">],</span>
+                <span class="s2">&quot;reason&quot;</span><span class="p">:</span> <span class="n">sink_state</span><span class="p">[</span><span class="s2">&quot;reason&quot;</span><span class="p">],</span>
+                <span class="s2">&quot;instructions&quot;</span><span class="p">:</span> <span class="p">[</span>
+                    <span class="s2">&quot;1. Connect speakers/headphones, or&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;2. Set SCITEX_AUDIO_MODE=remote and configure relay server&quot;</span><span class="p">,</span>
+                <span class="p">],</span>
+            <span class="p">}</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">..</span><span class="w"> </span><span class="kn">import</span> <span class="n">speak</span> <span class="k">as</span> <span class="n">tts_speak</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">.._cross_process_lock</span><span class="w"> </span><span class="kn">import</span> <span class="n">AudioPlaybackLock</span>
+
+        <span class="n">loop</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">get_event_loop</span><span class="p">()</span>
+
+        <span class="n">final_text</span> <span class="o">=</span> <span class="n">text</span>
+        <span class="n">sig</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">signature</span><span class="p">:</span>
+            <span class="n">sig</span> <span class="o">=</span> <span class="n">_get_signature</span><span class="p">()</span>
+            <span class="n">final_text</span> <span class="o">=</span> <span class="n">sig</span> <span class="o">+</span> <span class="n">text</span>
+
+        <span class="n">output_path</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">save</span><span class="p">:</span>
+            <span class="n">timestamp</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%Y%m</span><span class="si">%d</span><span class="s2">_%H%M%S&quot;</span><span class="p">)</span>
+            <span class="n">output_path</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">_get_audio_dir</span><span class="p">()</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;tts_</span><span class="si">{</span><span class="n">timestamp</span><span class="si">}</span><span class="s2">.mp3&quot;</span><span class="p">)</span>
+
+        <span class="k">def</span><span class="w"> </span><span class="nf">do_speak</span><span class="p">():</span>
+            <span class="c1"># Acquire cross-process lock for FIFO audio playback</span>
+            <span class="n">lock</span> <span class="o">=</span> <span class="n">AudioPlaybackLock</span><span class="p">()</span>
+            <span class="n">lock</span><span class="o">.</span><span class="n">acquire</span><span class="p">(</span><span class="n">timeout</span><span class="o">=</span><span class="mf">120.0</span><span class="p">)</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">tts_speak</span><span class="p">(</span>
+                    <span class="n">text</span><span class="o">=</span><span class="n">final_text</span><span class="p">,</span>
+                    <span class="n">backend</span><span class="o">=</span><span class="n">backend</span><span class="p">,</span>
+                    <span class="n">voice</span><span class="o">=</span><span class="n">voice</span><span class="p">,</span>
+                    <span class="n">rate</span><span class="o">=</span><span class="n">rate</span><span class="p">,</span>
+                    <span class="n">speed</span><span class="o">=</span><span class="n">speed</span><span class="p">,</span>
+                    <span class="n">play</span><span class="o">=</span><span class="n">play</span><span class="p">,</span>
+                    <span class="n">output_path</span><span class="o">=</span><span class="n">output_path</span><span class="p">,</span>
+                    <span class="n">fallback</span><span class="o">=</span><span class="n">fallback</span><span class="p">,</span>
+                    <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;local&quot;</span><span class="p">,</span>  <span class="c1"># Force local mode</span>
+                <span class="p">)</span>
+            <span class="k">finally</span><span class="p">:</span>
+                <span class="n">lock</span><span class="o">.</span><span class="n">release</span><span class="p">()</span>
+
+        <span class="n">speak_result</span> <span class="o">=</span> <span class="k">await</span> <span class="n">loop</span><span class="o">.</span><span class="n">run_in_executor</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">do_speak</span><span class="p">)</span>
+
+        <span class="c1"># speak_result is a dict with: success, played, play_requested, backend, path, mode</span>
+        <span class="n">actually_played</span> <span class="o">=</span> <span class="n">speak_result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;played&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+
+        <span class="c1"># Determine success: if play was requested, it must have actually played</span>
+        <span class="n">success</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">if</span> <span class="n">play</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">actually_played</span><span class="p">:</span>
+            <span class="n">success</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="n">result</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;success&quot;</span><span class="p">:</span> <span class="n">success</span><span class="p">,</span>
+            <span class="s2">&quot;text&quot;</span><span class="p">:</span> <span class="n">text</span><span class="p">,</span>
+            <span class="s2">&quot;backend&quot;</span><span class="p">:</span> <span class="n">speak_result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;backend&quot;</span><span class="p">,</span> <span class="n">backend</span><span class="p">),</span>
+            <span class="s2">&quot;played&quot;</span><span class="p">:</span> <span class="n">actually_played</span><span class="p">,</span>
+            <span class="s2">&quot;play_requested&quot;</span><span class="p">:</span> <span class="n">play</span><span class="p">,</span>
+            <span class="s2">&quot;played_on&quot;</span><span class="p">:</span> <span class="s2">&quot;server&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;agent_id&quot;</span><span class="p">:</span> <span class="n">agent_id</span><span class="p">,</span>
+            <span class="s2">&quot;timestamp&quot;</span><span class="p">:</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">isoformat</span><span class="p">(),</span>
+        <span class="p">}</span>
+        <span class="k">if</span> <span class="n">signature</span><span class="p">:</span>
+            <span class="n">result</span><span class="p">[</span><span class="s2">&quot;signature&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">sig</span>
+            <span class="n">result</span><span class="p">[</span><span class="s2">&quot;full_text&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">final_text</span>
+        <span class="k">if</span> <span class="n">speak_result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;path&quot;</span><span class="p">):</span>
+            <span class="n">result</span><span class="p">[</span><span class="s2">&quot;path&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">speak_result</span><span class="p">[</span><span class="s2">&quot;path&quot;</span><span class="p">])</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">success</span><span class="p">:</span>
+            <span class="n">result</span><span class="p">[</span><span class="s2">&quot;error&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;Playback was requested but audio did not play&quot;</span>
+            <span class="n">result</span><span class="p">[</span><span class="s2">&quot;reason&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;No audio player succeeded or sink unavailable&quot;</span>
+
+        <span class="k">return</span> <span class="n">result</span>
+
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;success&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)}</span></div>
+
+
+
+<div class="viewcode-block" id="speak_relay_handler">
+<a class="viewcode-back" href="../../../api/mcp.html#scitex_audio._mcp.speak_handlers.speak_relay_handler">[docs]</a>
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">speak_relay_handler</span><span class="p">(</span>
+    <span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">backend</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">voice</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">rate</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">150</span><span class="p">,</span>
+    <span class="n">speed</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.5</span><span class="p">,</span>
+    <span class="n">play</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">save</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">fallback</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">agent_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Forward speech to RELAY server for remote playback.</span>
+
+<span class="sd">    Use when running on a remote server and want audio on your local machine.</span>
+<span class="sd">    Returns detailed error with setup instructions if relay unavailable.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">.._branding</span><span class="w"> </span><span class="kn">import</span> <span class="n">DEFAULT_PORT</span><span class="p">,</span> <span class="n">get_relay_url</span><span class="p">,</span> <span class="n">get_ssh_client_ip</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">.._relay</span><span class="w"> </span><span class="kn">import</span> <span class="n">RelayClient</span><span class="p">,</span> <span class="n">is_relay_available</span>
+
+    <span class="c1"># Get relay URL (auto-detects from SSH_CLIENT if not configured)</span>
+    <span class="n">relay_url</span> <span class="o">=</span> <span class="n">get_relay_url</span><span class="p">()</span>
+    <span class="n">ssh_client_ip</span> <span class="o">=</span> <span class="n">get_ssh_client_ip</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">relay_url</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s2">&quot;success&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+            <span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="s2">&quot;Relay server URL not configured&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;reason&quot;</span><span class="p">:</span> <span class="s2">&quot;No SSH session detected and no env vars set&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;instructions&quot;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="s2">&quot;1. Start relay server on your LOCAL machine:&quot;</span><span class="p">,</span>
+                <span class="sa">f</span><span class="s2">&quot;   scitex audio serve -t http --port </span><span class="si">{</span><span class="n">DEFAULT_PORT</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;2. SSH to this server (relay URL auto-detected from SSH_CLIENT)&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;3. Or set env var manually:&quot;</span><span class="p">,</span>
+                <span class="sa">f</span><span class="s2">&quot;   export SCITEX_AUDIO_RELAY_URL=http://YOUR_LOCAL_IP:</span><span class="si">{</span><span class="n">DEFAULT_PORT</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="p">],</span>
+        <span class="p">}</span>
+
+    <span class="c1"># Check if relay server is reachable</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">is_relay_available</span><span class="p">():</span>
+        <span class="n">source</span> <span class="o">=</span> <span class="s2">&quot;auto-detected from SSH_CLIENT&quot;</span> <span class="k">if</span> <span class="n">ssh_client_ip</span> <span class="k">else</span> <span class="s2">&quot;from env var&quot;</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s2">&quot;success&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+            <span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="s2">&quot;Relay server not reachable&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;reason&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;Cannot connect to </span><span class="si">{</span><span class="n">relay_url</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">source</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;relay_url&quot;</span><span class="p">:</span> <span class="n">relay_url</span><span class="p">,</span>
+            <span class="s2">&quot;auto_detected&quot;</span><span class="p">:</span> <span class="n">ssh_client_ip</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="s2">&quot;ssh_client_ip&quot;</span><span class="p">:</span> <span class="n">ssh_client_ip</span><span class="p">,</span>
+            <span class="s2">&quot;instructions&quot;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="s2">&quot;1. Start relay server on your LOCAL machine:&quot;</span><span class="p">,</span>
+                <span class="sa">f</span><span class="s2">&quot;   scitex audio serve -t http --port </span><span class="si">{</span><span class="n">DEFAULT_PORT</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;&quot;</span><span class="p">,</span>
+                <span class="sa">f</span><span class="s2">&quot;2. Current relay URL: </span><span class="si">{</span><span class="n">relay_url</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                <span class="sa">f</span><span class="s2">&quot;   Source: </span><span class="si">{</span><span class="n">source</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;3. Test connectivity:&quot;</span><span class="p">,</span>
+                <span class="sa">f</span><span class="s2">&quot;   curl </span><span class="si">{</span><span class="n">relay_url</span><span class="si">}</span><span class="s2">/health&quot;</span><span class="p">,</span>
+            <span class="p">],</span>
+        <span class="p">}</span>
+
+    <span class="c1"># Forward to relay server</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">loop</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">get_event_loop</span><span class="p">()</span>
+
+        <span class="k">def</span><span class="w"> </span><span class="nf">do_relay</span><span class="p">():</span>
+            <span class="n">client</span> <span class="o">=</span> <span class="n">RelayClient</span><span class="p">(</span><span class="n">relay_url</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">client</span><span class="o">.</span><span class="n">speak</span><span class="p">(</span>
+                <span class="n">text</span><span class="o">=</span><span class="n">text</span><span class="p">,</span>
+                <span class="n">backend</span><span class="o">=</span><span class="n">backend</span><span class="p">,</span>
+                <span class="n">voice</span><span class="o">=</span><span class="n">voice</span><span class="p">,</span>
+                <span class="n">rate</span><span class="o">=</span><span class="n">rate</span><span class="p">,</span>
+                <span class="n">speed</span><span class="o">=</span><span class="n">speed</span><span class="p">,</span>
+                <span class="n">play</span><span class="o">=</span><span class="n">play</span><span class="p">,</span>
+                <span class="n">save</span><span class="o">=</span><span class="n">save</span><span class="p">,</span>
+                <span class="n">fallback</span><span class="o">=</span><span class="n">fallback</span><span class="p">,</span>
+                <span class="n">agent_id</span><span class="o">=</span><span class="n">agent_id</span><span class="p">,</span>
+            <span class="p">)</span>
+
+        <span class="n">result</span> <span class="o">=</span> <span class="k">await</span> <span class="n">loop</span><span class="o">.</span><span class="n">run_in_executor</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">do_relay</span><span class="p">)</span>
+
+        <span class="n">result</span><span class="p">[</span><span class="s2">&quot;played_on&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;relay&quot;</span>
+        <span class="n">result</span><span class="p">[</span><span class="s2">&quot;relay_url&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">relay_url</span>
+        <span class="n">result</span><span class="p">[</span><span class="s2">&quot;timestamp&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">isoformat</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">result</span>
+
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s2">&quot;success&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+            <span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;Relay request failed: </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;relay_url&quot;</span><span class="p">:</span> <span class="n">relay_url</span><span class="p">,</span>
+            <span class="s2">&quot;instructions&quot;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="s2">&quot;1. Check relay server is still running&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;2. Check network connectivity&quot;</span><span class="p">,</span>
+                <span class="sa">f</span><span class="s2">&quot;3. Test: curl -X POST </span><span class="si">{</span><span class="n">relay_url</span><span class="si">}</span><span class="s2">/speak &quot;</span>
+                <span class="s2">&quot;-H &#39;Content-Type: application/json&#39; -d &#39;{</span><span class="se">\&quot;</span><span class="s2">text</span><span class="se">\&quot;</span><span class="s2">: </span><span class="se">\&quot;</span><span class="s2">test</span><span class="se">\&quot;</span><span class="s2">}&#39;&quot;</span><span class="p">,</span>
+            <span class="p">],</span>
+        <span class="p">}</span></div>
+
+
+
+<span class="c1"># EOF</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Yusuke Watanabe.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

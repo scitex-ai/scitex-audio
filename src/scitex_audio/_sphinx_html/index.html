@@ -1,0 +1,277 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SciTeX Audio &mdash; scitex-audio 0.2.12 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=1e30946d"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Quick Start" href="quickstart.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="#" class="icon icon-home">
+            scitex-audio
+              <img src="_static/scitex-logo-banner.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="backends.html">Backends</a></li>
+<li class="toctree-l1"><a class="reference internal" href="relay.html">Remote Audio Relay</a></li>
+<li class="toctree-l1"><a class="reference internal" href="env_vars.html">Environment Variables</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="api/scitex_audio.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/engines.html">Engines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/mcp.html">MCP Handlers</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="#">scitex-audio</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="#" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">SciTeX Audio</li>
+      <li class="wy-breadcrumbs-aside">
+              <a href="https://github.com/ywatanabe1989/scitex-audio/blob/main/docs/sphinx/index.rst" class="fa fa-github"> Edit on GitHub</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="scitex-audio">
+<h1>SciTeX Audio<a class="headerlink" href="#scitex-audio" title="Link to this heading"></a></h1>
+<p align="center"><b>Text-to-Speech with multiple backends for scientific workflows</b></p>
+<br><p><strong>SciTeX Audio</strong> provides a unified interface for text-to-speech synthesis with support
+for multiple backends, allowing you to choose the best balance of quality, latency,
+and cost for your scientific applications.</p>
+<section id="supported-backends">
+<h2>Supported Backends<a class="headerlink" href="#supported-backends" title="Link to this heading"></a></h2>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 22.2%" />
+<col style="width: 16.7%" />
+<col style="width: 11.1%" />
+<col style="width: 16.7%" />
+<col style="width: 16.7%" />
+<col style="width: 16.7%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Backend</p></th>
+<th class="head"><p>Quality</p></th>
+<th class="head"><p>Cost</p></th>
+<th class="head"><p>Internet</p></th>
+<th class="head"><p>Offline</p></th>
+<th class="head"><p>Default Speed</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>ElevenLabs</strong></p></td>
+<td><p>High</p></td>
+<td><p>Paid</p></td>
+<td><p>Required</p></td>
+<td><p>No</p></td>
+<td><p>1.2x</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>LuxTTS</strong></p></td>
+<td><p>High</p></td>
+<td><p>Free</p></td>
+<td><p>First download</p></td>
+<td><p>Yes</p></td>
+<td><p>2.0x</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Google TTS</strong></p></td>
+<td><p>Good</p></td>
+<td><p>Free</p></td>
+<td><p>Required</p></td>
+<td><p>No</p></td>
+<td><p>1.5x</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>System TTS</strong></p></td>
+<td><p>Basic</p></td>
+<td><p>Free</p></td>
+<td><p>No</p></td>
+<td><p>Yes</p></td>
+<td><p>150 wpm</p></td>
+</tr>
+</tbody>
+</table>
+<div class="toctree-wrapper compound">
+<p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#installation">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#python-api">Python API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#cli">CLI</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#mcp-server">MCP Server</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="backends.html">Backends</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="backends.html#fallback-order">Fallback Order</a></li>
+<li class="toctree-l2"><a class="reference internal" href="backends.html#elevenlabs">ElevenLabs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="backends.html#luxtts">LuxTTS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="backends.html#google-tts-gtts">Google TTS (gTTS)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="backends.html#system-tts-pyttsx3">System TTS (pyttsx3)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="backends.html#checking-available-backends">Checking Available Backends</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="relay.html">Remote Audio Relay</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="relay.html#architecture">Architecture</a></li>
+<li class="toctree-l2"><a class="reference internal" href="relay.html#setup-guide">Setup Guide</a></li>
+<li class="toctree-l2"><a class="reference internal" href="relay.html#relay-endpoints">Relay Endpoints</a></li>
+<li class="toctree-l2"><a class="reference internal" href="relay.html#mode-resolution">Mode Resolution</a></li>
+<li class="toctree-l2"><a class="reference internal" href="relay.html#auto-start-relay-shell-profile">Auto-Start Relay (Shell Profile)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="relay.html#tunnel-validation-remote-side">Tunnel Validation (Remote Side)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="relay.html#cloud-relay-browser">Cloud Relay (Browser)</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="env_vars.html">Environment Variables</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="env_vars.html#audio-routing">Audio Routing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="env_vars.html#backend-configuration">Backend Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="env_vars.html#general">General</a></li>
+<li class="toctree-l2"><a class="reference internal" href="env_vars.html#port-convention">Port Convention</a></li>
+<li class="toctree-l2"><a class="reference internal" href="env_vars.html#env-src-pattern">ENV_SRC Pattern</a></li>
+<li class="toctree-l2"><a class="reference internal" href="env_vars.html#example-shell-configuration">Example Shell Configuration</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="api/scitex_audio.html">API Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="api/scitex_audio.html#scitex_audio.ElevenLabsTTS"><code class="docutils literal notranslate"><span class="pre">ElevenLabsTTS</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/scitex_audio.html#scitex_audio.GoogleTTS"><code class="docutils literal notranslate"><span class="pre">GoogleTTS</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/scitex_audio.html#scitex_audio.LuxTTS"><code class="docutils literal notranslate"><span class="pre">LuxTTS</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/scitex_audio.html#scitex_audio.SystemTTS"><code class="docutils literal notranslate"><span class="pre">SystemTTS</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/scitex_audio.html#scitex_audio.TTS"><code class="docutils literal notranslate"><span class="pre">TTS</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/scitex_audio.html#scitex_audio.available_backends"><code class="docutils literal notranslate"><span class="pre">available_backends()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/scitex_audio.html#scitex_audio.available_models"><code class="docutils literal notranslate"><span class="pre">available_models()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/scitex_audio.html#scitex_audio.check_local_audio_available"><code class="docutils literal notranslate"><span class="pre">check_local_audio_available()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/scitex_audio.html#scitex_audio.check_wsl_audio"><code class="docutils literal notranslate"><span class="pre">check_wsl_audio()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/scitex_audio.html#scitex_audio.find_whisper_cli"><code class="docutils literal notranslate"><span class="pre">find_whisper_cli()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/scitex_audio.html#scitex_audio.find_whisper_model"><code class="docutils literal notranslate"><span class="pre">find_whisper_model()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/scitex_audio.html#scitex_audio.generate_bytes"><code class="docutils literal notranslate"><span class="pre">generate_bytes()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/scitex_audio.html#scitex_audio.generate_env_template"><code class="docutils literal notranslate"><span class="pre">generate_env_template()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/scitex_audio.html#scitex_audio.get_tts"><code class="docutils literal notranslate"><span class="pre">get_tts()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/scitex_audio.html#scitex_audio.speak"><code class="docutils literal notranslate"><span class="pre">speak()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/scitex_audio.html#scitex_audio.stop_speech"><code class="docutils literal notranslate"><span class="pre">stop_speech()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/scitex_audio.html#scitex_audio.transcribe"><code class="docutils literal notranslate"><span class="pre">transcribe()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="api/engines.html">Engines</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="api/engines.html#base-engine">Base Engine</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/engines.html#google-tts">Google TTS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/engines.html#elevenlabs">ElevenLabs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/engines.html#luxtts">LuxTTS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/engines.html#system-tts-pyttsx3">System TTS (pyttsx3)</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="api/mcp.html">MCP Handlers</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="api/mcp.html#module-scitex_audio._mcp.handlers">Handlers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/mcp.html#module-scitex_audio._mcp.speak_handlers">Speak Handlers</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+<section id="quick-example">
+<h2>Quick Example<a class="headerlink" href="#quick-example" title="Link to this heading"></a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">scitex_audio</span><span class="w"> </span><span class="kn">import</span> <span class="n">speak</span><span class="p">,</span> <span class="n">available_backends</span>
+
+<span class="c1"># Check what&#39;s available</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">available_backends</span><span class="p">())</span>  <span class="c1"># e.g., [&#39;gtts&#39;, &#39;pyttsx3&#39;]</span>
+
+<span class="c1"># Simple usage</span>
+<span class="n">speak</span><span class="p">(</span><span class="s2">&quot;Hello, this is a test of text-to-speech!&quot;</span><span class="p">)</span>
+
+<span class="c1"># Specific backend with speed control</span>
+<span class="n">speak</span><span class="p">(</span><span class="s2">&quot;Fast speech&quot;</span><span class="p">,</span> <span class="n">backend</span><span class="o">=</span><span class="s2">&quot;gtts&quot;</span><span class="p">,</span> <span class="n">speed</span><span class="o">=</span><span class="mf">1.5</span><span class="p">)</span>
+
+<span class="c1"># Save to file without playing</span>
+<span class="n">speak</span><span class="p">(</span><span class="s2">&quot;Save this&quot;</span><span class="p">,</span> <span class="n">output_path</span><span class="o">=</span><span class="s2">&quot;output.mp3&quot;</span><span class="p">,</span> <span class="n">play</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="indices-and-tables">
+<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Link to this heading"></a></h1>
+<ul class="simple">
+<li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
+<li><p><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></p></li>
+<li><p><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></p></li>
+</ul>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="quickstart.html" class="btn btn-neutral float-right" title="Quick Start" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Yusuke Watanabe.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

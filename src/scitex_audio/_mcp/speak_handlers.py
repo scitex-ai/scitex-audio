@@ -21,11 +21,14 @@ __all__ = [
 
 
 def _get_audio_dir() -> Path:
-    """Get the audio output directory."""
-    base_dir = Path(os.getenv("SCITEX_DIR", Path.home() / ".scitex"))
-    audio_dir = base_dir / "audio"
-    audio_dir.mkdir(parents=True, exist_ok=True)
-    return audio_dir
+    """Get the directory where generated TTS files are written.
+
+    Returns ``~/.scitex/audio/runtime/tts/`` — under the ``runtime/``
+    carve-out (the only untracked subtree of the audio state dir).
+    """
+    from .._state_paths import tts_output_dir
+
+    return tts_output_dir()
 
 
 # Import from common module
@@ -74,6 +77,8 @@ async def speak_local_handler(
     fallback: bool = True,
     agent_id: str | None = None,
     signature: bool = False,
+    speak_fn=None,
+    sink_check=None,
 ) -> dict:
     """Play audio on the LOCAL/SERVER machine.
 
@@ -84,6 +89,12 @@ async def speak_local_handler(
     - SCITEX_AUDIO_MODE=remote (should use relay instead)
     - Audio sink is SUSPENDED (no output device)
     - Playback was requested but failed
+
+    Args:
+        speak_fn: Injectable TTS function (testing). Defaults to
+            ``scitex_audio.speak``.
+        sink_check: Injectable audio-sink probe (testing). Defaults to
+            ``check_audio_sink_state``.
     """
     # Check if mode is set to remote - local playback should not be used
     audio_mode = os.getenv("SCITEX_AUDIO_MODE", "").lower()
@@ -98,9 +109,11 @@ async def speak_local_handler(
             ],
         }
 
+    sink_probe = sink_check if sink_check is not None else check_audio_sink_state
+
     # Check if audio sink is usable before attempting playback
     if play:
-        sink_state = check_audio_sink_state()
+        sink_state = sink_probe()
         if not sink_state["available"]:
             return {
                 "success": False,
@@ -114,8 +127,12 @@ async def speak_local_handler(
             }
 
     try:
-        from .. import speak as tts_speak
         from .._cross_process_lock import AudioPlaybackLock
+
+        if speak_fn is not None:
+            tts_speak = speak_fn
+        else:
+            from .. import speak as tts_speak
 
         loop = asyncio.get_event_loop()
 
@@ -194,18 +211,31 @@ async def speak_relay_handler(
     save: bool = False,
     fallback: bool = True,
     agent_id: str | None = None,
+    url_resolver=None,
+    ssh_ip_resolver=None,
 ) -> dict:
     """Forward speech to RELAY server for remote playback.
 
     Use when running on a remote server and want audio on your local machine.
     Returns detailed error with setup instructions if relay unavailable.
+
+    Args:
+        url_resolver: Injectable relay-URL resolver (testing). Defaults to
+            ``get_relay_url``.
+        ssh_ip_resolver: Injectable SSH-client-IP resolver (testing).
+            Defaults to ``get_ssh_client_ip``.
     """
     from .._branding import DEFAULT_PORT, get_relay_url, get_ssh_client_ip
-    from .._relay import RelayClient, is_relay_available
+    from .._relay import RelayClient
+
+    resolve_url = url_resolver if url_resolver is not None else get_relay_url
+    resolve_ssh_ip = (
+        ssh_ip_resolver if ssh_ip_resolver is not None else get_ssh_client_ip
+    )
 
     # Get relay URL (auto-detects from SSH_CLIENT if not configured)
-    relay_url = get_relay_url()
-    ssh_client_ip = get_ssh_client_ip()
+    relay_url = resolve_url()
+    ssh_client_ip = resolve_ssh_ip()
 
     if not relay_url:
         return {
@@ -223,8 +253,11 @@ async def speak_relay_handler(
             ],
         }
 
-    # Check if relay server is reachable
-    if not is_relay_available():
+    # Check if the resolved relay server is reachable. Build the client
+    # against the same URL we will forward to (not the global singleton)
+    # so the reachability check and the actual request can't diverge.
+    relay_client = RelayClient(relay_url)
+    if not relay_client.is_available():
         source = "auto-detected from SSH_CLIENT" if ssh_client_ip else "from env var"
         return {
             "success": False,
@@ -250,8 +283,7 @@ async def speak_relay_handler(
         loop = asyncio.get_event_loop()
 
         def do_relay():
-            client = RelayClient(relay_url)
-            return client.speak(
+            return relay_client.speak(
                 text=text,
                 backend=backend,
                 voice=voice,

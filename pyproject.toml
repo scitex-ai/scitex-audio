@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "scitex-audio"
-version = "0.2.11"
+version = "0.2.13"
 description = "Text-to-Speech with multiple backends for scientific workflows"
 readme = "README.md"
 license = "AGPL-3.0-only"
@@ -38,7 +38,7 @@ dependencies = [
     "pydub",
     "soundfile",
     "scitex_dev",
-    "scitex-dev>=0.7.0",
+    "scitex-dev>=0.11.7",
 ]
 
 [project.optional-dependencies]
@@ -61,9 +61,15 @@ pyttsx3 = [
     "pyttsx3",
 ]
 dev = [
-    "pytest>=7.0",
-    "pytest-cov>=4.0",
+    "elevenlabs",
+    "fastmcp>=2.0",
+    "huggingface-hub",
     "pytest-asyncio",
+    "pytest-cov>=4.0",
+    "pytest>=7.0",
+    "torch",
+    "torchaudio",
+    "transformers",
 ]
 docs = [
     "sphinx>=7.0",
@@ -90,7 +96,7 @@ scitex-audio = "scitex_audio"
 
 scitex-audio = "scitex_audio"
 
-[project.entry-points."scitex_linter.plugins"]
+[project.entry-points."scitex_dev.linter.plugins"]
 scitex-audio = "scitex_audio._linter_plugin:get_plugin"
 
 [project.urls]
@@ -109,6 +115,14 @@ testpaths = ["tests"]
 python_files = ["test_*.py"]
 asyncio_mode = "auto"
 addopts = "--cov=scitex_audio --cov-report=term-missing --cov-report=html:tests/coverage"
+markers = [
+    "network: end-to-end test that reaches a real network service (e.g. gTTS)",
+]
+
+[tool.coverage.run]
+parallel = true
+source = ["scitex_audio"]
+concurrency = ["multiprocessing", "thread"]
 
 [tool.ruff]
 line-length = 88

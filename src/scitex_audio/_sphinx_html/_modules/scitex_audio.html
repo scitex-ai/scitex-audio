@@ -1,0 +1,338 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>scitex_audio &mdash; scitex-audio 0.2.12 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=1e30946d"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            scitex-audio
+              <img src="../_static/scitex-logo-banner.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../backends.html">Backends</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../relay.html">Remote Audio Relay</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../env_vars.html">Environment Variables</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../api/scitex_audio.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/engines.html">Engines</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/mcp.html">MCP Handlers</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">scitex-audio</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Module code</a></li>
+      <li class="breadcrumb-item active">scitex_audio</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for scitex_audio</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python3</span>
+<span class="c1"># Timestamp: &quot;2026-03-14 (ywatanabe)&quot;</span>
+<span class="c1"># File: scitex-audio/src/scitex_audio/__init__.py</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">SciTeX Audio - Text-to-Speech with Multiple Backends</span>
+
+<span class="sd">Backends (fallback order):</span>
+<span class="sd">    - elevenlabs: ElevenLabs (paid, high quality, speed=1.2)</span>
+<span class="sd">    - luxtts: LuxTTS (open-source, offline, voice-cloning, speed=2.0)</span>
+<span class="sd">    - gtts: Google TTS (free, requires internet, speed=1.5)</span>
+<span class="sd">    - pyttsx3: System TTS (offline, free, uses espeak/SAPI5)</span>
+
+<span class="sd">Usage:</span>
+<span class="sd">    from scitex_audio import speak</span>
+<span class="sd">    speak(&quot;Hello, world!&quot;)</span>
+
+<span class="sd">    from scitex_audio import get_tts, LuxTTS</span>
+<span class="sd">    tts = get_tts(&quot;luxtts&quot;)</span>
+<span class="sd">    tts.speak(&quot;Hello!&quot;)</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span> <span class="k">as</span> <span class="n">_annotations</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">subprocess</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">_subprocess</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">importlib.metadata</span><span class="w"> </span><span class="kn">import</span> <span class="n">version</span> <span class="k">as</span> <span class="n">_v</span><span class="p">,</span> <span class="n">PackageNotFoundError</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">__version__</span> <span class="o">=</span> <span class="n">_v</span><span class="p">(</span><span class="s2">&quot;scitex-audio&quot;</span><span class="p">)</span>
+    <span class="k">except</span> <span class="n">PackageNotFoundError</span><span class="p">:</span>
+        <span class="n">__version__</span> <span class="o">=</span> <span class="s2">&quot;0.0.0+local&quot;</span>
+    <span class="k">del</span> <span class="n">_v</span><span class="p">,</span> <span class="n">PackageNotFoundError</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>  <span class="c1"># pragma: no cover — only on ancient Pythons</span>
+    <span class="n">__version__</span> <span class="o">=</span> <span class="s2">&quot;0.0.0+local&quot;</span>
+<span class="c1"># Import from engines subpackage (hide module from dir())</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">._engines</span><span class="w"> </span><span class="kn">import</span> <span class="n">ElevenLabsTTS</span><span class="p">,</span> <span class="n">GoogleTTS</span><span class="p">,</span> <span class="n">LuxTTS</span><span class="p">,</span> <span class="n">SystemTTS</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">._engines._base</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseTTS</span> <span class="k">as</span> <span class="n">_BaseTTS</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">._engines._base</span><span class="w"> </span><span class="kn">import</span> <span class="n">TTSBackend</span> <span class="k">as</span> <span class="n">_TTSBackend</span>
+
+
+<div class="viewcode-block" id="stop_speech">
+<a class="viewcode-back" href="../api/scitex_audio.html#scitex_audio.stop_speech">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">stop_speech</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Stop any currently playing speech by killing espeak processes.&quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">_subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">([</span><span class="s2">&quot;pkill&quot;</span><span class="p">,</span> <span class="s2">&quot;-9&quot;</span><span class="p">,</span> <span class="s2">&quot;espeak&quot;</span><span class="p">],</span> <span class="n">capture_output</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="k">pass</span></div>
+
+
+
+<div class="viewcode-block" id="check_wsl_audio">
+<a class="viewcode-back" href="../api/scitex_audio.html#scitex_audio.check_wsl_audio">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">check_wsl_audio</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Check WSL audio status and connectivity.&quot;&quot;&quot;</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">shutil</span>
+
+    <span class="n">result</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;is_wsl&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="s2">&quot;wslg_available&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="s2">&quot;pulse_server_exists&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="s2">&quot;pulse_connected&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="s2">&quot;windows_fallback_available&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="s2">&quot;recommended&quot;</span><span class="p">:</span> <span class="s2">&quot;linux&quot;</span><span class="p">,</span>
+    <span class="p">}</span>
+
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="s2">&quot;/mnt/c/Windows&quot;</span><span class="p">):</span>
+        <span class="n">result</span><span class="p">[</span><span class="s2">&quot;is_wsl&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="s2">&quot;/mnt/wslg&quot;</span><span class="p">):</span>
+            <span class="n">result</span><span class="p">[</span><span class="s2">&quot;wslg_available&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="s2">&quot;/mnt/wslg/PulseServer&quot;</span><span class="p">):</span>
+            <span class="n">result</span><span class="p">[</span><span class="s2">&quot;pulse_server_exists&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">env</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+                <span class="n">env</span><span class="p">[</span><span class="s2">&quot;PULSE_SERVER&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;unix:/mnt/wslg/PulseServer&quot;</span>
+                <span class="n">proc</span> <span class="o">=</span> <span class="n">_subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
+                    <span class="p">[</span><span class="s2">&quot;pactl&quot;</span><span class="p">,</span> <span class="s2">&quot;info&quot;</span><span class="p">],</span>
+                    <span class="n">capture_output</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                    <span class="n">timeout</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+                    <span class="n">env</span><span class="o">=</span><span class="n">env</span><span class="p">,</span>
+                <span class="p">)</span>
+                <span class="k">if</span> <span class="n">proc</span><span class="o">.</span><span class="n">returncode</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">result</span><span class="p">[</span><span class="s2">&quot;pulse_connected&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                <span class="k">pass</span>
+        <span class="k">if</span> <span class="n">shutil</span><span class="o">.</span><span class="n">which</span><span class="p">(</span><span class="s2">&quot;powershell.exe&quot;</span><span class="p">):</span>
+            <span class="n">result</span><span class="p">[</span><span class="s2">&quot;windows_fallback_available&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">if</span> <span class="n">result</span><span class="p">[</span><span class="s2">&quot;pulse_connected&quot;</span><span class="p">]:</span>
+            <span class="n">result</span><span class="p">[</span><span class="s2">&quot;recommended&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;linux&quot;</span>
+        <span class="k">elif</span> <span class="n">result</span><span class="p">[</span><span class="s2">&quot;windows_fallback_available&quot;</span><span class="p">]:</span>
+            <span class="n">result</span><span class="p">[</span><span class="s2">&quot;recommended&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;windows&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">result</span><span class="p">[</span><span class="s2">&quot;recommended&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;none&quot;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">result</span><span class="p">[</span><span class="s2">&quot;recommended&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;linux&quot;</span>
+
+    <span class="k">return</span> <span class="n">result</span></div>
+
+
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">._audio_check</span><span class="w"> </span><span class="kn">import</span> <span class="n">check_local_audio_available</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">._env_registry</span><span class="w"> </span><span class="kn">import</span> <span class="n">generate_template</span> <span class="k">as</span> <span class="n">generate_env_template</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">._stt</span><span class="w"> </span><span class="kn">import</span> <span class="n">available_models</span><span class="p">,</span> <span class="n">find_whisper_cli</span><span class="p">,</span> <span class="n">find_whisper_model</span><span class="p">,</span> <span class="n">transcribe</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">._tts</span><span class="w"> </span><span class="kn">import</span> <span class="n">TTS</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">&quot;__version__&quot;</span><span class="p">,</span>
+    <span class="c1"># Core</span>
+    <span class="s2">&quot;speak&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;generate_bytes&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;stop_speech&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;get_tts&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;available_backends&quot;</span><span class="p">,</span>
+    <span class="c1"># Engine classes</span>
+    <span class="s2">&quot;TTS&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;GoogleTTS&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;ElevenLabsTTS&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;SystemTTS&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;LuxTTS&quot;</span><span class="p">,</span>
+    <span class="c1"># Diagnostics</span>
+    <span class="s2">&quot;check_wsl_audio&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;check_local_audio_available&quot;</span><span class="p">,</span>
+    <span class="c1"># Configuration</span>
+    <span class="s2">&quot;generate_env_template&quot;</span><span class="p">,</span>
+    <span class="c1"># STT (Speech-to-Text)</span>
+    <span class="s2">&quot;transcribe&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;find_whisper_cli&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;find_whisper_model&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;available_models&quot;</span><span class="p">,</span>
+<span class="p">]</span>
+
+<span class="n">FALLBACK_ORDER</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;elevenlabs&quot;</span><span class="p">,</span> <span class="s2">&quot;luxtts&quot;</span><span class="p">,</span> <span class="s2">&quot;gtts&quot;</span><span class="p">,</span> <span class="s2">&quot;pyttsx3&quot;</span><span class="p">]</span>
+
+
+<div class="viewcode-block" id="available_backends">
+<a class="viewcode-back" href="../api/scitex_audio.html#scitex_audio.available_backends">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">available_backends</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Return list of available TTS backends.&quot;&quot;&quot;</span>
+    <span class="n">backends</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">if</span> <span class="n">SystemTTS</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="kn">import</span><span class="w"> </span><span class="nn">pyttsx3</span>
+
+            <span class="n">engine</span> <span class="o">=</span> <span class="n">pyttsx3</span><span class="o">.</span><span class="n">init</span><span class="p">()</span>
+            <span class="n">engine</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span>
+            <span class="n">backends</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;pyttsx3&quot;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="k">pass</span>
+
+    <span class="k">if</span> <span class="n">GoogleTTS</span><span class="p">:</span>
+        <span class="n">backends</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;gtts&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">LuxTTS</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="kn">import</span><span class="w"> </span><span class="nn">zipvoice</span>  <span class="c1"># noqa: F401</span>
+
+            <span class="n">backends</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;luxtts&quot;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+            <span class="k">pass</span>
+
+    <span class="k">if</span> <span class="n">ElevenLabsTTS</span><span class="p">:</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+
+        <span class="n">api_key</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;SCITEX_AUDIO_ELEVENLABS_API_KEY&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+            <span class="s2">&quot;ELEVENLABS_API_KEY&quot;</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">api_key</span><span class="p">:</span>
+            <span class="n">backends</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;elevenlabs&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">backends</span></div>
+
+
+
+<div class="viewcode-block" id="get_tts">
+<a class="viewcode-back" href="../api/scitex_audio.html#scitex_audio.get_tts">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_tts</span><span class="p">(</span><span class="n">backend</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">_BaseTTS</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Get a TTS instance for the specified backend.&quot;&quot;&quot;</span>
+    <span class="n">backends</span> <span class="o">=</span> <span class="n">available_backends</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">backends</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="s2">&quot;No TTS backends available. Install one of:</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;  pip install pyttsx3       # System TTS (offline, free)</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;  pip install gTTS          # Google TTS (free, needs internet)</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;  pip install scitex-audio[luxtts]  # LuxTTS (open-source, offline)</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;  pip install elevenlabs    # ElevenLabs (paid, best quality)&quot;</span>
+        <span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">backend</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">FALLBACK_ORDER</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">backends</span><span class="p">:</span>
+                <span class="n">backend</span> <span class="o">=</span> <span class="n">b</span>
+                <span class="k">break</span>
+
+    <span class="k">if</span> <span class="n">backend</span> <span class="o">==</span> <span class="s2">&quot;pyttsx3&quot;</span> <span class="ow">and</span> <span class="n">SystemTTS</span> <span class="ow">and</span> <span class="s2">&quot;pyttsx3&quot;</span> <span class="ow">in</span> <span class="n">backends</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">SystemTTS</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">backend</span> <span class="o">==</span> <span class="s2">&quot;gtts&quot;</span> <span class="ow">and</span> <span class="n">GoogleTTS</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">GoogleTTS</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">backend</span> <span class="o">==</span> <span class="s2">&quot;elevenlabs&quot;</span> <span class="ow">and</span> <span class="n">ElevenLabsTTS</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">ElevenLabsTTS</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">backend</span> <span class="o">==</span> <span class="s2">&quot;luxtts&quot;</span> <span class="ow">and</span> <span class="n">LuxTTS</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">LuxTTS</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Backend &#39;</span><span class="si">{</span><span class="n">backend</span><span class="si">}</span><span class="s2">&#39; not available. Available: </span><span class="si">{</span><span class="n">backends</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">._speak</span><span class="w"> </span><span class="kn">import</span> <span class="n">speak</span>
+
+
+<div class="viewcode-block" id="generate_bytes">
+<a class="viewcode-back" href="../api/scitex_audio.html#scitex_audio.generate_bytes">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">generate_bytes</span><span class="p">(</span>
+    <span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">backend</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">voice</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Generate TTS audio as raw bytes without playing.&quot;&quot;&quot;</span>
+    <span class="n">tts</span> <span class="o">=</span> <span class="n">get_tts</span><span class="p">(</span><span class="n">backend</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">tts</span><span class="o">.</span><span class="n">to_bytes</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">voice</span><span class="o">=</span><span class="n">voice</span><span class="p">)</span></div>
+
+
+
+<span class="c1"># EOF</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Yusuke Watanabe.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

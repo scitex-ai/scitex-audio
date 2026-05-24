@@ -1,7 +1,8 @@
 ---
-description: MCP tools available to AI agents for text-to-speech, backend listing, and audio status.
-name: mcp-tools-for-ai-agents
-tags: [scitex-audio, scitex-package]
+description: |
+  [TOPIC] Mcp Tools For Ai Agents
+  [DETAILS] MCP tools available to AI agents for text-to-speech, backend listing, and audio status.
+tags: [scitex-audio-mcp-tools-for-ai-agents]
 ---
 
 # MCP Tools for AI Agents
@@ -40,7 +41,7 @@ voice: str | None = None     # voice name, ID, or language code
 rate: int = 150              # words per minute (pyttsx3 only)
 speed: float = 1.5           # speed multiplier (gtts)
 play: bool = True            # play audio
-save: bool = False           # save to timestamped file in ~/.scitex/audio/
+save: bool = False           # save to timestamped file in ~/.scitex/audio/runtime/tts/
 output_path: str | None = None  # explicit save path
 fallback: bool = True        # try fallback backends
 agent_id: str | None = None  # agent identifier for logging
