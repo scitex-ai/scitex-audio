@@ -1,33 +1,44 @@
 #!/usr/bin/env python3
 """Tests for scitex_audio._mcp.handlers (MCP server tool handlers).
 
-Covers:
-  - generate_audio_handler  (mocked tts_speak)
-  - list_backends_handler   (mocked available_backends)
-  - list_voices_handler     (mocked get_tts.get_voices)
-  - play_audio_handler      (file-not-found path; happy path with mocked play)
-  - list_audio_files_handler (tmpdir scan)
-  - clear_audio_cache_handler (tmpdir, max_age_hours semantics)
-  - check_audio_status_handler (mocked check_wsl_audio)
-  - speech_queue_status_handler (smoke; lock-state agnostic)
-  - announce_context_handler (mocked subprocess + speak_handler)
-  - speak_handler            (cloud-relay path AND local path)
-  - _emit_browser_speech     (OSC escape semantics)
-  - _get_signature           (smoke)
+Mock-free rewrite covering the same handler surface as before:
 
-The cloud-relay test cluster is preserved here (previously in
-test_handlers_cloud_relay.py) so all handlers.py coverage lives in one
-mirror file (audit-project §2 PS204).
+  - generate_audio_handler
+  - list_backends_handler
+  - list_voices_handler
+  - play_audio_handler
+  - list_audio_files_handler
+  - clear_audio_cache_handler
+  - check_audio_status_handler
+  - speech_queue_status_handler
+  - announce_context_handler
+  - speak_handler (cloud-relay path AND local path)
+  - _emit_browser_speech (OSC escape semantics)
+  - _get_signature (smoke)
+
+The cloud-relay tests live here because the mirror file convention
+(audit-project §2 PS204) puts all handlers.py coverage in one place.
+
+Every monkeypatch / MagicMock / AsyncMock / patch.object is replaced
+with a yield-based fixture that mutates module attributes directly
+(restoring on teardown), or a hand-rolled fake exposing only the
+surface the SUT touches.
 """
 
 import asyncio
 import base64
 import io
 import os
+import sys
 import time
-from unittest.mock import AsyncMock, MagicMock, patch
+from typing import Any
 
 import pytest
+
+import scitex_audio
+import scitex_audio._mcp.handlers as _handlers
+from scitex_audio._engines._base import BaseTTS
+
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -50,105 +61,135 @@ def _run(coro):
     return asyncio.new_event_loop().run_until_complete(coro)
 
 
+class _Swap:
+    """Manages a stack of module-attribute swaps; reverses on teardown."""
+
+    def __init__(self) -> None:
+        self._undo: list = []
+
+    def attr(self, obj, name, new):
+        if hasattr(obj, name):
+            original = getattr(obj, name)
+            had_attr = True
+        else:
+            original = None
+            had_attr = False
+        setattr(obj, name, new)
+        self._undo.append(
+            lambda: setattr(obj, name, original)
+            if had_attr
+            else _delattr(obj, name)
+        )
+
+    def env(self, key, value):
+        original = os.environ.get(key, "__NOT_SET__")
+        if value is None:
+            os.environ.pop(key, None)
+        else:
+            os.environ[key] = value
+        self._undo.append(
+            lambda: os.environ.pop(key, None)
+            if original == "__NOT_SET__"
+            else os.environ.__setitem__(key, original)
+        )
+
+    def teardown(self):
+        for fn in reversed(self._undo):
+            fn()
+        self._undo.clear()
+
+
+def _delattr(obj, name):
+    try:
+        delattr(obj, name)
+    except AttributeError:
+        pass
+
+
+@pytest.fixture
+def swap():
+    helper = _Swap()
+    try:
+        yield helper
+    finally:
+        helper.teardown()
+
+
 # ---------------------------------------------------------------------------
 # generate_audio_handler
 # ---------------------------------------------------------------------------
 
 
 class TestGenerateAudioHandler:
-    def test_returns_path_and_size_result_success_is_true(self, tmp_path, monkeypatch):
+    def test_returns_success_true_when_speak_returns_path(self, tmp_path, swap):
         # Arrange
-        from scitex_audio._mcp import handlers
         out_file = tmp_path / "out.mp3"
         out_file.write_bytes(b"fake-mp3-bytes")
-        # tts_speak is imported lazily inside the handler; patch the module attr.
-        def fake_speak(**kwargs):
-            return out_file
-        monkeypatch.setattr("scitex_audio.speak", fake_speak, raising=False)
+        swap.attr(scitex_audio, "speak", lambda **_: out_file)
         # Act
         result = _run(
-            handlers.generate_audio_handler(text="hello", output_path=str(out_file))
+            _handlers.generate_audio_handler(text="hello", output_path=str(out_file))
         )
-        # Act
         # Assert
         assert result["success"] is True
 
-    def test_returns_path_and_size_result_path_str_out_file(self, tmp_path, monkeypatch):
+    def test_returns_path_as_string_from_handler(self, tmp_path, swap):
         # Arrange
-        from scitex_audio._mcp import handlers
         out_file = tmp_path / "out.mp3"
         out_file.write_bytes(b"fake-mp3-bytes")
-        # tts_speak is imported lazily inside the handler; patch the module attr.
-        def fake_speak(**kwargs):
-            return out_file
-        monkeypatch.setattr("scitex_audio.speak", fake_speak, raising=False)
+        swap.attr(scitex_audio, "speak", lambda **_: out_file)
         # Act
         result = _run(
-            handlers.generate_audio_handler(text="hello", output_path=str(out_file))
+            _handlers.generate_audio_handler(text="hello", output_path=str(out_file))
         )
-        # Act
         # Assert
         assert result["path"] == str(out_file)
 
-    def test_returns_path_and_size_result_text_hello(self, tmp_path, monkeypatch):
+    def test_returns_text_in_response_envelope(self, tmp_path, swap):
         # Arrange
-        from scitex_audio._mcp import handlers
         out_file = tmp_path / "out.mp3"
         out_file.write_bytes(b"fake-mp3-bytes")
-        # tts_speak is imported lazily inside the handler; patch the module attr.
-        def fake_speak(**kwargs):
-            return out_file
-        monkeypatch.setattr("scitex_audio.speak", fake_speak, raising=False)
+        swap.attr(scitex_audio, "speak", lambda **_: out_file)
         # Act
         result = _run(
-            handlers.generate_audio_handler(text="hello", output_path=str(out_file))
+            _handlers.generate_audio_handler(text="hello", output_path=str(out_file))
         )
-        # Act
         # Assert
         assert result["text"] == "hello"
 
-    def test_returns_path_and_size_result_size_kb_0(self, tmp_path, monkeypatch):
+    def test_returns_non_negative_size_kb_for_existing_file(self, tmp_path, swap):
         # Arrange
-        from scitex_audio._mcp import handlers
         out_file = tmp_path / "out.mp3"
         out_file.write_bytes(b"fake-mp3-bytes")
-        # tts_speak is imported lazily inside the handler; patch the module attr.
-        def fake_speak(**kwargs):
-            return out_file
-        monkeypatch.setattr("scitex_audio.speak", fake_speak, raising=False)
+        swap.attr(scitex_audio, "speak", lambda **_: out_file)
         # Act
         result = _run(
-            handlers.generate_audio_handler(text="hello", output_path=str(out_file))
+            _handlers.generate_audio_handler(text="hello", output_path=str(out_file))
         )
-        # Act
         # Assert
         assert result["size_kb"] >= 0
 
-
-    def test_failure_returns_error_result_success_is_false(self, monkeypatch):
+    def test_speak_raises_returns_success_false_envelope(self, swap):
         # Arrange
-        from scitex_audio._mcp import handlers
-        def boom(**kwargs):
+        def boom(**_):
             raise RuntimeError("boom")
-        monkeypatch.setattr("scitex_audio.speak", boom, raising=False)
+
+        swap.attr(scitex_audio, "speak", boom)
         # Act
-        result = _run(handlers.generate_audio_handler(text="hi"))
-        # Act
+        result = _run(_handlers.generate_audio_handler(text="hi"))
         # Assert
         assert result["success"] is False
 
-    def test_failure_returns_error_boom_in_result_error(self, monkeypatch):
+    def test_speak_raises_returns_error_text_with_exception_message(self, swap):
         # Arrange
-        from scitex_audio._mcp import handlers
-        def boom(**kwargs):
+        def boom(**_):
             raise RuntimeError("boom")
-        monkeypatch.setattr("scitex_audio.speak", boom, raising=False)
+
+        swap.attr(scitex_audio, "speak", boom)
         # Act
-        result = _run(handlers.generate_audio_handler(text="hi"))
-        # Act
+        result = _run(_handlers.generate_audio_handler(text="hi"))
         # Assert
         assert "boom" in result["error"]
-
 
 
 # ---------------------------------------------------------------------------
@@ -156,165 +197,60 @@ class TestGenerateAudioHandler:
 # ---------------------------------------------------------------------------
 
 
+def _swap_backends(swap, available, order):
+    swap.attr(scitex_audio, "available_backends", lambda: list(available))
+    swap.attr(scitex_audio, "FALLBACK_ORDER", list(order))
+
+
 class TestListBackendsHandler:
-    def test_reports_available_and_default_result_success_is_true(self, monkeypatch):
+    def test_reports_success_true_when_one_backend_available(self, swap):
         # Arrange
-        from scitex_audio._mcp import handlers
-        monkeypatch.setattr(
-            "scitex_audio.available_backends", lambda: ["gtts"], raising=False
-        )
-        monkeypatch.setattr(
-            "scitex_audio.FALLBACK_ORDER",
-            ["elevenlabs", "luxtts", "gtts", "pyttsx3"],
-            raising=False,
-        )
+        _swap_backends(swap, ["gtts"], ["elevenlabs", "luxtts", "gtts", "pyttsx3"])
         # Act
-        result = _run(handlers.list_backends_handler())
-        # Act
+        result = _run(_handlers.list_backends_handler())
         # Assert
         assert result["success"] is True
 
-    def test_reports_available_and_default_result_available_gtts(self, monkeypatch):
+    def test_reports_available_list_matches_helper(self, swap):
         # Arrange
-        from scitex_audio._mcp import handlers
-        monkeypatch.setattr(
-            "scitex_audio.available_backends", lambda: ["gtts"], raising=False
-        )
-        monkeypatch.setattr(
-            "scitex_audio.FALLBACK_ORDER",
-            ["elevenlabs", "luxtts", "gtts", "pyttsx3"],
-            raising=False,
-        )
+        _swap_backends(swap, ["gtts"], ["elevenlabs", "luxtts", "gtts", "pyttsx3"])
         # Act
-        result = _run(handlers.list_backends_handler())
-        # Act
+        result = _run(_handlers.list_backends_handler())
         # Assert
         assert result["available"] == ["gtts"]
 
-    def test_reports_available_and_default_result_default_gtts(self, monkeypatch):
+    def test_default_is_first_available_in_fallback_order(self, swap):
         # Arrange
-        from scitex_audio._mcp import handlers
-        monkeypatch.setattr(
-            "scitex_audio.available_backends", lambda: ["gtts"], raising=False
-        )
-        monkeypatch.setattr(
-            "scitex_audio.FALLBACK_ORDER",
-            ["elevenlabs", "luxtts", "gtts", "pyttsx3"],
-            raising=False,
-        )
+        _swap_backends(swap, ["gtts"], ["elevenlabs", "luxtts", "gtts", "pyttsx3"])
         # Act
-        result = _run(handlers.list_backends_handler())
-        # Act
+        result = _run(_handlers.list_backends_handler())
         # Assert
-        assert result["default"] == "gtts"  # first available in FALLBACK_ORDER
+        assert result["default"] == "gtts"
 
-    def test_reports_available_and_default_gtts_in_names_result_success_is_true(self, monkeypatch):
+    def test_backends_info_list_includes_known_name(self, swap):
         # Arrange
-        from scitex_audio._mcp import handlers
-        monkeypatch.setattr(
-            "scitex_audio.available_backends", lambda: ["gtts"], raising=False
-        )
-        monkeypatch.setattr(
-            "scitex_audio.FALLBACK_ORDER",
-            ["elevenlabs", "luxtts", "gtts", "pyttsx3"],
-            raising=False,
-        )
+        _swap_backends(swap, ["gtts"], ["elevenlabs", "luxtts", "gtts", "pyttsx3"])
         # Act
-        result = _run(handlers.list_backends_handler())
-        # Act
-        # Assert
-        assert result["success"] is True
-
-    def test_reports_available_and_default_gtts_in_names_result_available_gtts(self, monkeypatch):
-        # Arrange
-        from scitex_audio._mcp import handlers
-        monkeypatch.setattr(
-            "scitex_audio.available_backends", lambda: ["gtts"], raising=False
-        )
-        monkeypatch.setattr(
-            "scitex_audio.FALLBACK_ORDER",
-            ["elevenlabs", "luxtts", "gtts", "pyttsx3"],
-            raising=False,
-        )
-        # Act
-        result = _run(handlers.list_backends_handler())
-        # Act
-        # Assert
-        assert result["available"] == ["gtts"]
-
-    def test_reports_available_and_default_gtts_in_names_result_default_gtts(self, monkeypatch):
-        # Arrange
-        from scitex_audio._mcp import handlers
-        monkeypatch.setattr(
-            "scitex_audio.available_backends", lambda: ["gtts"], raising=False
-        )
-        monkeypatch.setattr(
-            "scitex_audio.FALLBACK_ORDER",
-            ["elevenlabs", "luxtts", "gtts", "pyttsx3"],
-            raising=False,
-        )
-        # Act
-        result = _run(handlers.list_backends_handler())
-        # Act
-        # Assert
-        assert result["default"] == "gtts"  # first available in FALLBACK_ORDER
-
-    def test_reports_available_and_default_gtts_in_names_gtts_in_names(self, monkeypatch):
-        # Arrange
-        from scitex_audio._mcp import handlers
-        monkeypatch.setattr(
-            "scitex_audio.available_backends", lambda: ["gtts"], raising=False
-        )
-        monkeypatch.setattr(
-            "scitex_audio.FALLBACK_ORDER",
-            ["elevenlabs", "luxtts", "gtts", "pyttsx3"],
-            raising=False,
-        )
-        # Act
-        result = _run(handlers.list_backends_handler())
-        # Assert
-        assert (result['success'] is True) and (result['available'] == ['gtts']) and (result['default'] == 'gtts')
+        result = _run(_handlers.list_backends_handler())
         names = {b["name"] for b in result["backends"]}
-        # Act
         # Assert
         assert "gtts" in names
 
-
-
-    def test_no_backends_default_is_none_result_success_is_true(self, monkeypatch):
+    def test_no_backends_reports_success_true(self, swap):
         # Arrange
-        from scitex_audio._mcp import handlers
-        monkeypatch.setattr(
-            "scitex_audio.available_backends", lambda: [], raising=False
-        )
-        monkeypatch.setattr(
-            "scitex_audio.FALLBACK_ORDER",
-            ["gtts", "pyttsx3"],
-            raising=False,
-        )
+        _swap_backends(swap, [], ["gtts", "pyttsx3"])
         # Act
-        result = _run(handlers.list_backends_handler())
-        # Act
+        result = _run(_handlers.list_backends_handler())
         # Assert
         assert result["success"] is True
 
-    def test_no_backends_default_is_none_result_default_is_none(self, monkeypatch):
+    def test_no_backends_reports_default_none(self, swap):
         # Arrange
-        from scitex_audio._mcp import handlers
-        monkeypatch.setattr(
-            "scitex_audio.available_backends", lambda: [], raising=False
-        )
-        monkeypatch.setattr(
-            "scitex_audio.FALLBACK_ORDER",
-            ["gtts", "pyttsx3"],
-            raising=False,
-        )
+        _swap_backends(swap, [], ["gtts", "pyttsx3"])
         # Act
-        result = _run(handlers.list_backends_handler())
-        # Act
+        result = _run(_handlers.list_backends_handler())
         # Assert
         assert result["default"] is None
-
 
 
 # ---------------------------------------------------------------------------
@@ -322,74 +258,60 @@ class TestListBackendsHandler:
 # ---------------------------------------------------------------------------
 
 
+class _FakeVoiceTTS:
+    def __init__(self, voices):
+        self._voices = voices
+
+    def get_voices(self):
+        return list(self._voices)
+
+
 class TestListVoicesHandler:
-    def test_returns_voices_result_success_is_true(self, monkeypatch):
+    def test_returns_success_true_with_voices(self, swap):
         # Arrange
-        from scitex_audio._mcp import handlers
-        fake_tts = MagicMock()
-        fake_tts.get_voices.return_value = ["en", "fr", "ja"]
-        monkeypatch.setattr(
-            "scitex_audio.get_tts", lambda backend: fake_tts, raising=False
-        )
+        swap.attr(scitex_audio, "get_tts", lambda backend: _FakeVoiceTTS(["en", "fr", "ja"]))
         # Act
-        result = _run(handlers.list_voices_handler(backend="gtts"))
-        # Act
+        result = _run(_handlers.list_voices_handler(backend="gtts"))
         # Assert
         assert result["success"] is True
 
-    def test_returns_voices_result_count_3(self, monkeypatch):
+    def test_returns_voice_count_matching_get_voices(self, swap):
         # Arrange
-        from scitex_audio._mcp import handlers
-        fake_tts = MagicMock()
-        fake_tts.get_voices.return_value = ["en", "fr", "ja"]
-        monkeypatch.setattr(
-            "scitex_audio.get_tts", lambda backend: fake_tts, raising=False
-        )
+        swap.attr(scitex_audio, "get_tts", lambda backend: _FakeVoiceTTS(["en", "fr", "ja"]))
         # Act
-        result = _run(handlers.list_voices_handler(backend="gtts"))
-        # Act
+        result = _run(_handlers.list_voices_handler(backend="gtts"))
         # Assert
         assert result["count"] == 3
 
-    def test_returns_voices_result_backend_gtts(self, monkeypatch):
+    def test_returns_backend_name_from_request(self, swap):
         # Arrange
-        from scitex_audio._mcp import handlers
-        fake_tts = MagicMock()
-        fake_tts.get_voices.return_value = ["en", "fr", "ja"]
-        monkeypatch.setattr(
-            "scitex_audio.get_tts", lambda backend: fake_tts, raising=False
-        )
+        swap.attr(scitex_audio, "get_tts", lambda backend: _FakeVoiceTTS(["en"]))
         # Act
-        result = _run(handlers.list_voices_handler(backend="gtts"))
-        # Act
+        result = _run(_handlers.list_voices_handler(backend="gtts"))
         # Assert
         assert result["backend"] == "gtts"
 
-
-    def test_failure_returns_error_result_success_is_false(self, monkeypatch):
+    def test_get_tts_raises_returns_success_false_envelope(self, swap):
         # Arrange
-        from scitex_audio._mcp import handlers
         def boom(backend):
             raise ValueError("no such backend")
-        monkeypatch.setattr("scitex_audio.get_tts", boom, raising=False)
+
+        swap.attr(scitex_audio, "get_tts", boom)
         # Act
-        result = _run(handlers.list_voices_handler(backend="nope"))
-        # Act
+        result = _run(_handlers.list_voices_handler(backend="nope"))
         # Assert
         assert result["success"] is False
 
-    def test_failure_returns_error_no_such_backend_in_result_error(self, monkeypatch):
+    def test_get_tts_raises_returns_error_text_with_exception_message(self, swap):
         # Arrange
-        from scitex_audio._mcp import handlers
         def boom(backend):
             raise ValueError("no such backend")
-        monkeypatch.setattr("scitex_audio.get_tts", boom, raising=False)
+
+        swap.attr(scitex_audio, "get_tts", boom)
         # Act
-        result = _run(handlers.list_voices_handler(backend="nope"))
-        # Act
+        result = _run(_handlers.list_voices_handler(backend="nope"))
         # Assert
         assert "no such backend" in result["error"]
-
 
 
 # ---------------------------------------------------------------------------
@@ -398,53 +320,39 @@ class TestListVoicesHandler:
 
 
 class TestPlayAudioHandler:
-    def test_missing_file_returns_error_result_success_is_false(self):
+    def test_missing_file_returns_success_false(self):
         # Arrange
-        from scitex_audio._mcp import handlers
         # Act
-        result = _run(handlers.play_audio_handler(path="/no/such/file.wav"))
-        # Act
+        result = _run(_handlers.play_audio_handler(path="/no/such/file.wav"))
         # Assert
         assert result["success"] is False
 
-    def test_missing_file_returns_error_not_found_in_result_error_lower(self):
+    def test_missing_file_error_message_mentions_not_found(self):
         # Arrange
-        from scitex_audio._mcp import handlers
         # Act
-        result = _run(handlers.play_audio_handler(path="/no/such/file.wav"))
-        # Act
+        result = _run(_handlers.play_audio_handler(path="/no/such/file.wav"))
         # Assert
         assert "not found" in result["error"].lower()
 
-
-    def test_existing_file_invokes_play_result_success_is_true(self, tmp_path, monkeypatch):
+    def test_existing_file_returns_success_true(self, tmp_path, swap):
         # Arrange
-        from scitex_audio._mcp import handlers
         f = tmp_path / "ok.wav"
         f.write_bytes(b"")
-        # _play_audio is a method of BaseTTS; bypass real audio call.
-        from scitex_audio._engines._base import BaseTTS
-        monkeypatch.setattr(BaseTTS, "_play_audio", lambda self, p: None, raising=False)
+        swap.attr(BaseTTS, "_play_audio", lambda self, p, **kw: None)
         # Act
-        result = _run(handlers.play_audio_handler(path=str(f)))
-        # Act
+        result = _run(_handlers.play_audio_handler(path=str(f)))
         # Assert
         assert result["success"] is True
 
-    def test_existing_file_invokes_play_result_played_str_f(self, tmp_path, monkeypatch):
+    def test_existing_file_response_path_matches_input(self, tmp_path, swap):
         # Arrange
-        from scitex_audio._mcp import handlers
         f = tmp_path / "ok.wav"
         f.write_bytes(b"")
-        # _play_audio is a method of BaseTTS; bypass real audio call.
-        from scitex_audio._engines._base import BaseTTS
-        monkeypatch.setattr(BaseTTS, "_play_audio", lambda self, p: None, raising=False)
+        swap.attr(BaseTTS, "_play_audio", lambda self, p, **kw: None)
         # Act
-        result = _run(handlers.play_audio_handler(path=str(f)))
-        # Act
+        result = _run(_handlers.play_audio_handler(path=str(f)))
         # Assert
         assert result["played"] == str(f)
-
 
 
 # ---------------------------------------------------------------------------
@@ -453,98 +361,52 @@ class TestPlayAudioHandler:
 
 
 class TestListAudioFilesHandler:
-    def test_lists_files_result_success_is_true(self, tmp_path, monkeypatch):
+    def test_lists_files_returns_success_true(self, tmp_path, swap):
         # Arrange
-        from scitex_audio._mcp import handlers
-        # Point _get_audio_dir at a tmpdir
         audio_dir = tmp_path / "audio"
         audio_dir.mkdir()
         (audio_dir / "a.mp3").write_bytes(b"hello")
         (audio_dir / "b.wav").write_bytes(b"world!")
-        monkeypatch.setattr(handlers, "_get_audio_dir", lambda: audio_dir)
+        swap.attr(_handlers, "_get_audio_dir", lambda: audio_dir)
         # Act
-        result = _run(handlers.list_audio_files_handler(limit=10))
-        # Act
+        result = _run(_handlers.list_audio_files_handler(limit=10))
         # Assert
         assert result["success"] is True
 
-    def test_lists_files_result_count_2(self, tmp_path, monkeypatch):
+    def test_lists_files_count_matches_tree_content(self, tmp_path, swap):
         # Arrange
-        from scitex_audio._mcp import handlers
-        # Point _get_audio_dir at a tmpdir
         audio_dir = tmp_path / "audio"
         audio_dir.mkdir()
         (audio_dir / "a.mp3").write_bytes(b"hello")
         (audio_dir / "b.wav").write_bytes(b"world!")
-        monkeypatch.setattr(handlers, "_get_audio_dir", lambda: audio_dir)
+        swap.attr(_handlers, "_get_audio_dir", lambda: audio_dir)
         # Act
-        result = _run(handlers.list_audio_files_handler(limit=10))
-        # Act
+        result = _run(_handlers.list_audio_files_handler(limit=10))
         # Assert
         assert result["count"] == 2
 
-    def test_lists_files_names_equals_a_mp3_b_wav_result_success_is_true(self, tmp_path, monkeypatch):
+    def test_lists_files_names_match_disk_content(self, tmp_path, swap):
         # Arrange
-        from scitex_audio._mcp import handlers
-        # Point _get_audio_dir at a tmpdir
         audio_dir = tmp_path / "audio"
         audio_dir.mkdir()
         (audio_dir / "a.mp3").write_bytes(b"hello")
         (audio_dir / "b.wav").write_bytes(b"world!")
-        monkeypatch.setattr(handlers, "_get_audio_dir", lambda: audio_dir)
+        swap.attr(_handlers, "_get_audio_dir", lambda: audio_dir)
         # Act
-        result = _run(handlers.list_audio_files_handler(limit=10))
-        # Act
-        # Assert
-        assert result["success"] is True
-
-    def test_lists_files_names_equals_a_mp3_b_wav_result_count_2(self, tmp_path, monkeypatch):
-        # Arrange
-        from scitex_audio._mcp import handlers
-        # Point _get_audio_dir at a tmpdir
-        audio_dir = tmp_path / "audio"
-        audio_dir.mkdir()
-        (audio_dir / "a.mp3").write_bytes(b"hello")
-        (audio_dir / "b.wav").write_bytes(b"world!")
-        monkeypatch.setattr(handlers, "_get_audio_dir", lambda: audio_dir)
-        # Act
-        result = _run(handlers.list_audio_files_handler(limit=10))
-        # Act
-        # Assert
-        assert result["count"] == 2
-
-    def test_lists_files_names_equals_a_mp3_b_wav_names_equals_a_mp3_b_wav(self, tmp_path, monkeypatch):
-        # Arrange
-        from scitex_audio._mcp import handlers
-        # Point _get_audio_dir at a tmpdir
-        audio_dir = tmp_path / "audio"
-        audio_dir.mkdir()
-        (audio_dir / "a.mp3").write_bytes(b"hello")
-        (audio_dir / "b.wav").write_bytes(b"world!")
-        monkeypatch.setattr(handlers, "_get_audio_dir", lambda: audio_dir)
-        # Act
-        result = _run(handlers.list_audio_files_handler(limit=10))
-        # Assert
-        assert (result['success'] is True) and (result['count'] == 2)
+        result = _run(_handlers.list_audio_files_handler(limit=10))
         names = {f["name"] for f in result["files"]}
-        # Act
         # Assert
         assert names == {"a.mp3", "b.wav"}
 
-
-
-    def test_limit_respected_result_count_2(self, tmp_path, monkeypatch):
+    def test_limit_respected_when_more_files_present(self, tmp_path, swap):
         # Arrange
-        from scitex_audio._mcp import handlers
-
         audio_dir = tmp_path / "audio"
         audio_dir.mkdir()
         for i in range(5):
             (audio_dir / f"f{i}.mp3").write_bytes(b"x")
-
-        monkeypatch.setattr(handlers, "_get_audio_dir", lambda: audio_dir)
+        swap.attr(_handlers, "_get_audio_dir", lambda: audio_dir)
         # Act
-        result = _run(handlers.list_audio_files_handler(limit=2))
+        result = _run(_handlers.list_audio_files_handler(limit=2))
         # Assert
         assert result["count"] == 2
 
@@ -555,146 +417,119 @@ class TestListAudioFilesHandler:
 
 
 class TestClearAudioCacheHandler:
-    def test_clears_all_when_max_age_zero_result_success_is_true(self, tmp_path, monkeypatch):
+    def test_max_age_zero_returns_success_true(self, tmp_path, swap):
         # Arrange
-        from scitex_audio._mcp import handlers
         audio_dir = tmp_path / "audio"
         audio_dir.mkdir()
         (audio_dir / "a.mp3").write_bytes(b"x")
         (audio_dir / "b.wav").write_bytes(b"y")
-        monkeypatch.setattr(handlers, "_get_audio_dir", lambda: audio_dir)
+        swap.attr(_handlers, "_get_audio_dir", lambda: audio_dir)
         # Act
-        result = _run(handlers.clear_audio_cache_handler(max_age_hours=0))
-        # Act
+        result = _run(_handlers.clear_audio_cache_handler(max_age_hours=0))
         # Assert
         assert result["success"] is True
 
-    def test_clears_all_when_max_age_zero_result_deleted_2(self, tmp_path, monkeypatch):
+    def test_max_age_zero_reports_deleted_count_matching_files(self, tmp_path, swap):
         # Arrange
-        from scitex_audio._mcp import handlers
         audio_dir = tmp_path / "audio"
         audio_dir.mkdir()
         (audio_dir / "a.mp3").write_bytes(b"x")
         (audio_dir / "b.wav").write_bytes(b"y")
-        monkeypatch.setattr(handlers, "_get_audio_dir", lambda: audio_dir)
+        swap.attr(_handlers, "_get_audio_dir", lambda: audio_dir)
         # Act
-        result = _run(handlers.clear_audio_cache_handler(max_age_hours=0))
-        # Act
+        result = _run(_handlers.clear_audio_cache_handler(max_age_hours=0))
         # Assert
         assert result["deleted"] == 2
 
-    def test_clears_all_when_max_age_zero_not_list_audio_dir_glob_mp3(self, tmp_path, monkeypatch):
+    def test_max_age_zero_removes_mp3_files_from_disk(self, tmp_path, swap):
         # Arrange
-        from scitex_audio._mcp import handlers
         audio_dir = tmp_path / "audio"
         audio_dir.mkdir()
         (audio_dir / "a.mp3").write_bytes(b"x")
         (audio_dir / "b.wav").write_bytes(b"y")
-        monkeypatch.setattr(handlers, "_get_audio_dir", lambda: audio_dir)
+        swap.attr(_handlers, "_get_audio_dir", lambda: audio_dir)
         # Act
-        result = _run(handlers.clear_audio_cache_handler(max_age_hours=0))
-        # Act
+        _run(_handlers.clear_audio_cache_handler(max_age_hours=0))
         # Assert
         assert not list(audio_dir.glob("*.mp3"))
 
-
-    def test_keeps_fresh_files_result_success_is_true(self, tmp_path, monkeypatch):
+    def test_keeps_fresh_files_returns_success_true(self, tmp_path, swap):
         # Arrange
-        from scitex_audio._mcp import handlers
         audio_dir = tmp_path / "audio"
         audio_dir.mkdir()
         f = audio_dir / "fresh.mp3"
         f.write_bytes(b"x")
-        # File is fresh (just created), so 24h cutoff should keep it.
-        monkeypatch.setattr(handlers, "_get_audio_dir", lambda: audio_dir)
+        swap.attr(_handlers, "_get_audio_dir", lambda: audio_dir)
         # Act
-        result = _run(handlers.clear_audio_cache_handler(max_age_hours=24))
-        # Act
+        result = _run(_handlers.clear_audio_cache_handler(max_age_hours=24))
         # Assert
         assert result["success"] is True
 
-    def test_keeps_fresh_files_result_deleted_0(self, tmp_path, monkeypatch):
+    def test_keeps_fresh_files_reports_zero_deleted(self, tmp_path, swap):
         # Arrange
-        from scitex_audio._mcp import handlers
         audio_dir = tmp_path / "audio"
         audio_dir.mkdir()
         f = audio_dir / "fresh.mp3"
         f.write_bytes(b"x")
-        # File is fresh (just created), so 24h cutoff should keep it.
-        monkeypatch.setattr(handlers, "_get_audio_dir", lambda: audio_dir)
+        swap.attr(_handlers, "_get_audio_dir", lambda: audio_dir)
         # Act
-        result = _run(handlers.clear_audio_cache_handler(max_age_hours=24))
-        # Act
+        result = _run(_handlers.clear_audio_cache_handler(max_age_hours=24))
         # Assert
         assert result["deleted"] == 0
 
-    def test_keeps_fresh_files_f_exists(self, tmp_path, monkeypatch):
+    def test_keeps_fresh_files_leaves_file_on_disk(self, tmp_path, swap):
         # Arrange
-        from scitex_audio._mcp import handlers
         audio_dir = tmp_path / "audio"
         audio_dir.mkdir()
         f = audio_dir / "fresh.mp3"
         f.write_bytes(b"x")
-        # File is fresh (just created), so 24h cutoff should keep it.
-        monkeypatch.setattr(handlers, "_get_audio_dir", lambda: audio_dir)
+        swap.attr(_handlers, "_get_audio_dir", lambda: audio_dir)
         # Act
-        result = _run(handlers.clear_audio_cache_handler(max_age_hours=24))
-        # Act
+        _run(_handlers.clear_audio_cache_handler(max_age_hours=24))
         # Assert
         assert f.exists()
 
-
-    def test_deletes_stale_files_result_success_is_true(self, tmp_path, monkeypatch):
+    def test_deletes_stale_files_returns_success_true(self, tmp_path, swap):
         # Arrange
-        from scitex_audio._mcp import handlers
         audio_dir = tmp_path / "audio"
         audio_dir.mkdir()
         f = audio_dir / "stale.mp3"
         f.write_bytes(b"x")
-        # Backdate mtime to 48h ago.
         old_ts = time.time() - 48 * 3600
         os.utime(f, (old_ts, old_ts))
-        monkeypatch.setattr(handlers, "_get_audio_dir", lambda: audio_dir)
+        swap.attr(_handlers, "_get_audio_dir", lambda: audio_dir)
         # Act
-        result = _run(handlers.clear_audio_cache_handler(max_age_hours=24))
-        # Act
+        result = _run(_handlers.clear_audio_cache_handler(max_age_hours=24))
         # Assert
         assert result["success"] is True
 
-    def test_deletes_stale_files_result_deleted_1(self, tmp_path, monkeypatch):
+    def test_deletes_stale_files_reports_deleted_count_one(self, tmp_path, swap):
         # Arrange
-        from scitex_audio._mcp import handlers
         audio_dir = tmp_path / "audio"
         audio_dir.mkdir()
         f = audio_dir / "stale.mp3"
         f.write_bytes(b"x")
-        # Backdate mtime to 48h ago.
         old_ts = time.time() - 48 * 3600
         os.utime(f, (old_ts, old_ts))
-        monkeypatch.setattr(handlers, "_get_audio_dir", lambda: audio_dir)
+        swap.attr(_handlers, "_get_audio_dir", lambda: audio_dir)
         # Act
-        result = _run(handlers.clear_audio_cache_handler(max_age_hours=24))
-        # Act
+        result = _run(_handlers.clear_audio_cache_handler(max_age_hours=24))
         # Assert
         assert result["deleted"] == 1
 
-    def test_deletes_stale_files_not_f_exists(self, tmp_path, monkeypatch):
+    def test_deletes_stale_files_removes_file_from_disk(self, tmp_path, swap):
         # Arrange
-        from scitex_audio._mcp import handlers
         audio_dir = tmp_path / "audio"
         audio_dir.mkdir()
         f = audio_dir / "stale.mp3"
         f.write_bytes(b"x")
-        # Backdate mtime to 48h ago.
         old_ts = time.time() - 48 * 3600
         os.utime(f, (old_ts, old_ts))
-        monkeypatch.setattr(handlers, "_get_audio_dir", lambda: audio_dir)
+        swap.attr(_handlers, "_get_audio_dir", lambda: audio_dir)
         # Act
-        result = _run(handlers.clear_audio_cache_handler(max_age_hours=24))
-        # Act
+        _run(_handlers.clear_audio_cache_handler(max_age_hours=24))
         # Assert
         assert not f.exists()
-
 
 
 # ---------------------------------------------------------------------------
@@ -703,45 +538,32 @@ class TestClearAudioCacheHandler:
 
 
 class TestCheckAudioStatusHandler:
-    def test_wraps_check_wsl_audio_result_success_is_true(self, monkeypatch):
+    def test_check_wsl_audio_wraps_result_with_success_true(self, swap):
         # Arrange
-        from scitex_audio._mcp import handlers
         fake_status = {"is_wsl": True, "recommended": "linux"}
-        monkeypatch.setattr(
-            "scitex_audio.check_wsl_audio", lambda: dict(fake_status), raising=False
-        )
+        swap.attr(scitex_audio, "check_wsl_audio", lambda: dict(fake_status))
         # Act
-        result = _run(handlers.check_audio_status_handler())
-        # Act
+        result = _run(_handlers.check_audio_status_handler())
         # Assert
         assert result["success"] is True
 
-    def test_wraps_check_wsl_audio_result_is_wsl_is_true(self, monkeypatch):
+    def test_check_wsl_audio_passes_is_wsl_value_through(self, swap):
         # Arrange
-        from scitex_audio._mcp import handlers
         fake_status = {"is_wsl": True, "recommended": "linux"}
-        monkeypatch.setattr(
-            "scitex_audio.check_wsl_audio", lambda: dict(fake_status), raising=False
-        )
+        swap.attr(scitex_audio, "check_wsl_audio", lambda: dict(fake_status))
         # Act
-        result = _run(handlers.check_audio_status_handler())
-        # Act
+        result = _run(_handlers.check_audio_status_handler())
         # Assert
         assert result["is_wsl"] is True
 
-    def test_wraps_check_wsl_audio_timestamp_in_result(self, monkeypatch):
+    def test_check_wsl_audio_appends_timestamp_key(self, swap):
         # Arrange
-        from scitex_audio._mcp import handlers
         fake_status = {"is_wsl": True, "recommended": "linux"}
-        monkeypatch.setattr(
-            "scitex_audio.check_wsl_audio", lambda: dict(fake_status), raising=False
-        )
+        swap.attr(scitex_audio, "check_wsl_audio", lambda: dict(fake_status))
         # Act
-        result = _run(handlers.check_audio_status_handler())
-        # Act
+        result = _run(_handlers.check_audio_status_handler())
         # Assert
         assert "timestamp" in result
-
 
 
 # ---------------------------------------------------------------------------
@@ -750,33 +572,26 @@ class TestCheckAudioStatusHandler:
 
 
 class TestSpeechQueueStatusHandler:
-    def test_returns_success_envelope_result_success_is_true(self):
+    def test_returns_success_true_envelope(self):
         # Arrange
-        from scitex_audio._mcp import handlers
         # Act
-        result = _run(handlers.speech_queue_status_handler())
-        # Act
+        result = _run(_handlers.speech_queue_status_handler())
         # Assert
         assert result["success"] is True
 
-    def test_returns_success_envelope_locked_in_result(self):
+    def test_returns_locked_key_in_envelope(self):
         # Arrange
-        from scitex_audio._mcp import handlers
         # Act
-        result = _run(handlers.speech_queue_status_handler())
-        # Act
+        result = _run(_handlers.speech_queue_status_handler())
         # Assert
         assert "locked" in result
 
-    def test_returns_success_envelope_message_in_result(self):
+    def test_returns_message_key_in_envelope(self):
         # Arrange
-        from scitex_audio._mcp import handlers
         # Act
-        result = _run(handlers.speech_queue_status_handler())
-        # Act
+        result = _run(_handlers.speech_queue_status_handler())
         # Assert
         assert "message" in result
-
 
 
 # ---------------------------------------------------------------------------
@@ -784,79 +599,72 @@ class TestSpeechQueueStatusHandler:
 # ---------------------------------------------------------------------------
 
 
+class _FakeCompletedProcess:
+    def __init__(self, returncode=0, stdout="develop\n"):
+        self.returncode = returncode
+        self.stdout = stdout
+
+
 class TestAnnounceContextHandler:
-    def test_speaks_directory_and_branch_result_success_is_true(self, monkeypatch):
+    def test_announce_context_returns_success_true(self, swap):
         # Arrange
-        from scitex_audio._mcp import handlers
-        fake_run_result = MagicMock()
-        fake_run_result.returncode = 0
-        fake_run_result.stdout = "develop\n"
-        monkeypatch.setattr(
-            "subprocess.run", lambda *a, **kw: fake_run_result, raising=True
-        )
-        async def fake_speak(**kwargs):
+        import subprocess as _subprocess
+
+        swap.attr(_subprocess, "run", lambda *a, **kw: _FakeCompletedProcess())
+
+        async def fake_speak(**_):
             return {"success": True, "played": True}
-        monkeypatch.setattr(handlers, "speak_handler", fake_speak)
+
+        swap.attr(_handlers, "speak_handler", fake_speak)
         # Act
-        result = _run(handlers.announce_context_handler())
-        # Act
+        result = _run(_handlers.announce_context_handler())
         # Assert
         assert result["success"] is True
 
-    def test_speaks_directory_and_branch_result_branch_develop(self, monkeypatch):
+    def test_announce_context_reports_branch_from_git_output(self, swap):
         # Arrange
-        from scitex_audio._mcp import handlers
-        fake_run_result = MagicMock()
-        fake_run_result.returncode = 0
-        fake_run_result.stdout = "develop\n"
-        monkeypatch.setattr(
-            "subprocess.run", lambda *a, **kw: fake_run_result, raising=True
-        )
-        async def fake_speak(**kwargs):
+        import subprocess as _subprocess
+
+        swap.attr(_subprocess, "run", lambda *a, **kw: _FakeCompletedProcess())
+
+        async def fake_speak(**_):
             return {"success": True, "played": True}
-        monkeypatch.setattr(handlers, "speak_handler", fake_speak)
+
+        swap.attr(_handlers, "speak_handler", fake_speak)
         # Act
-        result = _run(handlers.announce_context_handler())
-        # Act
+        result = _run(_handlers.announce_context_handler())
         # Assert
         assert result["branch"] == "develop"
 
-    def test_speaks_directory_and_branch_working_in_in_result_announced(self, monkeypatch):
+    def test_announce_context_announced_text_starts_with_working_in(self, swap):
         # Arrange
-        from scitex_audio._mcp import handlers
-        fake_run_result = MagicMock()
-        fake_run_result.returncode = 0
-        fake_run_result.stdout = "develop\n"
-        monkeypatch.setattr(
-            "subprocess.run", lambda *a, **kw: fake_run_result, raising=True
-        )
-        async def fake_speak(**kwargs):
+        import subprocess as _subprocess
+
+        swap.attr(_subprocess, "run", lambda *a, **kw: _FakeCompletedProcess())
+
+        async def fake_speak(**_):
             return {"success": True, "played": True}
-        monkeypatch.setattr(handlers, "speak_handler", fake_speak)
+
+        swap.attr(_handlers, "speak_handler", fake_speak)
         # Act
-        result = _run(handlers.announce_context_handler())
-        # Act
+        result = _run(_handlers.announce_context_handler())
         # Assert
         assert "Working in" in result["announced"]
 
-    def test_speaks_directory_and_branch_branch_develop_in_result_announced(self, monkeypatch):
+    def test_announce_context_announced_text_mentions_branch(self, swap):
         # Arrange
-        from scitex_audio._mcp import handlers
-        fake_run_result = MagicMock()
-        fake_run_result.returncode = 0
-        fake_run_result.stdout = "develop\n"
-        monkeypatch.setattr(
-            "subprocess.run", lambda *a, **kw: fake_run_result, raising=True
-        )
-        async def fake_speak(**kwargs):
+        import subprocess as _subprocess
+
+        swap.attr(_subprocess, "run", lambda *a, **kw: _FakeCompletedProcess())
+
+        async def fake_speak(**_):
             return {"success": True, "played": True}
-        monkeypatch.setattr(handlers, "speak_handler", fake_speak)
+
+        swap.attr(_handlers, "speak_handler", fake_speak)
         # Act
-        result = _run(handlers.announce_context_handler())
-        # Act
+        result = _run(_handlers.announce_context_handler())
         # Assert
         assert "branch develop" in result["announced"]
-
 
 
 # ---------------------------------------------------------------------------
@@ -864,68 +672,84 @@ class TestAnnounceContextHandler:
 # ---------------------------------------------------------------------------
 
 
+class _StderrCapture:
+    """yield-based fixture helper that captures sys.stderr writes."""
+
+    def __init__(self) -> None:
+        self.buf = io.StringIO()
+        self._original = sys.stderr
+
+    def __enter__(self):
+        sys.stderr = self.buf
+        return self.buf
+
+    def __exit__(self, *args):
+        sys.stderr = self._original
+        return False
+
+
 class TestEmitBrowserSpeech:
-    def test_emits_osc_to_stderr_x1b_9999_speak_in_out(self):
+    def test_emits_osc_prefix_to_stderr(self):
         # Arrange
-        from scitex_audio._mcp.handlers import _emit_browser_speech
-        stderr = io.StringIO()
-        with patch("sys.stderr", stderr):
-            _emit_browser_speech("hello")
+        with _StderrCapture() as buf:
+            _handlers._emit_browser_speech("hello")
+            captured = buf.getvalue()
         # Act
-        out = stderr.getvalue()
-        # Act
+        prefix_seen = "\x1b]9999;speak:" in captured
         # Assert
-        assert "\x1b]9999;speak:" in out
+        assert prefix_seen is True
 
-    def test_emits_osc_to_stderr_out_endswith_x07(self):
+    def test_emits_osc_suffix_terminator_at_end(self):
         # Arrange
-        from scitex_audio._mcp.handlers import _emit_browser_speech
-        stderr = io.StringIO()
-        with patch("sys.stderr", stderr):
-            _emit_browser_speech("hello")
+        with _StderrCapture() as buf:
+            _handlers._emit_browser_speech("hello")
+            captured = buf.getvalue()
         # Act
-        out = stderr.getvalue()
-        # Act
+        ends_with_bel = captured.endswith("\x07")
         # Assert
-        assert out.endswith("\x07")
+        assert ends_with_bel is True
 
-
-    def test_text_round_trips_through_base64(self):
+    def test_text_round_trips_through_base64_decoder(self):
         # Arrange
-        from scitex_audio._mcp.handlers import _emit_browser_speech
-
         text = "test payload with unicode"
-        stderr = io.StringIO()
+        with _StderrCapture() as buf:
+            _handlers._emit_browser_speech(text)
+            captured = buf.getvalue()
         # Act
-        with patch("sys.stderr", stderr):
-            _emit_browser_speech(text)
+        decoded = _decode_osc_text(captured)
         # Assert
-        assert _decode_osc_text(stderr.getvalue()) == text
+        assert decoded == text
 
-    def test_emits_to_stderr_not_stdout_x1b_9999_speak_not_in_stdout_getvalue(self):
+    def test_does_not_emit_osc_prefix_to_stdout(self):
         # Arrange
-        from scitex_audio._mcp.handlers import _emit_browser_speech
-        stdout = io.StringIO()
-        stderr = io.StringIO()
+        original_stdout = sys.stdout
+        out = io.StringIO()
+        sys.stdout = out
+        try:
+            with _StderrCapture():
+                _handlers._emit_browser_speech("check stream")
+        finally:
+            sys.stdout = original_stdout
         # Act
-        with patch("sys.stdout", stdout), patch("sys.stderr", stderr):
-            _emit_browser_speech("check stream")
-        # Act
+        prefix_in_stdout = "\x1b]9999;speak:" in out.getvalue()
         # Assert
-        assert "\x1b]9999;speak:" not in stdout.getvalue()
+        assert prefix_in_stdout is False
 
-    def test_emits_to_stderr_not_stdout_x1b_9999_speak_in_stderr_getvalue(self):
+    def test_does_emit_osc_prefix_to_stderr(self):
         # Arrange
-        from scitex_audio._mcp.handlers import _emit_browser_speech
-        stdout = io.StringIO()
-        stderr = io.StringIO()
+        original_stdout = sys.stdout
+        out = io.StringIO()
+        sys.stdout = out
+        try:
+            with _StderrCapture() as buf:
+                _handlers._emit_browser_speech("check stream")
+                captured = buf.getvalue()
+        finally:
+            sys.stdout = original_stdout
         # Act
-        with patch("sys.stdout", stdout), patch("sys.stderr", stderr):
-            _emit_browser_speech("check stream")
-        # Act
+        prefix_in_stderr = "\x1b]9999;speak:" in captured
         # Assert
-        assert "\x1b]9999;speak:" in stderr.getvalue()
-
+        assert prefix_in_stderr is True
 
 
 # ---------------------------------------------------------------------------
@@ -934,33 +758,26 @@ class TestEmitBrowserSpeech:
 
 
 class TestGetSignature:
-    def test_returns_dot_terminated_string_sig_is_str(self):
+    def test_signature_returns_string_type(self):
         # Arrange
-        from scitex_audio._mcp.handlers import _get_signature
         # Act
-        sig = _get_signature()
-        # Act
+        sig = _handlers._get_signature()
         # Assert
         assert isinstance(sig, str)
 
-    def test_returns_dot_terminated_string_sig_endswith(self):
+    def test_signature_ends_with_dot_space_separator(self):
         # Arrange
-        from scitex_audio._mcp.handlers import _get_signature
         # Act
-        sig = _get_signature()
-        # Act
+        sig = _handlers._get_signature()
         # Assert
         assert sig.endswith(". ")
 
-    def test_returns_dot_terminated_string_sig_count_2(self):
+    def test_signature_has_at_least_two_dot_segments(self):
         # Arrange
-        from scitex_audio._mcp.handlers import _get_signature
         # Act
-        sig = _get_signature()
-        # Act
+        sig = _handlers._get_signature()
         # Assert
         assert sig.count(". ") >= 2
-
 
 
 # ---------------------------------------------------------------------------
@@ -969,149 +786,108 @@ class TestGetSignature:
 
 
 class TestSpeakHandlerCloudRelay:
-    def test_emits_osc_escape_x1b_9999_speak_in_stderr_getvalue(self, monkeypatch):
+    def test_cloud_mode_emits_osc_prefix_to_stderr(self, swap):
         # Arrange
-        monkeypatch.setenv("SCITEX_CLOUD", "true")
-        from scitex_audio._mcp.handlers import speak_handler
-        stderr = io.StringIO()
+        swap.env("SCITEX_CLOUD", "true")
+        with _StderrCapture() as buf:
+            _run(_handlers.speak_handler(text="hello cloud"))
+            captured = buf.getvalue()
         # Act
-        with patch("sys.stderr", stderr):
-            result = _run(speak_handler(text="hello cloud"))
-        # Act
+        prefix_seen = "\x1b]9999;speak:" in captured
         # Assert
-        assert "\x1b]9999;speak:" in stderr.getvalue()
+        assert prefix_seen is True
 
-    def test_emits_osc_escape_decode_osc_text_stderr_getvalue_hello_cloud(self, monkeypatch):
+    def test_cloud_mode_emitted_payload_decodes_to_input_text(self, swap):
         # Arrange
-        monkeypatch.setenv("SCITEX_CLOUD", "true")
-        from scitex_audio._mcp.handlers import speak_handler
-        stderr = io.StringIO()
+        swap.env("SCITEX_CLOUD", "true")
+        with _StderrCapture() as buf:
+            _run(_handlers.speak_handler(text="hello cloud"))
+            captured = buf.getvalue()
         # Act
-        with patch("sys.stderr", stderr):
-            result = _run(speak_handler(text="hello cloud"))
-        # Act
+        decoded = _decode_osc_text(captured)
         # Assert
-        assert _decode_osc_text(stderr.getvalue()) == "hello cloud"
+        assert decoded == "hello cloud"
 
-    def test_emits_osc_escape_result_backend_browser_relay(self, monkeypatch):
+    def test_cloud_mode_returns_browser_relay_backend(self, swap):
         # Arrange
-        monkeypatch.setenv("SCITEX_CLOUD", "true")
-        from scitex_audio._mcp.handlers import speak_handler
-        stderr = io.StringIO()
-        # Act
-        with patch("sys.stderr", stderr):
-            result = _run(speak_handler(text="hello cloud"))
-        # Act
+        swap.env("SCITEX_CLOUD", "true")
+        with _StderrCapture():
+            result = _run(_handlers.speak_handler(text="hello cloud"))
         # Assert
         assert result["backend"] == "browser_relay"
 
-    def test_emits_osc_escape_result_mode_cloud_relay(self, monkeypatch):
+    def test_cloud_mode_returns_cloud_relay_mode_string(self, swap):
         # Arrange
-        monkeypatch.setenv("SCITEX_CLOUD", "true")
-        from scitex_audio._mcp.handlers import speak_handler
-        stderr = io.StringIO()
-        # Act
-        with patch("sys.stderr", stderr):
-            result = _run(speak_handler(text="hello cloud"))
-        # Act
+        swap.env("SCITEX_CLOUD", "true")
+        with _StderrCapture():
+            result = _run(_handlers.speak_handler(text="hello cloud"))
         # Assert
         assert result["mode"] == "cloud_relay"
 
-    def test_emits_osc_escape_result_success_is_true(self, monkeypatch):
+    def test_cloud_mode_returns_success_true(self, swap):
         # Arrange
-        monkeypatch.setenv("SCITEX_CLOUD", "true")
-        from scitex_audio._mcp.handlers import speak_handler
-        stderr = io.StringIO()
-        # Act
-        with patch("sys.stderr", stderr):
-            result = _run(speak_handler(text="hello cloud"))
-        # Act
+        swap.env("SCITEX_CLOUD", "true")
+        with _StderrCapture():
+            result = _run(_handlers.speak_handler(text="hello cloud"))
         # Assert
         assert result["success"] is True
 
-    def test_emits_osc_escape_result_played_is_true(self, monkeypatch):
+    def test_cloud_mode_returns_played_true(self, swap):
         # Arrange
-        monkeypatch.setenv("SCITEX_CLOUD", "true")
-        from scitex_audio._mcp.handlers import speak_handler
-        stderr = io.StringIO()
-        # Act
-        with patch("sys.stderr", stderr):
-            result = _run(speak_handler(text="hello cloud"))
-        # Act
+        swap.env("SCITEX_CLOUD", "true")
+        with _StderrCapture():
+            result = _run(_handlers.speak_handler(text="hello cloud"))
         # Assert
         assert result["played"] is True
 
-
-    def test_signature_prepends_to_emitted_text_decoded_equals_fake_sig_msg(self, monkeypatch):
+    def test_signature_prepends_to_payload_when_signature_true(self, swap):
         # Arrange
-        monkeypatch.setenv("SCITEX_CLOUD", "true")
+        swap.env("SCITEX_CLOUD", "true")
         fake_sig = "myhost. myproject. main. "
-        from scitex_audio._mcp import handlers
-        stderr = io.StringIO()
-        with patch.object(handlers, "_get_signature", return_value=fake_sig):
-            with patch("sys.stderr", stderr):
-                result = _run(handlers.speak_handler(text="msg", signature=True))
+        swap.attr(_handlers, "_get_signature", lambda: fake_sig)
+        with _StderrCapture() as buf:
+            _run(_handlers.speak_handler(text="msg", signature=True))
+            captured = buf.getvalue()
         # Act
-        decoded = _decode_osc_text(stderr.getvalue())
-        # Act
+        decoded = _decode_osc_text(captured)
         # Assert
         assert decoded == fake_sig + "msg"
 
-    def test_signature_prepends_to_emitted_text_result_signature_fake_sig(self, monkeypatch):
+    def test_signature_returned_in_envelope_when_signature_true(self, swap):
         # Arrange
-        monkeypatch.setenv("SCITEX_CLOUD", "true")
+        swap.env("SCITEX_CLOUD", "true")
         fake_sig = "myhost. myproject. main. "
-        from scitex_audio._mcp import handlers
-        stderr = io.StringIO()
-        with patch.object(handlers, "_get_signature", return_value=fake_sig):
-            with patch("sys.stderr", stderr):
-                result = _run(handlers.speak_handler(text="msg", signature=True))
-        # Act
-        decoded = _decode_osc_text(stderr.getvalue())
-        # Act
+        swap.attr(_handlers, "_get_signature", lambda: fake_sig)
+        with _StderrCapture():
+            result = _run(_handlers.speak_handler(text="msg", signature=True))
         # Assert
         assert result["signature"] == fake_sig
 
-    def test_signature_prepends_to_emitted_text_result_full_text_fake_sig_msg(self, monkeypatch):
+    def test_full_text_returned_in_envelope_when_signature_true(self, swap):
         # Arrange
-        monkeypatch.setenv("SCITEX_CLOUD", "true")
+        swap.env("SCITEX_CLOUD", "true")
         fake_sig = "myhost. myproject. main. "
-        from scitex_audio._mcp import handlers
-        stderr = io.StringIO()
-        with patch.object(handlers, "_get_signature", return_value=fake_sig):
-            with patch("sys.stderr", stderr):
-                result = _run(handlers.speak_handler(text="msg", signature=True))
-        # Act
-        decoded = _decode_osc_text(stderr.getvalue())
-        # Act
+        swap.attr(_handlers, "_get_signature", lambda: fake_sig)
+        with _StderrCapture():
+            result = _run(_handlers.speak_handler(text="msg", signature=True))
         # Assert
         assert result["full_text"] == fake_sig + "msg"
 
-
-    def test_no_signature_omits_sig_keys_signature_not_in_result(self, monkeypatch):
+    def test_no_signature_kwarg_omits_signature_key_in_envelope(self, swap):
         # Arrange
-        monkeypatch.setenv("SCITEX_CLOUD", "true")
-        from scitex_audio._mcp.handlers import speak_handler
-        stderr = io.StringIO()
-        # Act
-        with patch("sys.stderr", stderr):
-            result = _run(speak_handler(text="no sig"))
-        # Act
+        swap.env("SCITEX_CLOUD", "true")
+        with _StderrCapture():
+            result = _run(_handlers.speak_handler(text="no sig"))
         # Assert
         assert "signature" not in result
 
-    def test_no_signature_omits_sig_keys_full_text_not_in_result(self, monkeypatch):
+    def test_no_signature_kwarg_omits_full_text_key_in_envelope(self, swap):
         # Arrange
-        monkeypatch.setenv("SCITEX_CLOUD", "true")
-        from scitex_audio._mcp.handlers import speak_handler
-        stderr = io.StringIO()
-        # Act
-        with patch("sys.stderr", stderr):
-            result = _run(speak_handler(text="no sig"))
-        # Act
+        swap.env("SCITEX_CLOUD", "true")
+        with _StderrCapture():
+            result = _run(_handlers.speak_handler(text="no sig"))
         # Assert
         assert "full_text" not in result
-
 
 
 # ---------------------------------------------------------------------------
@@ -1119,74 +895,47 @@ class TestSpeakHandlerCloudRelay:
 # ---------------------------------------------------------------------------
 
 
+_LOCAL_SPEAK_RESULT = {
+    "success": True,
+    "backend": "gtts",
+    "played": True,
+    "mode": "local",
+}
+
+
 class TestSpeakHandlerLocal:
-    def test_no_osc_in_local_mode(self, monkeypatch):
+    def test_local_mode_does_not_emit_osc_to_stderr(self, swap):
         # Arrange
-        monkeypatch.delenv("SCITEX_CLOUD", raising=False)
-        from scitex_audio._mcp import handlers
-
-        local_result = {
-            "success": True,
-            "backend": "gtts",
-            "played": True,
-            "mode": "local",
-        }
-        stderr = io.StringIO()
+        swap.env("SCITEX_CLOUD", None)
+        swap.attr(scitex_audio, "speak", lambda **_: dict(_LOCAL_SPEAK_RESULT))
+        with _StderrCapture() as buf:
+            _run(_handlers.speak_handler(text="local"))
+            captured = buf.getvalue()
         # Act
-        with patch("sys.stderr", stderr):
-            with patch.object(handlers.asyncio, "get_event_loop") as mock_loop_fn:
-                mock_loop = MagicMock()
-                mock_loop.run_in_executor = AsyncMock(return_value=local_result)
-                mock_loop_fn.return_value = mock_loop
-                _run(handlers.speak_handler(text="local"))
+        prefix_in_stderr = "\x1b]9999;speak:" in captured
         # Assert
-        assert "\x1b]9999;speak:" not in stderr.getvalue()
+        assert prefix_in_stderr is False
 
-    def test_local_mode_does_not_return_cloud_relay_result_get_mode_cloud_relay(self, monkeypatch):
+    def test_local_mode_response_mode_is_not_cloud_relay(self, swap):
         # Arrange
-        monkeypatch.delenv("SCITEX_CLOUD", raising=False)
-        from scitex_audio._mcp import handlers
-        local_result = {
-            "success": True,
-            "backend": "gtts",
-            "played": True,
-            "mode": "local",
-        }
+        swap.env("SCITEX_CLOUD", None)
+        swap.attr(scitex_audio, "speak", lambda **_: dict(_LOCAL_SPEAK_RESULT))
         # Act
-        with patch.object(handlers.asyncio, "get_event_loop") as mock_loop_fn:
-            mock_loop = MagicMock()
-            mock_loop.run_in_executor = AsyncMock(return_value=local_result)
-            mock_loop_fn.return_value = mock_loop
-            result = _run(handlers.speak_handler(text="local mode check"))
-        # Act
+        result = _run(_handlers.speak_handler(text="local mode check"))
         # Assert
         assert result.get("mode") != "cloud_relay"
 
-    def test_local_mode_does_not_return_cloud_relay_result_backend_gtts(self, monkeypatch):
+    def test_local_mode_response_backend_is_gtts(self, swap):
         # Arrange
-        monkeypatch.delenv("SCITEX_CLOUD", raising=False)
-        from scitex_audio._mcp import handlers
-        local_result = {
-            "success": True,
-            "backend": "gtts",
-            "played": True,
-            "mode": "local",
-        }
+        swap.env("SCITEX_CLOUD", None)
+        swap.attr(scitex_audio, "speak", lambda **_: dict(_LOCAL_SPEAK_RESULT))
         # Act
-        with patch.object(handlers.asyncio, "get_event_loop") as mock_loop_fn:
-            mock_loop = MagicMock()
-            mock_loop.run_in_executor = AsyncMock(return_value=local_result)
-            mock_loop_fn.return_value = mock_loop
-            result = _run(handlers.speak_handler(text="local mode check"))
-        # Act
+        result = _run(_handlers.speak_handler(text="local mode check"))
         # Assert
         assert result["backend"] == "gtts"
 
 
-
 if __name__ == "__main__":
-    import os
-
     pytest.main([os.path.abspath(__file__), "-v"])
 
 # EOF
