@@ -194,17 +194,31 @@ class BaseTTS(ABC):
             except Exception:
                 pass
 
-    def _play_audio(self, path: Path) -> bool:
+    def _play_audio(self, path: Path, *, runner=None, timeout: int = 30) -> bool:
         """Play audio file using available system player.
 
         Includes Windows fallback for WSL environments where PulseAudio
         may be unstable.
+
+        Parameters
+        ----------
+        path
+            Audio file to play.
+        runner
+            Subprocess-runner callable used for the player invocation. Defaults
+            to :func:`subprocess.run`. Injected for tests so callers can
+            substitute a fake without mocking ``subprocess``.
+        timeout
+            Per-player timeout in seconds.
 
         Returns
         -------
             True if playback succeeded, False otherwise.
         """
         import os
+
+        if runner is None:
+            runner = subprocess.run
 
         # Check if we're in WSL - if so, prefer Windows playback directly
         # to avoid double playback issues with Linux audio hanging
@@ -222,12 +236,12 @@ class BaseTTS(ABC):
 
         for player_cmd in players:
             try:
-                subprocess.run(
+                runner(
                     player_cmd,
                     check=True,
                     stdout=subprocess.DEVNULL,
                     stderr=subprocess.DEVNULL,
-                    timeout=30,
+                    timeout=timeout,
                 )
                 return True
             except subprocess.TimeoutExpired:
