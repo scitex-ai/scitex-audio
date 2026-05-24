@@ -195,14 +195,42 @@ class TTS:
 
         return out_path if output_path else None
 
-    def _play_audio(self, path: Path) -> None:
+    def _play_audio(
+        self,
+        path: Path,
+        *,
+        runner=None,
+        is_wsl=None,
+        timeout: int = 30,
+    ) -> None:
         """Play audio file using available system player.
 
         Includes Windows fallback for WSL environments.
+
+        Parameters
+        ----------
+        path
+            Audio file to play.
+        runner
+            Subprocess-runner callable used for the player invocation.
+            Defaults to :func:`subprocess.run`. Injected for tests so
+            callers can substitute a fake without mocking
+            ``subprocess``.
+        is_wsl
+            Whether the host is WSL. Defaults to checking
+            ``/mnt/c/Windows``. Injected for tests so the WSL branch
+            can be exercised on non-WSL hosts.
+        timeout
+            Per-player timeout in seconds.
         """
+        if runner is None:
+            runner = subprocess.run
+        if is_wsl is None:
+            is_wsl = os.path.exists("/mnt/c/Windows")
+
         # Check if we're in WSL - if so, prefer Windows playback directly
         # to avoid double playback issues with Linux audio hanging
-        if os.path.exists("/mnt/c/Windows"):
+        if is_wsl:
             if self._play_audio_windows(path):
                 return
             # Fall through to Linux players if Windows playback fails
@@ -216,12 +244,12 @@ class TTS:
 
         for player_cmd in players:
             try:
-                subprocess.run(
+                runner(
                     player_cmd,
                     check=True,
                     stdout=subprocess.DEVNULL,
                     stderr=subprocess.DEVNULL,
-                    timeout=30,
+                    timeout=timeout,
                 )
                 return
             except subprocess.TimeoutExpired:
