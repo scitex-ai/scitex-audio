@@ -109,8 +109,8 @@ if is_relay_available():
 ## Generate env template
 
 ```bash
-scitex-audio env-template                  # print to stdout
-scitex-audio env-template -o audio.src    # write to file
+scitex-audio show-env-template             # print to stdout
+scitex-audio show-env-template -o audio.src    # write to file
 source audio.src                          # apply settings
 ```
 

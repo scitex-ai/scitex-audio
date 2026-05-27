@@ -28,7 +28,10 @@ Audio Routing
      - Relay server port
    * - ``SCITEX_AUDIO_HOST``
      - ``0.0.0.0``
-     - Relay server bind host
+     - Relay/MCP server bind host
+   * - ``SCITEX_AUDIO_PORT``
+     - ``31293``
+     - Relay/MCP server port
 
 Backend Configuration
 ---------------------
@@ -59,7 +62,7 @@ General
      - Description
    * - ``SCITEX_DIR``
      - ``~/.scitex``
-     - Base directory for audio cache and reference files
+     - Base SciTeX data directory
    * - ``SCITEX_CLOUD``
      - *(none)*
      - Set to ``true`` for browser relay mode (OSC escape)
@@ -93,7 +96,7 @@ Instead of setting individual environment variables, you can use a ``.src`` file
 .. code-block:: bash
 
    # Generate a template
-   scitex-audio env-template -o ~/.scitex/audio/local.src
+   scitex-audio show-env-template -o ~/.scitex/audio/local.src
 
    # Point to it
    export SCITEX_AUDIO_ENV_SRC=~/.scitex/audio/local.src

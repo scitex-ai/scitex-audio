@@ -11,9 +11,9 @@ tags: [scitex-audio-env-vars]
 
 | Variable | Purpose | Default | Type |
 |---|---|---|---|
-| `SCITEX_AUDIO_MODE` | Routing mode (`local`, `relay`, `auto`). | `auto` | string |
-| `SCITEX_AUDIO_HOST` | Host for local audio daemon. | `localhost` | string |
-| `SCITEX_AUDIO_PORT` | Port for local audio daemon. | `5006` | int |
+| `SCITEX_AUDIO_MODE` | Routing mode (`local`, `remote`, `auto`). | `auto` | string |
+| `SCITEX_AUDIO_HOST` | Bind host for relay/MCP server. | `0.0.0.0` | string |
+| `SCITEX_AUDIO_PORT` | Port for relay/MCP server. | `31293` | int |
 | `SCITEX_AUDIO_ENV_SRC` | Env-file sourced at CLI start. | unset | path |
 
 ## Relay (remote playback)
@@ -22,7 +22,7 @@ tags: [scitex-audio-env-vars]
 |---|---|---|---|
 | `SCITEX_AUDIO_RELAY_URL` | Full relay URL (overrides host/port). | unset | URL |
 | `SCITEX_AUDIO_RELAY_HOST` | Relay hostname. | unset | string |
-| `SCITEX_AUDIO_RELAY_PORT` | Relay port. | `5106` | int |
+| `SCITEX_AUDIO_RELAY_PORT` | Relay port. | `31293` | int |
 
 ## Backends
 
@@ -32,7 +32,7 @@ tags: [scitex-audio-env-vars]
 | `SCITEX_AUDIO_LUXTTS_REFERENCE` | Reference audio path for LuxTTS voice cloning. | unset | path |
 | `SCITEX_AUDIO_LUXTTS_TRIM_START` | Seconds to trim from clone reference start. | `0.0` | float |
 | `SCITEX_AUDIO_WHISPER_CLI` | Path to a `whisper` CLI binary (STT). | auto | path |
-| `SCITEX_AUDIO_WHISPER_MODEL` | Whisper model size (`tiny`/`base`/`small`/...). | `base` | string |
+| `SCITEX_AUDIO_WHISPER_MODEL` | Whisper model size (`tiny`/`base`/`small`/...). | `tiny` | string |
 
 ## Cross-package (ecosystem-wide)
 
