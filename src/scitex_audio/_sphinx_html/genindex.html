@@ -5,14 +5,14 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Index &mdash; scitex-audio 0.2.12 documentation</title>
+  <title>Index &mdash; scitex-audio 0.2.13 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
 
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=1e30946d"></script>
+      <script src="_static/documentation_options.js?v=ba481074"></script>
       <script src="_static/doctools.js?v=fd6eb6e6"></script>
       <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/js/theme.js"></script>
@@ -84,6 +84,7 @@
 <div class="genindex-jumpbox">
  <a href="#_"><strong>_</strong></a>
  | <a href="#A"><strong>A</strong></a>
+ | <a href="#B"><strong>B</strong></a>
  | <a href="#C"><strong>C</strong></a>
  | <a href="#E"><strong>E</strong></a>
  | <a href="#F"><strong>F</strong></a>
@@ -109,13 +110,25 @@
 <h2 id="A">A</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/scitex_audio.html#scitex_audio.announce_context">announce_context() (in module scitex_audio)</a>
+</li>
       <li><a href="api/mcp.html#scitex_audio._mcp.handlers.announce_context_handler">announce_context_handler() (in module scitex_audio._mcp.handlers)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/engines.html#scitex_audio._engines._base.TTSBackend.available">available() (scitex_audio._engines._base.TTSBackend class method)</a>
+</li>
       <li><a href="api/scitex_audio.html#scitex_audio.available_backends">available_backends() (in module scitex_audio)</a>
 </li>
       <li><a href="api/scitex_audio.html#scitex_audio.available_models">available_models() (in module scitex_audio)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="B">B</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/engines.html#scitex_audio._engines._base.BaseTTS">BaseTTS (class in scitex_audio._engines._base)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -133,9 +146,11 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/mcp.html#scitex_audio._mcp.handlers.clear_audio_cache_handler">clear_audio_cache_handler() (in module scitex_audio._mcp.handlers)</a>
 </li>
-      <li><a href="api/scitex_audio.html#scitex_audio.ElevenLabsTTS.client">client (scitex_audio.ElevenLabsTTS property)</a>
+      <li><a href="api/engines.html#scitex_audio._engines._elevenlabs_engine.ElevenLabsTTS.client">client (scitex_audio._engines._elevenlabs_engine.ElevenLabsTTS property)</a>
 
       <ul>
+        <li><a href="api/scitex_audio.html#scitex_audio.ElevenLabsTTS.client">(scitex_audio.ElevenLabsTTS property)</a>
+</li>
         <li><a href="api/scitex_audio.html#scitex_audio.TTS.client">(scitex_audio.TTS property)</a>
 </li>
       </ul></li>
@@ -145,12 +160,24 @@
 <h2 id="E">E</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api/scitex_audio.html#scitex_audio.ElevenLabsTTS">ElevenLabsTTS (class in scitex_audio)</a>
+      <li><a href="api/engines.html#scitex_audio._engines._base.TTSBackend.EDGE">EDGE (scitex_audio._engines._base.TTSBackend attribute)</a>
 </li>
+      <li><a href="api/engines.html#scitex_audio._engines._base.TTSBackend.ELEVENLABS">ELEVENLABS (scitex_audio._engines._base.TTSBackend attribute)</a>
+</li>
+      <li><a href="api/scitex_audio.html#scitex_audio.ElevenLabsTTS">ElevenLabsTTS (class in scitex_audio)</a>
+
+      <ul>
+        <li><a href="api/engines.html#scitex_audio._engines._elevenlabs_engine.ElevenLabsTTS">(class in scitex_audio._engines._elevenlabs_engine)</a>
+</li>
+      </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api/scitex_audio.html#scitex_audio.SystemTTS.engine">engine (scitex_audio.SystemTTS property)</a>
+      <li><a href="api/engines.html#scitex_audio._engines._pyttsx3_engine.SystemTTS.engine">engine (scitex_audio._engines._pyttsx3_engine.SystemTTS property)</a>
+
+      <ul>
+        <li><a href="api/scitex_audio.html#scitex_audio.SystemTTS.engine">(scitex_audio.SystemTTS property)</a>
 </li>
+      </ul></li>
   </ul></td>
 </tr></table>
 
@@ -177,11 +204,19 @@
 </li>
       <li><a href="api/scitex_audio.html#scitex_audio.get_tts">get_tts() (in module scitex_audio)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api/scitex_audio.html#scitex_audio.ElevenLabsTTS.get_voices">get_voices() (scitex_audio.ElevenLabsTTS method)</a>
+      <li><a href="api/engines.html#scitex_audio._engines._base.BaseTTS.get_voices">get_voices() (scitex_audio._engines._base.BaseTTS method)</a>
 
       <ul>
+        <li><a href="api/engines.html#scitex_audio._engines._elevenlabs_engine.ElevenLabsTTS.get_voices">(scitex_audio._engines._elevenlabs_engine.ElevenLabsTTS method)</a>
+</li>
+        <li><a href="api/engines.html#scitex_audio._engines._gtts_engine.GoogleTTS.get_voices">(scitex_audio._engines._gtts_engine.GoogleTTS method)</a>
+</li>
+        <li><a href="api/engines.html#scitex_audio._engines._luxtts_engine.LuxTTS.get_voices">(scitex_audio._engines._luxtts_engine.LuxTTS method)</a>
+</li>
+        <li><a href="api/engines.html#scitex_audio._engines._pyttsx3_engine.SystemTTS.get_voices">(scitex_audio._engines._pyttsx3_engine.SystemTTS method)</a>
+</li>
+        <li><a href="api/scitex_audio.html#scitex_audio.ElevenLabsTTS.get_voices">(scitex_audio.ElevenLabsTTS method)</a>
+</li>
         <li><a href="api/scitex_audio.html#scitex_audio.GoogleTTS.get_voices">(scitex_audio.GoogleTTS method)</a>
 </li>
         <li><a href="api/scitex_audio.html#scitex_audio.LuxTTS.get_voices">(scitex_audio.LuxTTS method)</a>
@@ -189,7 +224,15 @@
         <li><a href="api/scitex_audio.html#scitex_audio.SystemTTS.get_voices">(scitex_audio.SystemTTS method)</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/scitex_audio.html#scitex_audio.GoogleTTS">GoogleTTS (class in scitex_audio)</a>
+
+      <ul>
+        <li><a href="api/engines.html#scitex_audio._engines._gtts_engine.GoogleTTS">(class in scitex_audio._engines._gtts_engine)</a>
+</li>
+      </ul></li>
+      <li><a href="api/engines.html#scitex_audio._engines._base.TTSBackend.GTTS">GTTS (scitex_audio._engines._base.TTSBackend attribute)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -197,8 +240,12 @@
 <h2 id="L">L</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api/scitex_audio.html#scitex_audio.GoogleTTS.LANGUAGES">LANGUAGES (scitex_audio.GoogleTTS attribute)</a>
+      <li><a href="api/engines.html#scitex_audio._engines._gtts_engine.GoogleTTS.LANGUAGES">LANGUAGES (scitex_audio._engines._gtts_engine.GoogleTTS attribute)</a>
+
+      <ul>
+        <li><a href="api/scitex_audio.html#scitex_audio.GoogleTTS.LANGUAGES">(scitex_audio.GoogleTTS attribute)</a>
 </li>
+      </ul></li>
       <li><a href="api/mcp.html#scitex_audio._mcp.handlers.list_audio_files_handler">list_audio_files_handler() (in module scitex_audio._mcp.handlers)</a>
 </li>
       <li><a href="api/mcp.html#scitex_audio._mcp.handlers.list_backends_handler">list_backends_handler() (in module scitex_audio._mcp.handlers)</a>
@@ -210,6 +257,12 @@
       <li><a href="api/mcp.html#scitex_audio._mcp.handlers.list_voices_handler">list_voices_handler() (in module scitex_audio._mcp.handlers)</a>
 </li>
       <li><a href="api/scitex_audio.html#scitex_audio.LuxTTS">LuxTTS (class in scitex_audio)</a>
+
+      <ul>
+        <li><a href="api/engines.html#scitex_audio._engines._luxtts_engine.LuxTTS">(class in scitex_audio._engines._luxtts_engine)</a>
+</li>
+      </ul></li>
+      <li><a href="api/engines.html#scitex_audio._engines._base.TTSBackend.LUXTTS">LUXTTS (scitex_audio._engines._base.TTSBackend attribute)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -217,15 +270,33 @@
 <h2 id="M">M</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api/scitex_audio.html#scitex_audio.ElevenLabsTTS.MAX_SPEED">MAX_SPEED (scitex_audio.ElevenLabsTTS attribute)</a>
+      <li><a href="api/engines.html#scitex_audio._engines._elevenlabs_engine.ElevenLabsTTS.MAX_SPEED">MAX_SPEED (scitex_audio._engines._elevenlabs_engine.ElevenLabsTTS attribute)</a>
+
+      <ul>
+        <li><a href="api/scitex_audio.html#scitex_audio.ElevenLabsTTS.MAX_SPEED">(scitex_audio.ElevenLabsTTS attribute)</a>
 </li>
-      <li><a href="api/scitex_audio.html#scitex_audio.ElevenLabsTTS.MIN_SPEED">MIN_SPEED (scitex_audio.ElevenLabsTTS attribute)</a>
+      </ul></li>
+      <li><a href="api/engines.html#scitex_audio._engines._elevenlabs_engine.ElevenLabsTTS.MIN_SPEED">MIN_SPEED (scitex_audio._engines._elevenlabs_engine.ElevenLabsTTS attribute)</a>
+
+      <ul>
+        <li><a href="api/scitex_audio.html#scitex_audio.ElevenLabsTTS.MIN_SPEED">(scitex_audio.ElevenLabsTTS attribute)</a>
 </li>
+      </ul></li>
       <li>
     module
 
       <ul>
         <li><a href="api/scitex_audio.html#module-scitex_audio">scitex_audio</a>
+</li>
+        <li><a href="api/engines.html#module-scitex_audio._engines._base">scitex_audio._engines._base</a>
+</li>
+        <li><a href="api/engines.html#module-scitex_audio._engines._elevenlabs_engine">scitex_audio._engines._elevenlabs_engine</a>
+</li>
+        <li><a href="api/engines.html#module-scitex_audio._engines._gtts_engine">scitex_audio._engines._gtts_engine</a>
+</li>
+        <li><a href="api/engines.html#module-scitex_audio._engines._luxtts_engine">scitex_audio._engines._luxtts_engine</a>
+</li>
+        <li><a href="api/engines.html#module-scitex_audio._engines._pyttsx3_engine">scitex_audio._engines._pyttsx3_engine</a>
 </li>
         <li><a href="api/mcp.html#module-scitex_audio._mcp.handlers">scitex_audio._mcp.handlers</a>
 </li>
@@ -238,9 +309,19 @@
 <h2 id="N">N</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api/scitex_audio.html#scitex_audio.ElevenLabsTTS.name">name (scitex_audio.ElevenLabsTTS property)</a>
+      <li><a href="api/engines.html#scitex_audio._engines._base.BaseTTS.name">name (scitex_audio._engines._base.BaseTTS property)</a>
 
       <ul>
+        <li><a href="api/engines.html#scitex_audio._engines._elevenlabs_engine.ElevenLabsTTS.name">(scitex_audio._engines._elevenlabs_engine.ElevenLabsTTS property)</a>
+</li>
+        <li><a href="api/engines.html#scitex_audio._engines._gtts_engine.GoogleTTS.name">(scitex_audio._engines._gtts_engine.GoogleTTS property)</a>
+</li>
+        <li><a href="api/engines.html#scitex_audio._engines._luxtts_engine.LuxTTS.name">(scitex_audio._engines._luxtts_engine.LuxTTS property)</a>
+</li>
+        <li><a href="api/engines.html#scitex_audio._engines._pyttsx3_engine.SystemTTS.name">(scitex_audio._engines._pyttsx3_engine.SystemTTS property)</a>
+</li>
+        <li><a href="api/scitex_audio.html#scitex_audio.ElevenLabsTTS.name">(scitex_audio.ElevenLabsTTS property)</a>
+</li>
         <li><a href="api/scitex_audio.html#scitex_audio.GoogleTTS.name">(scitex_audio.GoogleTTS property)</a>
 </li>
         <li><a href="api/scitex_audio.html#scitex_audio.LuxTTS.name">(scitex_audio.LuxTTS property)</a>
@@ -257,16 +338,34 @@
       <li><a href="api/mcp.html#scitex_audio._mcp.handlers.play_audio_handler">play_audio_handler() (in module scitex_audio._mcp.handlers)</a>
 </li>
   </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/engines.html#scitex_audio._engines._base.TTSBackend.PYTTSX3">PYTTSX3 (scitex_audio._engines._base.TTSBackend attribute)</a>
+</li>
+  </ul></td>
 </tr></table>
 
 <h2 id="R">R</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api/scitex_audio.html#scitex_audio.ElevenLabsTTS.requires_api_key">requires_api_key (scitex_audio.ElevenLabsTTS property)</a>
-</li>
-      <li><a href="api/scitex_audio.html#scitex_audio.ElevenLabsTTS.requires_internet">requires_internet (scitex_audio.ElevenLabsTTS property)</a>
+      <li><a href="api/engines.html#scitex_audio._engines._base.BaseTTS.requires_api_key">requires_api_key (scitex_audio._engines._base.BaseTTS property)</a>
 
       <ul>
+        <li><a href="api/engines.html#scitex_audio._engines._elevenlabs_engine.ElevenLabsTTS.requires_api_key">(scitex_audio._engines._elevenlabs_engine.ElevenLabsTTS property)</a>
+</li>
+        <li><a href="api/scitex_audio.html#scitex_audio.ElevenLabsTTS.requires_api_key">(scitex_audio.ElevenLabsTTS property)</a>
+</li>
+      </ul></li>
+      <li><a href="api/engines.html#scitex_audio._engines._base.BaseTTS.requires_internet">requires_internet (scitex_audio._engines._base.BaseTTS property)</a>
+
+      <ul>
+        <li><a href="api/engines.html#scitex_audio._engines._elevenlabs_engine.ElevenLabsTTS.requires_internet">(scitex_audio._engines._elevenlabs_engine.ElevenLabsTTS property)</a>
+</li>
+        <li><a href="api/engines.html#scitex_audio._engines._gtts_engine.GoogleTTS.requires_internet">(scitex_audio._engines._gtts_engine.GoogleTTS property)</a>
+</li>
+        <li><a href="api/engines.html#scitex_audio._engines._luxtts_engine.LuxTTS.requires_internet">(scitex_audio._engines._luxtts_engine.LuxTTS property)</a>
+</li>
+        <li><a href="api/scitex_audio.html#scitex_audio.ElevenLabsTTS.requires_internet">(scitex_audio.ElevenLabsTTS property)</a>
+</li>
         <li><a href="api/scitex_audio.html#scitex_audio.GoogleTTS.requires_internet">(scitex_audio.GoogleTTS property)</a>
 </li>
         <li><a href="api/scitex_audio.html#scitex_audio.LuxTTS.requires_internet">(scitex_audio.LuxTTS property)</a>
@@ -286,6 +385,41 @@
 </li>
       </ul></li>
       <li>
+    scitex_audio._engines._base
+
+      <ul>
+        <li><a href="api/engines.html#module-scitex_audio._engines._base">module</a>
+</li>
+      </ul></li>
+      <li>
+    scitex_audio._engines._elevenlabs_engine
+
+      <ul>
+        <li><a href="api/engines.html#module-scitex_audio._engines._elevenlabs_engine">module</a>
+</li>
+      </ul></li>
+      <li>
+    scitex_audio._engines._gtts_engine
+
+      <ul>
+        <li><a href="api/engines.html#module-scitex_audio._engines._gtts_engine">module</a>
+</li>
+      </ul></li>
+      <li>
+    scitex_audio._engines._luxtts_engine
+
+      <ul>
+        <li><a href="api/engines.html#module-scitex_audio._engines._luxtts_engine">module</a>
+</li>
+      </ul></li>
+      <li>
+    scitex_audio._engines._pyttsx3_engine
+
+      <ul>
+        <li><a href="api/engines.html#module-scitex_audio._engines._pyttsx3_engine">module</a>
+</li>
+      </ul></li>
+      <li>
     scitex_audio._mcp.handlers
 
       <ul>
@@ -302,15 +436,23 @@
       <li><a href="api/scitex_audio.html#scitex_audio.speak">speak() (in module scitex_audio)</a>
 
       <ul>
+        <li><a href="api/engines.html#scitex_audio._engines._base.BaseTTS.speak">(scitex_audio._engines._base.BaseTTS method)</a>
+</li>
+        <li><a href="api/engines.html#scitex_audio._engines._luxtts_engine.LuxTTS.speak">(scitex_audio._engines._luxtts_engine.LuxTTS method)</a>
+</li>
         <li><a href="api/scitex_audio.html#scitex_audio.LuxTTS.speak">(scitex_audio.LuxTTS method)</a>
 </li>
         <li><a href="api/scitex_audio.html#scitex_audio.TTS.speak">(scitex_audio.TTS method)</a>
 </li>
       </ul></li>
-      <li><a href="api/scitex_audio.html#scitex_audio.SystemTTS.speak_direct">speak_direct() (scitex_audio.SystemTTS method)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/engines.html#scitex_audio._engines._pyttsx3_engine.SystemTTS.speak_direct">speak_direct() (scitex_audio._engines._pyttsx3_engine.SystemTTS method)</a>
+
+      <ul>
+        <li><a href="api/scitex_audio.html#scitex_audio.SystemTTS.speak_direct">(scitex_audio.SystemTTS method)</a>
+</li>
+      </ul></li>
       <li><a href="api/mcp.html#scitex_audio._mcp.handlers.speak_handler">speak_handler() (in module scitex_audio._mcp.handlers)</a>
 </li>
       <li><a href="api/mcp.html#scitex_audio._mcp.speak_handlers.speak_local_handler">speak_local_handler() (in module scitex_audio._mcp.speak_handlers)</a>
@@ -321,9 +463,19 @@
 </li>
       <li><a href="api/scitex_audio.html#scitex_audio.stop_speech">stop_speech() (in module scitex_audio)</a>
 </li>
-      <li><a href="api/scitex_audio.html#scitex_audio.ElevenLabsTTS.synthesize">synthesize() (scitex_audio.ElevenLabsTTS method)</a>
+      <li><a href="api/engines.html#scitex_audio._engines._base.BaseTTS.synthesize">synthesize() (scitex_audio._engines._base.BaseTTS method)</a>
 
       <ul>
+        <li><a href="api/engines.html#scitex_audio._engines._elevenlabs_engine.ElevenLabsTTS.synthesize">(scitex_audio._engines._elevenlabs_engine.ElevenLabsTTS method)</a>
+</li>
+        <li><a href="api/engines.html#scitex_audio._engines._gtts_engine.GoogleTTS.synthesize">(scitex_audio._engines._gtts_engine.GoogleTTS method)</a>
+</li>
+        <li><a href="api/engines.html#scitex_audio._engines._luxtts_engine.LuxTTS.synthesize">(scitex_audio._engines._luxtts_engine.LuxTTS method)</a>
+</li>
+        <li><a href="api/engines.html#scitex_audio._engines._pyttsx3_engine.SystemTTS.synthesize">(scitex_audio._engines._pyttsx3_engine.SystemTTS method)</a>
+</li>
+        <li><a href="api/scitex_audio.html#scitex_audio.ElevenLabsTTS.synthesize">(scitex_audio.ElevenLabsTTS method)</a>
+</li>
         <li><a href="api/scitex_audio.html#scitex_audio.GoogleTTS.synthesize">(scitex_audio.GoogleTTS method)</a>
 </li>
         <li><a href="api/scitex_audio.html#scitex_audio.LuxTTS.synthesize">(scitex_audio.LuxTTS method)</a>
@@ -332,18 +484,26 @@
 </li>
       </ul></li>
       <li><a href="api/scitex_audio.html#scitex_audio.SystemTTS">SystemTTS (class in scitex_audio)</a>
+
+      <ul>
+        <li><a href="api/engines.html#scitex_audio._engines._pyttsx3_engine.SystemTTS">(class in scitex_audio._engines._pyttsx3_engine)</a>
 </li>
+      </ul></li>
   </ul></td>
 </tr></table>
 
 <h2 id="T">T</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/engines.html#scitex_audio._engines._base.BaseTTS.to_bytes">to_bytes() (scitex_audio._engines._base.BaseTTS method)</a>
+</li>
       <li><a href="api/scitex_audio.html#scitex_audio.transcribe">transcribe() (in module scitex_audio)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/scitex_audio.html#scitex_audio.TTS">TTS (class in scitex_audio)</a>
+</li>
+      <li><a href="api/engines.html#scitex_audio._engines._base.TTSBackend">TTSBackend (class in scitex_audio._engines._base)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -351,9 +511,11 @@
 <h2 id="V">V</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api/scitex_audio.html#scitex_audio.ElevenLabsTTS.VOICES">VOICES (scitex_audio.ElevenLabsTTS attribute)</a>
+      <li><a href="api/engines.html#scitex_audio._engines._elevenlabs_engine.ElevenLabsTTS.VOICES">VOICES (scitex_audio._engines._elevenlabs_engine.ElevenLabsTTS attribute)</a>
 
       <ul>
+        <li><a href="api/scitex_audio.html#scitex_audio.ElevenLabsTTS.VOICES">(scitex_audio.ElevenLabsTTS attribute)</a>
+</li>
         <li><a href="api/scitex_audio.html#scitex_audio.TTS.VOICES">(scitex_audio.TTS attribute)</a>
 </li>
       </ul></li>

@@ -5,14 +5,14 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>scitex_audio &mdash; scitex-audio 0.2.12 documentation</title>
+  <title>scitex_audio &mdash; scitex-audio 0.2.13 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
 
   
       <script src="../_static/jquery.js?v=5d32c60e"></script>
       <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../_static/documentation_options.js?v=1e30946d"></script>
+      <script src="../_static/documentation_options.js?v=ba481074"></script>
       <script src="../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/js/theme.js"></script>
@@ -105,7 +105,9 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">subprocess</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">_subprocess</span>
 
 <span class="k">try</span><span class="p">:</span>
-    <span class="kn">from</span><span class="w"> </span><span class="nn">importlib.metadata</span><span class="w"> </span><span class="kn">import</span> <span class="n">version</span> <span class="k">as</span> <span class="n">_v</span><span class="p">,</span> <span class="n">PackageNotFoundError</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">importlib.metadata</span><span class="w"> </span><span class="kn">import</span> <span class="n">PackageNotFoundError</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">importlib.metadata</span><span class="w"> </span><span class="kn">import</span> <span class="n">version</span> <span class="k">as</span> <span class="n">_v</span>
+
     <span class="k">try</span><span class="p">:</span>
         <span class="n">__version__</span> <span class="o">=</span> <span class="n">_v</span><span class="p">(</span><span class="s2">&quot;scitex-audio&quot;</span><span class="p">)</span>
     <span class="k">except</span> <span class="n">PackageNotFoundError</span><span class="p">:</span>
@@ -193,6 +195,7 @@
     <span class="s2">&quot;stop_speech&quot;</span><span class="p">,</span>
     <span class="s2">&quot;get_tts&quot;</span><span class="p">,</span>
     <span class="s2">&quot;available_backends&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;announce_context&quot;</span><span class="p">,</span>
     <span class="c1"># Engine classes</span>
     <span class="s2">&quot;TTS&quot;</span><span class="p">,</span>
     <span class="s2">&quot;GoogleTTS&quot;</span><span class="p">,</span>
@@ -302,6 +305,85 @@
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Generate TTS audio as raw bytes without playing.&quot;&quot;&quot;</span>
     <span class="n">tts</span> <span class="o">=</span> <span class="n">get_tts</span><span class="p">(</span><span class="n">backend</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">tts</span><span class="o">.</span><span class="n">to_bytes</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">voice</span><span class="o">=</span><span class="n">voice</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="announce_context">
+<a class="viewcode-back" href="../api/scitex_audio.html#scitex_audio.announce_context">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">announce_context</span><span class="p">(</span>
+    <span class="n">include_full_path</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">speak_aloud</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">branch_resolver</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">speak_fn</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Announce the current working directory and git branch.</span>
+
+<span class="sd">    Builds an orientation sentence (e.g. ``&quot;Working in scitex-audio, on</span>
+<span class="sd">    branch develop&quot;``) and, by default, speaks it aloud. Useful when</span>
+<span class="sd">    starting work in a new session.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    include_full_path : bool</span>
+<span class="sd">        Include the absolute path instead of just the directory name.</span>
+<span class="sd">    speak_aloud : bool</span>
+<span class="sd">        Speak the announcement (default True). When False, only the</span>
+<span class="sd">        context dict is returned.</span>
+<span class="sd">    branch_resolver : callable, optional</span>
+<span class="sd">        Injectable callable ``(cwd: str) -&gt; str | None`` returning the</span>
+<span class="sd">        git branch name (testing seam). Defaults to a real</span>
+<span class="sd">        ``git rev-parse`` subprocess.</span>
+<span class="sd">    speak_fn : callable, optional</span>
+<span class="sd">        Injectable speak function (testing seam). Defaults to</span>
+<span class="sd">        :func:`speak`.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    dict</span>
+<span class="sd">        ``{&quot;directory&quot;: str, &quot;directory_name&quot;: str, &quot;git_branch&quot;: str | None,</span>
+<span class="sd">        &quot;announced_text&quot;: str, &quot;spoke&quot;: bool}``.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">subprocess</span>
+
+    <span class="n">cwd</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">()</span>
+    <span class="n">dir_name</span> <span class="o">=</span> <span class="n">cwd</span> <span class="k">if</span> <span class="n">include_full_path</span> <span class="k">else</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">cwd</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">branch_resolver</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">git_branch</span> <span class="o">=</span> <span class="n">branch_resolver</span><span class="p">(</span><span class="n">cwd</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">git_branch</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">_subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
+                <span class="p">[</span><span class="s2">&quot;git&quot;</span><span class="p">,</span> <span class="s2">&quot;rev-parse&quot;</span><span class="p">,</span> <span class="s2">&quot;--abbrev-ref&quot;</span><span class="p">,</span> <span class="s2">&quot;HEAD&quot;</span><span class="p">],</span>
+                <span class="n">capture_output</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="n">text</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="n">cwd</span><span class="o">=</span><span class="n">cwd</span><span class="p">,</span>
+                <span class="n">timeout</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="n">result</span><span class="o">.</span><span class="n">returncode</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">git_branch</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="k">pass</span>
+
+    <span class="k">if</span> <span class="n">git_branch</span><span class="p">:</span>
+        <span class="n">text</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Working in </span><span class="si">{</span><span class="n">dir_name</span><span class="si">}</span><span class="s2">, on branch </span><span class="si">{</span><span class="n">git_branch</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">text</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Working in </span><span class="si">{</span><span class="n">dir_name</span><span class="si">}</span><span class="s2">&quot;</span>
+
+    <span class="n">spoke</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="k">if</span> <span class="n">speak_aloud</span><span class="p">:</span>
+        <span class="n">_speak</span> <span class="o">=</span> <span class="n">speak_fn</span> <span class="k">if</span> <span class="n">speak_fn</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">speak</span>
+        <span class="n">_speak</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+        <span class="n">spoke</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="s2">&quot;directory&quot;</span><span class="p">:</span> <span class="n">cwd</span><span class="p">,</span>
+        <span class="s2">&quot;directory_name&quot;</span><span class="p">:</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">cwd</span><span class="p">),</span>
+        <span class="s2">&quot;git_branch&quot;</span><span class="p">:</span> <span class="n">git_branch</span><span class="p">,</span>
+        <span class="s2">&quot;announced_text&quot;</span><span class="p">:</span> <span class="n">text</span><span class="p">,</span>
+        <span class="s2">&quot;spoke&quot;</span><span class="p">:</span> <span class="n">spoke</span><span class="p">,</span>
+    <span class="p">}</span></div>
 
 
 

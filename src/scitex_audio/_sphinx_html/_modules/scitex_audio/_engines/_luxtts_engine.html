@@ -5,14 +5,14 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>scitex_audio._engines._luxtts_engine &mdash; scitex-audio 0.2.12 documentation</title>
+  <title>scitex_audio._engines._luxtts_engine &mdash; scitex-audio 0.2.13 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=9edc463e" />
 
   
       <script src="../../../_static/jquery.js?v=5d32c60e"></script>
       <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../../../_static/documentation_options.js?v=1e30946d"></script>
+      <script src="../../../_static/documentation_options.js?v=ba481074"></script>
       <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/js/theme.js"></script>
@@ -145,7 +145,7 @@
 
 
 <div class="viewcode-block" id="LuxTTS">
-<a class="viewcode-back" href="../../../api/scitex_audio.html#scitex_audio.LuxTTS">[docs]</a>
+<a class="viewcode-back" href="../../../api/scitex_audio.html#scitex_audio._engines._luxtts_engine.LuxTTS">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">LuxTTS</span><span class="p">(</span><span class="n">BaseTTS</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;LuxTTS backend - open-source voice-cloning TTS.</span>
 
@@ -256,7 +256,7 @@
         <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">ref_path</span><span class="p">)</span>
 
 <div class="viewcode-block" id="LuxTTS.synthesize">
-<a class="viewcode-back" href="../../../api/scitex_audio.html#scitex_audio.LuxTTS.synthesize">[docs]</a>
+<a class="viewcode-back" href="../../../api/scitex_audio.html#scitex_audio._engines._luxtts_engine.LuxTTS.synthesize">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">synthesize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">output_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Synthesize text using LuxTTS.&quot;&quot;&quot;</span>
         <span class="k">try</span><span class="p">:</span>
@@ -326,7 +326,7 @@
 
 
 <div class="viewcode-block" id="LuxTTS.speak">
-<a class="viewcode-back" href="../../../api/scitex_audio.html#scitex_audio.LuxTTS.speak">[docs]</a>
+<a class="viewcode-back" href="../../../api/scitex_audio.html#scitex_audio._engines._luxtts_engine.LuxTTS.speak">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">speak</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
@@ -360,7 +360,7 @@
 
 
 <div class="viewcode-block" id="LuxTTS.get_voices">
-<a class="viewcode-back" href="../../../api/scitex_audio.html#scitex_audio.LuxTTS.get_voices">[docs]</a>
+<a class="viewcode-back" href="../../../api/scitex_audio.html#scitex_audio._engines._luxtts_engine.LuxTTS.get_voices">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_voices</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Get available voices (reference audio files).&quot;&quot;&quot;</span>
         <span class="n">voices</span> <span class="o">=</span> <span class="p">[]</span>

@@ -5,14 +5,14 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>scitex_audio._mcp.speak_handlers &mdash; scitex-audio 0.2.12 documentation</title>
+  <title>scitex_audio._mcp.speak_handlers &mdash; scitex-audio 0.2.13 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=9edc463e" />
 
   
       <script src="../../../_static/jquery.js?v=5d32c60e"></script>
       <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../../../_static/documentation_options.js?v=1e30946d"></script>
+      <script src="../../../_static/documentation_options.js?v=ba481074"></script>
       <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/js/theme.js"></script>
@@ -161,6 +161,8 @@
     <span class="n">fallback</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
     <span class="n">agent_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">signature</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">speak_fn</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">sink_check</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Play audio on the LOCAL/SERVER machine.</span>
 
@@ -171,6 +173,12 @@
 <span class="sd">    - SCITEX_AUDIO_MODE=remote (should use relay instead)</span>
 <span class="sd">    - Audio sink is SUSPENDED (no output device)</span>
 <span class="sd">    - Playback was requested but failed</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        speak_fn: Injectable TTS function (testing). Defaults to</span>
+<span class="sd">            ``scitex_audio.speak``.</span>
+<span class="sd">        sink_check: Injectable audio-sink probe (testing). Defaults to</span>
+<span class="sd">            ``check_audio_sink_state``.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># Check if mode is set to remote - local playback should not be used</span>
     <span class="n">audio_mode</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;SCITEX_AUDIO_MODE&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
@@ -185,9 +193,11 @@
             <span class="p">],</span>
         <span class="p">}</span>
 
+    <span class="n">sink_probe</span> <span class="o">=</span> <span class="n">sink_check</span> <span class="k">if</span> <span class="n">sink_check</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">check_audio_sink_state</span>
+
     <span class="c1"># Check if audio sink is usable before attempting playback</span>
     <span class="k">if</span> <span class="n">play</span><span class="p">:</span>
-        <span class="n">sink_state</span> <span class="o">=</span> <span class="n">check_audio_sink_state</span><span class="p">()</span>
+        <span class="n">sink_state</span> <span class="o">=</span> <span class="n">sink_probe</span><span class="p">()</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">sink_state</span><span class="p">[</span><span class="s2">&quot;available&quot;</span><span class="p">]:</span>
             <span class="k">return</span> <span class="p">{</span>
                 <span class="s2">&quot;success&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
@@ -201,8 +211,12 @@
             <span class="p">}</span>
 
     <span class="k">try</span><span class="p">:</span>
-        <span class="kn">from</span><span class="w"> </span><span class="nn">..</span><span class="w"> </span><span class="kn">import</span> <span class="n">speak</span> <span class="k">as</span> <span class="n">tts_speak</span>
         <span class="kn">from</span><span class="w"> </span><span class="nn">.._cross_process_lock</span><span class="w"> </span><span class="kn">import</span> <span class="n">AudioPlaybackLock</span>
+
+        <span class="k">if</span> <span class="n">speak_fn</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">tts_speak</span> <span class="o">=</span> <span class="n">speak_fn</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="kn">from</span><span class="w"> </span><span class="nn">..</span><span class="w"> </span><span class="kn">import</span> <span class="n">speak</span> <span class="k">as</span> <span class="n">tts_speak</span>
 
         <span class="n">loop</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">get_event_loop</span><span class="p">()</span>
 
@@ -284,18 +298,31 @@
     <span class="n">save</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="n">fallback</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
     <span class="n">agent_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">url_resolver</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">ssh_ip_resolver</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Forward speech to RELAY server for remote playback.</span>
 
 <span class="sd">    Use when running on a remote server and want audio on your local machine.</span>
 <span class="sd">    Returns detailed error with setup instructions if relay unavailable.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        url_resolver: Injectable relay-URL resolver (testing). Defaults to</span>
+<span class="sd">            ``get_relay_url``.</span>
+<span class="sd">        ssh_ip_resolver: Injectable SSH-client-IP resolver (testing).</span>
+<span class="sd">            Defaults to ``get_ssh_client_ip``.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">.._branding</span><span class="w"> </span><span class="kn">import</span> <span class="n">DEFAULT_PORT</span><span class="p">,</span> <span class="n">get_relay_url</span><span class="p">,</span> <span class="n">get_ssh_client_ip</span>
-    <span class="kn">from</span><span class="w"> </span><span class="nn">.._relay</span><span class="w"> </span><span class="kn">import</span> <span class="n">RelayClient</span><span class="p">,</span> <span class="n">is_relay_available</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">.._relay</span><span class="w"> </span><span class="kn">import</span> <span class="n">RelayClient</span>
+
+    <span class="n">resolve_url</span> <span class="o">=</span> <span class="n">url_resolver</span> <span class="k">if</span> <span class="n">url_resolver</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">get_relay_url</span>
+    <span class="n">resolve_ssh_ip</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">ssh_ip_resolver</span> <span class="k">if</span> <span class="n">ssh_ip_resolver</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">get_ssh_client_ip</span>
+    <span class="p">)</span>
 
     <span class="c1"># Get relay URL (auto-detects from SSH_CLIENT if not configured)</span>
-    <span class="n">relay_url</span> <span class="o">=</span> <span class="n">get_relay_url</span><span class="p">()</span>
-    <span class="n">ssh_client_ip</span> <span class="o">=</span> <span class="n">get_ssh_client_ip</span><span class="p">()</span>
+    <span class="n">relay_url</span> <span class="o">=</span> <span class="n">resolve_url</span><span class="p">()</span>
+    <span class="n">ssh_client_ip</span> <span class="o">=</span> <span class="n">resolve_ssh_ip</span><span class="p">()</span>
 
     <span class="k">if</span> <span class="ow">not</span> <span class="n">relay_url</span><span class="p">:</span>
         <span class="k">return</span> <span class="p">{</span>
@@ -313,8 +340,11 @@
             <span class="p">],</span>
         <span class="p">}</span>
 
-    <span class="c1"># Check if relay server is reachable</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">is_relay_available</span><span class="p">():</span>
+    <span class="c1"># Check if the resolved relay server is reachable. Build the client</span>
+    <span class="c1"># against the same URL we will forward to (not the global singleton)</span>
+    <span class="c1"># so the reachability check and the actual request can&#39;t diverge.</span>
+    <span class="n">relay_client</span> <span class="o">=</span> <span class="n">RelayClient</span><span class="p">(</span><span class="n">relay_url</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">relay_client</span><span class="o">.</span><span class="n">is_available</span><span class="p">():</span>
         <span class="n">source</span> <span class="o">=</span> <span class="s2">&quot;auto-detected from SSH_CLIENT&quot;</span> <span class="k">if</span> <span class="n">ssh_client_ip</span> <span class="k">else</span> <span class="s2">&quot;from env var&quot;</span>
         <span class="k">return</span> <span class="p">{</span>
             <span class="s2">&quot;success&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
@@ -340,8 +370,7 @@
         <span class="n">loop</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">get_event_loop</span><span class="p">()</span>
 
         <span class="k">def</span><span class="w"> </span><span class="nf">do_relay</span><span class="p">():</span>
-            <span class="n">client</span> <span class="o">=</span> <span class="n">RelayClient</span><span class="p">(</span><span class="n">relay_url</span><span class="p">)</span>
-            <span class="k">return</span> <span class="n">client</span><span class="o">.</span><span class="n">speak</span><span class="p">(</span>
+            <span class="k">return</span> <span class="n">relay_client</span><span class="o">.</span><span class="n">speak</span><span class="p">(</span>
                 <span class="n">text</span><span class="o">=</span><span class="n">text</span><span class="p">,</span>
                 <span class="n">backend</span><span class="o">=</span><span class="n">backend</span><span class="p">,</span>
                 <span class="n">voice</span><span class="o">=</span><span class="n">voice</span><span class="p">,</span>

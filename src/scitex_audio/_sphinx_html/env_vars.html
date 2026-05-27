@@ -6,14 +6,14 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Environment Variables &mdash; scitex-audio 0.2.12 documentation</title>
+  <title>Environment Variables &mdash; scitex-audio 0.2.13 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
 
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=1e30946d"></script>
+      <script src="_static/documentation_options.js?v=ba481074"></script>
       <script src="_static/doctools.js?v=fd6eb6e6"></script>
       <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/js/theme.js"></script>
@@ -126,7 +126,11 @@ for local usage.</p>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">SCITEX_AUDIO_HOST</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">0.0.0.0</span></code></p></td>
-<td><p>Relay server bind host</p></td>
+<td><p>Relay/MCP server bind host</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">SCITEX_AUDIO_PORT</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">31293</span></code></p></td>
+<td><p>Relay/MCP server port</p></td>
 </tr>
 </tbody>
 </table>
@@ -174,7 +178,7 @@ for local usage.</p>
 <tbody>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">SCITEX_DIR</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">~/.scitex</span></code></p></td>
-<td><p>Base directory for audio cache and reference files</p></td>
+<td><p>Base SciTeX data directory</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">SCITEX_CLOUD</span></code></p></td>
 <td><p><em>(none)</em></p></td>
@@ -217,7 +221,7 @@ phone keypad mapping. Other SciTeX ports follow the same scheme:</p>
 <h2>ENV_SRC Pattern<a class="headerlink" href="#env-src-pattern" title="Link to this heading"></a></h2>
 <p>Instead of setting individual environment variables, you can use a <code class="docutils literal notranslate"><span class="pre">.src</span></code> file:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Generate a template</span>
-scitex-audio<span class="w"> </span>env-template<span class="w"> </span>-o<span class="w"> </span>~/.scitex/audio/local.src
+scitex-audio<span class="w"> </span>show-env-template<span class="w"> </span>-o<span class="w"> </span>~/.scitex/audio/local.src
 
 <span class="c1"># Point to it</span>
 <span class="nb">export</span><span class="w"> </span><span class="nv">SCITEX_AUDIO_ENV_SRC</span><span class="o">=</span>~/.scitex/audio/local.src

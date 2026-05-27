@@ -5,14 +5,14 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>scitex_audio._tts &mdash; scitex-audio 0.2.12 documentation</title>
+  <title>scitex_audio._tts &mdash; scitex-audio 0.2.13 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=9edc463e" />
 
   
       <script src="../../_static/jquery.js?v=5d32c60e"></script>
       <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../../_static/documentation_options.js?v=1e30946d"></script>
+      <script src="../../_static/documentation_options.js?v=ba481074"></script>
       <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/js/theme.js"></script>
@@ -178,6 +178,8 @@
         <span class="n">api_key</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">voice_name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">voice_id</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">client</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">client_factory</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
     <span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize TTS.</span>
@@ -186,6 +188,12 @@
 <span class="sd">            api_key: ElevenLabs API key. Defaults to ELEVENLABS_API_KEY env var.</span>
 <span class="sd">            voice_name: Voice name (e.g., &quot;Adam&quot;, &quot;Sarah&quot;, &quot;George&quot; — free-tier).</span>
 <span class="sd">            voice_id: Direct voice ID (overrides voice_name).</span>
+<span class="sd">            client: Optional pre-built client (testing). When given, the</span>
+<span class="sd">                lazy-load is skipped.</span>
+<span class="sd">            client_factory: Optional callable ``(api_key) -&gt; client`` used by</span>
+<span class="sd">                the lazy ``client`` property instead of the real ElevenLabs</span>
+<span class="sd">                SDK (testing). Lets a test exercise the import-error path</span>
+<span class="sd">                without uninstalling the dependency.</span>
 <span class="sd">            **kwargs: Additional config options (stability, speed, etc.)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">api_key</span> <span class="o">=</span> <span class="p">(</span>
@@ -203,22 +211,26 @@
             <span class="k">if</span> <span class="n">normalized</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">VOICES</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">voice_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">VOICES</span><span class="p">[</span><span class="n">normalized</span><span class="p">]</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">_client</span> <span class="o">=</span> <span class="kc">None</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_client</span> <span class="o">=</span> <span class="n">client</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_client_factory</span> <span class="o">=</span> <span class="n">client_factory</span></div>
 
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">client</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Lazy-load ElevenLabs client.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_client</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">try</span><span class="p">:</span>
-                <span class="kn">from</span><span class="w"> </span><span class="nn">elevenlabs.client</span><span class="w"> </span><span class="kn">import</span> <span class="n">ElevenLabs</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_client_factory</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_client</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_client_factory</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">api_key</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="kn">from</span><span class="w"> </span><span class="nn">elevenlabs.client</span><span class="w"> </span><span class="kn">import</span> <span class="n">ElevenLabs</span>
 
-                <span class="bp">self</span><span class="o">.</span><span class="n">_client</span> <span class="o">=</span> <span class="n">ElevenLabs</span><span class="p">(</span><span class="n">api_key</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">api_key</span><span class="p">)</span>
-            <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span>
-                    <span class="s2">&quot;elevenlabs package not installed. &quot;</span>
-                    <span class="s2">&quot;Install with: pip install elevenlabs&quot;</span>
-                <span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_client</span> <span class="o">=</span> <span class="n">ElevenLabs</span><span class="p">(</span><span class="n">api_key</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">api_key</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span>
+                        <span class="s2">&quot;elevenlabs package not installed. &quot;</span>
+                        <span class="s2">&quot;Install with: pip install elevenlabs&quot;</span>
+                    <span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_client</span>
 
 <div class="viewcode-block" id="TTS.speak">
@@ -285,11 +297,19 @@
         <span class="k">return</span> <span class="n">out_path</span> <span class="k">if</span> <span class="n">output_path</span> <span class="k">else</span> <span class="kc">None</span></div>
 
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">_play_audio</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_play_audio</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span> <span class="n">runner</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Play audio file using available system player.</span>
 
 <span class="sd">        Includes Windows fallback for WSL environments.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            path: Audio file to play.</span>
+<span class="sd">            runner: Injectable subprocess runner (testing). A callable with</span>
+<span class="sd">                the ``subprocess.run`` signature; defaults to the real</span>
+<span class="sd">                ``subprocess.run`` when ``None``.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">run</span> <span class="o">=</span> <span class="n">runner</span> <span class="k">if</span> <span class="n">runner</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span>
+
         <span class="c1"># Check if we&#39;re in WSL - if so, prefer Windows playback directly</span>
         <span class="c1"># to avoid double playback issues with Linux audio hanging</span>
         <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="s2">&quot;/mnt/c/Windows&quot;</span><span class="p">):</span>
@@ -306,7 +326,7 @@
 
         <span class="k">for</span> <span class="n">player_cmd</span> <span class="ow">in</span> <span class="n">players</span><span class="p">:</span>
             <span class="k">try</span><span class="p">:</span>
-                <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
+                <span class="n">run</span><span class="p">(</span>
                     <span class="n">player_cmd</span><span class="p">,</span>
                     <span class="n">check</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
                     <span class="n">stdout</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">DEVNULL</span><span class="p">,</span>

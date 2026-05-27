@@ -5,14 +5,14 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>scitex_audio._engines._pyttsx3_engine &mdash; scitex-audio 0.2.12 documentation</title>
+  <title>scitex_audio._engines._pyttsx3_engine &mdash; scitex-audio 0.2.13 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=9edc463e" />
 
   
       <script src="../../../_static/jquery.js?v=5d32c60e"></script>
       <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../../../_static/documentation_options.js?v=1e30946d"></script>
+      <script src="../../../_static/documentation_options.js?v=ba481074"></script>
       <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/js/theme.js"></script>
@@ -107,7 +107,7 @@
 
 
 <div class="viewcode-block" id="SystemTTS">
-<a class="viewcode-back" href="../../../api/scitex_audio.html#scitex_audio.SystemTTS">[docs]</a>
+<a class="viewcode-back" href="../../../api/scitex_audio.html#scitex_audio._engines._pyttsx3_engine.SystemTTS">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">SystemTTS</span><span class="p">(</span><span class="n">BaseTTS</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;System TTS backend using pyttsx3.</span>
 
@@ -125,13 +125,16 @@
         <span class="n">rate</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">150</span><span class="p">,</span>  <span class="c1"># Words per minute</span>
         <span class="n">volume</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span>  <span class="c1"># 0.0 to 1.0</span>
         <span class="n">voice</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">engine</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
     <span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">rate</span> <span class="o">=</span> <span class="n">rate</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">volume</span> <span class="o">=</span> <span class="n">volume</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">voice</span> <span class="o">=</span> <span class="n">voice</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_engine</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="c1"># Optional injected pyttsx3 engine (testing). When None, the real</span>
+        <span class="c1"># pyttsx3 engine is lazy-initialized on first `engine` access.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_engine</span> <span class="o">=</span> <span class="n">engine</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
@@ -175,7 +178,7 @@
         <span class="c1"># If not found, keep default</span>
 
 <div class="viewcode-block" id="SystemTTS.synthesize">
-<a class="viewcode-back" href="../../../api/scitex_audio.html#scitex_audio.SystemTTS.synthesize">[docs]</a>
+<a class="viewcode-back" href="../../../api/scitex_audio.html#scitex_audio._engines._pyttsx3_engine.SystemTTS.synthesize">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">synthesize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">output_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Synthesize text using system TTS.&quot;&quot;&quot;</span>
         <span class="c1"># Set voice if specified in config</span>
@@ -193,7 +196,7 @@
 
 
 <div class="viewcode-block" id="SystemTTS.speak_direct">
-<a class="viewcode-back" href="../../../api/scitex_audio.html#scitex_audio.SystemTTS.speak_direct">[docs]</a>
+<a class="viewcode-back" href="../../../api/scitex_audio.html#scitex_audio._engines._pyttsx3_engine.SystemTTS.speak_direct">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">speak_direct</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Speak directly without saving to file (faster).&quot;&quot;&quot;</span>
         <span class="n">voice</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;voice&quot;</span><span class="p">)</span>
@@ -205,7 +208,7 @@
 
 
 <div class="viewcode-block" id="SystemTTS.get_voices">
-<a class="viewcode-back" href="../../../api/scitex_audio.html#scitex_audio.SystemTTS.get_voices">[docs]</a>
+<a class="viewcode-back" href="../../../api/scitex_audio.html#scitex_audio._engines._pyttsx3_engine.SystemTTS.get_voices">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_voices</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Get available system voices.&quot;&quot;&quot;</span>
         <span class="n">voices</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">getProperty</span><span class="p">(</span><span class="s2">&quot;voices&quot;</span><span class="p">)</span>

@@ -5,14 +5,14 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>scitex_audio._engines._elevenlabs_engine &mdash; scitex-audio 0.2.12 documentation</title>
+  <title>scitex_audio._engines._elevenlabs_engine &mdash; scitex-audio 0.2.13 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=9edc463e" />
 
   
       <script src="../../../_static/jquery.js?v=5d32c60e"></script>
       <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../../../_static/documentation_options.js?v=1e30946d"></script>
+      <script src="../../../_static/documentation_options.js?v=ba481074"></script>
       <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/js/theme.js"></script>
@@ -101,7 +101,7 @@
 
 
 <div class="viewcode-block" id="ElevenLabsTTS">
-<a class="viewcode-back" href="../../../api/scitex_audio.html#scitex_audio.ElevenLabsTTS">[docs]</a>
+<a class="viewcode-back" href="../../../api/scitex_audio.html#scitex_audio._engines._elevenlabs_engine.ElevenLabsTTS">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">ElevenLabsTTS</span><span class="p">(</span><span class="n">BaseTTS</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;ElevenLabs TTS backend.</span>
 
@@ -152,6 +152,7 @@
         <span class="n">stability</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">,</span>
         <span class="n">similarity_boost</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.75</span><span class="p">,</span>
         <span class="n">speed</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span>
+        <span class="n">client</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
     <span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
@@ -166,7 +167,9 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">similarity_boost</span> <span class="o">=</span> <span class="n">similarity_boost</span>
         <span class="c1"># Clamp speed to ElevenLabs API limits (0.7-1.2)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">speed</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">MIN_SPEED</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">MAX_SPEED</span><span class="p">,</span> <span class="n">speed</span><span class="p">))</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_client</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="c1"># Optional injected client (testing / custom transport). When None,</span>
+        <span class="c1"># the real ElevenLabs SDK is lazy-loaded on first `client` access.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_client</span> <span class="o">=</span> <span class="n">client</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
@@ -202,7 +205,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">VOICES</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">normalized</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span>
 
 <div class="viewcode-block" id="ElevenLabsTTS.synthesize">
-<a class="viewcode-back" href="../../../api/scitex_audio.html#scitex_audio.ElevenLabsTTS.synthesize">[docs]</a>
+<a class="viewcode-back" href="../../../api/scitex_audio.html#scitex_audio._engines._elevenlabs_engine.ElevenLabsTTS.synthesize">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">synthesize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">output_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Synthesize text using ElevenLabs API.&quot;&quot;&quot;</span>
         <span class="n">voice_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_voice_id</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;voice&quot;</span><span class="p">))</span>
@@ -228,7 +231,7 @@
 
 
 <div class="viewcode-block" id="ElevenLabsTTS.get_voices">
-<a class="viewcode-back" href="../../../api/scitex_audio.html#scitex_audio.ElevenLabsTTS.get_voices">[docs]</a>
+<a class="viewcode-back" href="../../../api/scitex_audio.html#scitex_audio._engines._elevenlabs_engine.ElevenLabsTTS.get_voices">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_voices</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Get available voices.&quot;&quot;&quot;</span>
         <span class="c1"># Start with preset voices</span>

@@ -6,14 +6,14 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Quick Start &mdash; scitex-audio 0.2.12 documentation</title>
+  <title>Quick Start &mdash; scitex-audio 0.2.13 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
 
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=1e30946d"></script>
+      <script src="_static/documentation_options.js?v=ba481074"></script>
       <script src="_static/doctools.js?v=fd6eb6e6"></script>
       <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/js/theme.js"></script>
@@ -174,9 +174,13 @@ scitex-audio<span class="w"> </span>mcp<span class="w"> </span>start<span class=
 <p>Available MCP tools:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">audio_speak</span></code> — Convert text to speech with backend fallback</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">list_backends</span></code> — List available TTS backends and status</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">check_audio_status</span></code> — Check audio connectivity (WSL/PulseAudio)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">announce_context</span></code> — Announce current directory and git branch</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">audio_generate_bytes</span></code> — Generate TTS audio to file without playing</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">audio_available_backends</span></code> — List available TTS backends and status</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">audio_check_local_audio_available</span></code> — Check PulseAudio sink state</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">audio_stop_speech</span></code> — Stop any currently playing speech</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">audio_announce_context</span></code> — Announce current directory and git branch</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">audio_transcribe</span></code> — Speech-to-text via whisper.cpp</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">audio_available_models</span></code> — Show installed whisper models + CLI status</p></li>
 </ul>
 <section id="claude-code-setup">
 <h3>Claude Code Setup<a class="headerlink" href="#claude-code-setup" title="Link to this heading"></a></h3>
@@ -205,7 +209,7 @@ across environments:</p>
 </pre></div>
 </div>
 <p>Generate a template <code class="docutils literal notranslate"><span class="pre">.src</span></code> file:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>scitex-audio<span class="w"> </span>env-template<span class="w"> </span>-o<span class="w"> </span>~/.scitex/audio/local.src
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>scitex-audio<span class="w"> </span>show-env-template<span class="w"> </span>-o<span class="w"> </span>~/.scitex/audio/local.src
 </pre></div>
 </div>
 <p>Or install globally:</p>
