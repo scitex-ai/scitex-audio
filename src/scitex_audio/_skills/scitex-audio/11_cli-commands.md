@@ -91,19 +91,19 @@ Examples:
   scitex-audio relay --force
 ```
 
-## env-template — generate environment variable template
+## show-env-template — generate environment variable template
 
 ```bash
-scitex-audio env-template [OPTIONS]
+scitex-audio show-env-template [OPTIONS]
 
 Options:
   -o, --output PATH  Write to file instead of stdout
   --no-sensitive     Exclude API keys from template
 
 Examples:
-  scitex-audio env-template                   # print to stdout
-  scitex-audio env-template -o audio.src     # write to file
-  scitex-audio env-template --no-sensitive    # exclude API keys
+  scitex-audio show-env-template                   # print to stdout
+  scitex-audio show-env-template -o audio.src     # write to file
+  scitex-audio show-env-template --no-sensitive    # exclude API keys
 ```
 
 ## mcp — MCP server operations

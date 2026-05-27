@@ -53,26 +53,27 @@ rule and empirical verification table.
 
 | Tool | Purpose |
 |------|---------|
-| `audio_speak` / `speak` | Speak text with smart routing + backend fallback |
-| `generate_audio` | Render speech to file (no playback) |
-| `list_backends` / `list_voices` | Inspect TTS backends and voices |
-| `play_audio` | Play an existing audio file |
-| `list_audio_files` / `clear_audio_cache` | Manage generated audio |
-| `speech_queue_status` | Inspect queue of pending utterances |
-| `check_audio_status` | Diagnose WSL / local audio connectivity |
-| `announce_context` | Say current working dir + git branch |
+| `audio_speak` | Speak text with smart routing + backend fallback |
+| `audio_generate_bytes` | Render speech to file (no playback) |
+| `audio_available_backends` | Inspect TTS backends |
+| `audio_check_wsl_audio` | Diagnose WSL audio connectivity |
+| `audio_check_local_audio_available` | Check PulseAudio sink state |
+| `audio_stop_speech` | Stop any currently playing speech |
+| `audio_announce_context` | Say current working dir + git branch |
 | `audio_transcribe` | Speech-to-text via whisper.cpp (any audio format) |
-| `list_whisper_models` | Show installed whisper models + CLI status |
+| `audio_available_models` | Show installed whisper models + CLI status |
+| `audio_skills_list` / `audio_skills_get` | Introspect bundled skill pages |
 
 ## CLI
 
 ```bash
-scitex-audio speak "Hello world"          # Basic speech
-scitex-audio backends                     # List available backends
-scitex-audio check                        # Check audio status (WSL)
-scitex-audio relay --port 31293          # Start relay server
-scitex-audio mcp start                   # Start MCP server (stdio)
-scitex-audio skills list                 # List skill pages
+scitex-audio speak-text "Hello world"     # Basic speech
+scitex-audio list-backends                # List available backends
+scitex-audio check-backends               # Check audio status (WSL)
+scitex-audio relay --port 31293           # Start relay server
+scitex-audio mcp start                    # Start MCP server (stdio)
+scitex-audio transcribe-audio file.wav    # Speech-to-text via whisper.cpp
+scitex-audio skills list                  # List skill pages
 ```
 
 

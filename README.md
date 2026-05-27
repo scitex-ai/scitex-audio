@@ -78,9 +78,11 @@ src/scitex_audio/
 ├── _speak.py            # high-level speak() facade
 ├── _tts.py              # text-to-speech dispatch
 ├── _stt.py              # speech-to-text dispatch
+├── _state_paths.py      # on-disk state layout (~/.scitex/audio/runtime/)
 ├── _relay.py            # cross-process audio relay
 ├── _cross_process_lock.py # serialize concurrent playback
 ├── _env_loader.py       # env-var driven backend selection
+├── _audio_check.py      # local audio sink diagnostics
 └── mcp_server.py        # MCP tool registrations
 ```
 
@@ -147,11 +149,11 @@ tts.speak("With engine", voice="fr")
 
 ```bash
 scitex-audio --help-recursive             # Show all commands
-scitex-audio speak "Hello world"          # Speak text
-scitex-audio speak "Bonjour" -b gtts -v fr
-scitex-audio backends                     # List backends
-scitex-audio check                        # Audio status (WSL)
-scitex-audio stop                         # Stop playback
+scitex-audio speak-text "Hello world"     # Speak text (non-deprecated)
+scitex-audio speak-text "Bonjour" -b gtts -v fr
+scitex-audio list-backends                # List backends
+scitex-audio check-backends               # Audio status (WSL)
+scitex-audio stop-playback                # Stop playback
 scitex-audio relay --port 31293           # Start relay server
 scitex-audio list-python-apis             # List Python API tree
 scitex-audio mcp list-tools               # List MCP tools
@@ -160,6 +162,33 @@ scitex-audio mcp list-tools               # List MCP tools
 > **[Full CLI reference](https://scitex-audio.readthedocs.io/en/latest/quickstart.html)**
 
 </details>
+
+<details>
+<summary><strong>Speech-to-Text (whisper.cpp)</strong></summary>
+
+<br>
+
+Transcribe audio files using whisper.cpp. The binary and models are auto-detected
+from common locations (`~/.emacs.d/.cache/whisper.cpp/`, `$PATH`, or
+`SCITEX_AUDIO_WHISPER_CLI` / `SCITEX_AUDIO_WHISPER_MODEL`).
+
+```bash
+scitex-audio transcribe-audio recording.wav             # auto-detect language
+scitex-audio transcribe-audio call.wav -l en -m base    # specify language + model
+scitex-audio transcribe-audio meeting.mp3 --json        # machine-readable output
+```
+
+```python
+from scitex_audio import transcribe, available_models
+
+result = transcribe("recording.wav", model="base")
+print(result["text"])   # transcribed text
+print(result["segments"])  # timestamped segments
+```
+
+</details>
+
+<details>
 
 <details>
 <summary><strong>MCP Server — for AI Agents</strong></summary>
@@ -171,11 +200,15 @@ AI agents can speak through the MCP protocol for notifications and accessibility
 | Tool | Description |
 |------|-------------|
 | `audio_speak` | Convert text to speech with backend fallback |
-| `list_backends` | List available TTS backends and status |
-| `check_audio_status` | Check WSL audio connectivity |
-| `announce_context` | Announce current directory and git branch |
+| `audio_generate_bytes` | Generate TTS audio to file without playing |
+| `audio_available_backends` | List available TTS backends and status |
+| `audio_check_local_audio_available` | Check PulseAudio sink state (RUNNING/SUSPENDED) |
+| `audio_stop_speech` | Stop any currently playing speech |
+| `audio_announce_context` | Announce current directory and git branch |
+| `audio_transcribe` | Speech-to-text via whisper.cpp |
+| `audio_available_models` | Show installed whisper models + CLI status |
 
-<sub><b>Table 2.</b> Four MCP tools available for AI-assisted audio. All tools accept JSON parameters and return JSON results.</sub>
+<sub><b>Table 2.</b> MCP tools available for AI-assisted audio. All tools accept JSON parameters and return JSON results.</sub>
 
 #### Claude Code Setup
 
@@ -373,9 +406,11 @@ With this setup, every SSH session automatically has audio routed back to your s
 | `SCITEX_AUDIO_RELAY_URL` | *(auto)* | Full relay URL (e.g., `http://localhost:31293`) |
 | `SCITEX_AUDIO_RELAY_HOST` | *(none)* | Relay host (combined with port to build URL) |
 | `SCITEX_AUDIO_RELAY_PORT` | `31293` | Relay server port |
-| `SCITEX_AUDIO_HOST` | `0.0.0.0` | Relay server bind host |
+| `SCITEX_AUDIO_HOST` | `0.0.0.0` | Relay/MCP server bind host |
+| `SCITEX_AUDIO_PORT` | `31293` | Relay/MCP server port |
+| `SCITEX_AUDIO_ENV_SRC` | *(none)* | Path to `.src` file or directory for env loading |
 | `SCITEX_AUDIO_ELEVENLABS_API_KEY` | *(none)* | ElevenLabs API key |
-| `SCITEX_DIR` | `~/.scitex` | Base directory for audio cache files |
+| `SCITEX_DIR` | `~/.scitex` | Base SciTeX data directory |
 | `SCITEX_CLOUD` | *(none)* | Set to `true` for browser relay mode (OSC escape) |
 
 <p align="center"><sub><b>Table 3.</b> Environment variables. Port 31293 encodes "sa-i-te-ku-su" (サイテクス) in Japanese phone keypad mapping.</sub></p>

@@ -92,9 +92,13 @@ AI agents can use the MCP protocol for text-to-speech:
 Available MCP tools:
 
 - ``audio_speak`` — Convert text to speech with backend fallback
-- ``list_backends`` — List available TTS backends and status
-- ``check_audio_status`` — Check audio connectivity (WSL/PulseAudio)
-- ``announce_context`` — Announce current directory and git branch
+- ``audio_generate_bytes`` — Generate TTS audio to file without playing
+- ``audio_available_backends`` — List available TTS backends and status
+- ``audio_check_local_audio_available`` — Check PulseAudio sink state
+- ``audio_stop_speech`` — Stop any currently playing speech
+- ``audio_announce_context`` — Announce current directory and git branch
+- ``audio_transcribe`` — Speech-to-text via whisper.cpp
+- ``audio_available_models`` — Show installed whisper models + CLI status
 
 Claude Code Setup
 ~~~~~~~~~~~~~~~~~
@@ -131,7 +135,7 @@ Generate a template ``.src`` file:
 
 .. code-block:: bash
 
-   scitex-audio env-template -o ~/.scitex/audio/local.src
+   scitex-audio show-env-template -o ~/.scitex/audio/local.src
 
 Or install globally:
 
