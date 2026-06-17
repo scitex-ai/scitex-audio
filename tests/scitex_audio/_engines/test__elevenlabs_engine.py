@@ -120,12 +120,13 @@ class TestElevenLabsTTSDefaults:
         assert voice == "adam"
 
     def test_default_model_id(self):
-        # Arrange
+        # Arrange — default switched to the low-latency turbo model
+        # (operator 2026-06-17); override via SCITEX_AUDIO_ELEVENLABS_MODEL.
         tts = ElevenLabsTTS()
         # Act
         model_id = tts.model_id
         # Assert
-        assert model_id == "eleven_multilingual_v2"
+        assert model_id == "eleven_turbo_v2_5"
 
     def test_default_stability_is_half(self):
         # Arrange
