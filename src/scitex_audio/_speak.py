@@ -7,13 +7,49 @@ routes audio to local or relay based on availability.
 
 from __future__ import annotations
 
-from typing import Optional
+import os
+from typing import Callable, Optional
 
 __all__ = [
     "speak",
     "_speak_local",
     "_try_speak_with_fallback",
+    "_resolve_preferred_backend",
+    "_degradation_notice",
 ]
+
+# Env var: the operator's preferred default TTS backend. Set it in
+# ``~/.scitex/audio/local.src`` (loaded via SCITEX_AUDIO_ENV_SRC). When unset,
+# the first available entry of FALLBACK_ORDER wins.
+_PREFERRED_ENV = "SCITEX_AUDIO_DEFAULT_BACKEND"
+
+
+def _resolve_preferred_backend(available: list, order: list) -> Optional[str]:
+    """Return the backend the operator EXPECTS to hear.
+
+    Precedence: ``$SCITEX_AUDIO_DEFAULT_BACKEND`` (if available) -> first
+    entry of ``order`` that is available -> None. This is the baseline the
+    loud-fallback logic compares the actually-used backend against.
+    """
+    pref = (os.environ.get(_PREFERRED_ENV) or "").strip()
+    if pref and pref in available:
+        return pref
+    for b in order:
+        if b in available:
+            return b
+    return None
+
+
+def _degradation_notice(preferred: Optional[str], used: str) -> str:
+    """Spoken prefix announcing a fallback to a worse voice (fail-loud).
+
+    Empty string when ``used`` IS the preferred backend (no degradation).
+    Otherwise a short sentence the degraded backend itself speaks, so the
+    operator audibly realises the voice dropped and why — no silent fallback.
+    """
+    if not preferred or used == preferred:
+        return ""
+    return f"Voice degraded: {preferred} unavailable, using {used}. "
 
 
 def _try_speak_with_fallback(
@@ -21,33 +57,53 @@ def _try_speak_with_fallback(
     voice: Optional[str] = None,
     play: bool = True,
     output_path: Optional[str] = None,
+    backends: Optional[list] = None,
+    order: Optional[list] = None,
+    tts_factory: Optional[Callable] = None,
     **kwargs,
 ) -> tuple:
-    """Try to speak with fallback through backends.
+    """Try to speak with fallback through backends — loud on degradation.
 
-    Returns:
-        (result_dict, backend_used, error_log)
-        result_dict has keys: path, played, success, play_requested
+    Tries the operator's preferred backend first, then the remaining
+    ``order``. If the backend that succeeds is NOT the preferred one, a
+    spoken :func:`_degradation_notice` is prepended so the drop is audible
+    (fail-loud, no silent fallback), and the result carries ``degraded=True``
+    + ``preferred_backend``.
+
+    ``backends`` / ``order`` / ``tts_factory`` are injection seams (default to
+    the real ``available_backends`` / ``FALLBACK_ORDER`` / ``get_tts``) so the
+    routing + degradation logic is unit-testable without real engines.
+
+    Returns ``(result_dict, backend_used, error_log)``.
     """
-    from . import FALLBACK_ORDER, available_backends, get_tts
+    if backends is None or order is None or tts_factory is None:
+        from . import FALLBACK_ORDER, available_backends, get_tts
 
-    backends = available_backends()
+        backends = available_backends() if backends is None else backends
+        order = FALLBACK_ORDER if order is None else order
+        tts_factory = get_tts if tts_factory is None else tts_factory
+
+    preferred = _resolve_preferred_backend(backends, order)
+    # Try preferred first, then the rest of the order (availability-filtered).
+    seq = [preferred] if preferred else []
+    seq += [b for b in order if b in backends and b != preferred]
+
     errors = []
-
-    for backend in FALLBACK_ORDER:
+    for backend in seq:
         if backend not in backends:
             continue
-
         try:
-            tts = get_tts(backend, **kwargs)
+            tts = tts_factory(backend, **kwargs)
+            spoken = _degradation_notice(preferred, backend) + text
             result = tts.speak(
-                text=text,
+                text=spoken,
                 voice=voice,
                 play=play,
                 output_path=output_path,
             )
-            # result is now a dict with: path, played, success, play_requested
             result["backend"] = backend
+            result["preferred_backend"] = preferred
+            result["degraded"] = bool(preferred and backend != preferred)
             return (result, backend, errors)
         except Exception as e:
             errors.append(f"{backend}: {str(e)}")

@@ -64,7 +64,7 @@ class ElevenLabsTTS(BaseTTS):
         self,
         api_key: Optional[str] = None,
         voice: str = "adam",
-        model_id: str = "eleven_multilingual_v2",
+        model_id: Optional[str] = None,
         stability: float = 0.5,
         similarity_boost: float = 0.75,
         speed: float = 1.0,
@@ -78,7 +78,16 @@ class ElevenLabsTTS(BaseTTS):
             or os.environ.get("ELEVENLABS_API_KEY")
         )
         self.voice = voice
-        self.model_id = model_id
+        # Default to the low-latency turbo model — the legacy
+        # ``eleven_multilingual_v2`` is high quality but noticeably slower to
+        # speak for short notification blurbs (operator 2026-06-17). Override
+        # via ``SCITEX_AUDIO_ELEVENLABS_MODEL`` (``eleven_flash_v2_5`` =
+        # fastest/cheapest, ``eleven_multilingual_v2`` = highest quality).
+        self.model_id = (
+            model_id
+            or os.environ.get("SCITEX_AUDIO_ELEVENLABS_MODEL")
+            or "eleven_turbo_v2_5"
+        )
         self.stability = stability
         self.similarity_boost = similarity_boost
         # Clamp speed to ElevenLabs API limits (0.7-1.2)
