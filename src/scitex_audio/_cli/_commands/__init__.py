@@ -11,6 +11,7 @@ from ._env import register as register_env
 from ._playback import register as register_playback
 from ._speak import register as register_speak
 from ._stt import register as register_stt
+from ._system_deps import register as register_system_deps
 
 __all__ = [
     "register_backends",
@@ -18,6 +19,7 @@ __all__ = [
     "register_playback",
     "register_speak",
     "register_stt",
+    "register_system_deps",
 ]
 
 # EOF
