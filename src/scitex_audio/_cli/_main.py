@@ -16,6 +16,7 @@ from ._commands import (
     register_playback,
     register_speak,
     register_stt,
+    register_system_deps,
 )
 
 
@@ -102,6 +103,7 @@ register_backends(audio)
 register_playback(audio)
 register_stt(audio)
 register_env(audio)
+register_system_deps(audio)
 
 # Register MCP subgroup from separate module
 from ._mcp_cli import mcp
