@@ -7,6 +7,17 @@ versions follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.3.0]
+
+### Added
+
+- **system-deps**: declare scitex-audio's OS-level apt dependencies
+  (`ffmpeg`, `portaudio19-dev`) via the `scitex_dev.system_deps`
+  entry-point so `scitex-dev ecosystem system-deps` federates them at
+  container-build time instead of hardcoding the apt list. Adds the
+  `scitex-audio dev system-deps list|install` verb-group (install is
+  BUILD-time/root; dry-run by default).
+
 ## [0.2.13]
 
 ### Fixed
