@@ -18,47 +18,114 @@ def _build_group():
 
 
 class TestRegister:
-    def test_register_attaches_dev_group(self):
-        group = _build_group()
+    def test_register_attaches_dev_command_group(self):
+        # Arrange
+        group = click.Group()
+        # Act
+        register(group)
+        # Assert
         assert "dev" in group.commands
 
-    def test_dev_has_system_deps_subgroup(self):
+    def test_dev_exposes_system_deps_subgroup(self):
+        # Arrange
+        group = click.Group()
+        # Act
+        register(group)
+        # Assert
+        assert "system-deps" in group.commands["dev"].commands
+
+    def test_system_deps_group_has_list_verb(self):
+        # Arrange
         group = _build_group()
-        dev = group.commands["dev"]
-        assert "system-deps" in dev.commands
+        # Act
+        verbs = set(group.commands["dev"].commands["system-deps"].commands)
+        # Assert
+        assert "list" in verbs
 
-    def test_system_deps_has_list_and_install(self):
+    def test_system_deps_group_has_install_verb(self):
+        # Arrange
         group = _build_group()
-        system_deps = group.commands["dev"].commands["system-deps"]
-        assert {"list", "install"} <= set(system_deps.commands)
+        # Act
+        verbs = set(group.commands["dev"].commands["system-deps"].commands)
+        # Assert
+        assert "install" in verbs
 
 
-class TestList:
-    def test_list_prints_apt_names_one_per_line(self):
-        result = CliRunner().invoke(_build_group(), ["dev", "system-deps", "list"])
+class TestListVerb:
+    def test_list_outputs_ffmpeg_package_name(self):
+        # Arrange
+        runner = CliRunner()
+        # Act
+        result = runner.invoke(_build_group(), ["dev", "system-deps", "list"])
+        # Assert
+        assert "ffmpeg" in result.output.split()
+
+    def test_list_outputs_portaudio_package_name(self):
+        # Arrange
+        runner = CliRunner()
+        # Act
+        result = runner.invoke(_build_group(), ["dev", "system-deps", "list"])
+        # Assert
+        assert "portaudio19-dev" in result.output.split()
+
+    def test_list_exits_zero_on_success(self):
+        # Arrange
+        runner = CliRunner()
+        # Act
+        result = runner.invoke(_build_group(), ["dev", "system-deps", "list"])
+        # Assert
         assert result.exit_code == 0
-        lines = result.output.split()
-        assert "ffmpeg" in lines
-        assert "portaudio19-dev" in lines
 
-    def test_list_json(self):
-        result = CliRunner().invoke(
+    def test_list_json_emits_both_apt_packages(self):
+        # Arrange
+        runner = CliRunner()
+        # Act
+        result = runner.invoke(
             _build_group(), ["dev", "system-deps", "list", "--json"]
         )
-        assert result.exit_code == 0
-        payload = json.loads(result.output)
-        assert {row["package"] for row in payload} == {"ffmpeg", "portaudio19-dev"}
-        assert all(row["provider"] == "scitex-audio" for row in payload)
+        # Assert
+        assert {row["package"] for row in json.loads(result.output)} == {
+            "ffmpeg",
+            "portaudio19-dev",
+        }
+
+    def test_list_json_tags_provider_as_scitex_audio(self):
+        # Arrange
+        runner = CliRunner()
+        # Act
+        result = runner.invoke(
+            _build_group(), ["dev", "system-deps", "list", "--json"]
+        )
+        # Assert
+        assert all(
+            row["provider"] == "scitex-audio" for row in json.loads(result.output)
+        )
 
 
-class TestInstall:
-    def test_install_defaults_to_dry_run(self):
-        result = CliRunner().invoke(_build_group(), ["dev", "system-deps", "install"])
-        assert result.exit_code == 0
+class TestInstallVerb:
+    def test_install_defaults_to_dry_run_preview(self):
+        # Arrange
+        runner = CliRunner()
+        # Act
+        result = runner.invoke(_build_group(), ["dev", "system-deps", "install"])
+        # Assert
         assert "dry-run" in result.output
+
+    def test_install_dry_run_previews_apt_install(self):
+        # Arrange
+        runner = CliRunner()
+        # Act
+        result = runner.invoke(_build_group(), ["dev", "system-deps", "install"])
+        # Assert
         assert "apt-get install" in result.output
-        assert "ffmpeg" in result.output
-        assert "portaudio19-dev" in result.output
+
+    def test_install_dry_run_includes_declared_packages(self):
+        # Arrange
+        runner = CliRunner()
+        # Act
+        result = runner.invoke(_build_group(), ["dev", "system-deps", "install"])
+        # Assert
+        assert "ffmpeg" in result.output and "portaudio19-dev" in result.output
 
 
 if __name__ == "__main__":

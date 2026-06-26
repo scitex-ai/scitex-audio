@@ -25,6 +25,7 @@ CROSS_PACKAGE_IMPORTS = [
     "scitex_dev",
     "scitex_dev._cli._completion",
     "scitex_dev.cli",
+    "scitex_dev.system_deps",
 ]
 # ===== END AUTO-GENERATED =====
 
