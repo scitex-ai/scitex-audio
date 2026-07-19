@@ -7,6 +7,24 @@ versions follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Changed
+
+- **elevenlabs**: default to the low-latency `eleven_turbo_v2_5` model
+  instead of `eleven_multilingual_v2`, which was noticeably slow for the
+  short notification blurbs this package mostly speaks. Override with
+  `SCITEX_AUDIO_ELEVENLABS_MODEL` (e.g. `eleven_flash_v2_5` for the
+  lowest latency, `eleven_multilingual_v2` for the highest quality).
+
+### Fixed
+
+- **elevenlabs**: the model default lived in two places — `TTSConfig`
+  passed its own `eleven_multilingual_v2` straight through, so a new
+  engine default could never take effect on the `TTS` path. Resolution
+  now happens once in `resolve_model_id()` (explicit > env > default)
+  and `TTSConfig.model_id` defaults to `None`.
+- **repo**: gitignore `.envrc` and `.worktrees/`; both had been swept
+  into rescue autosave commits on `develop`.
+
 ## [0.3.0]
 
 ### Added

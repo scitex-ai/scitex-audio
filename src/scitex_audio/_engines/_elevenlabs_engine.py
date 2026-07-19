@@ -15,7 +15,25 @@ from typing import List, Optional
 
 from ._base import BaseTTS
 
-__all__ = ["ElevenLabsTTS"]
+__all__ = ["DEFAULT_MODEL_ID", "MODEL_ENV_VAR", "ElevenLabsTTS", "resolve_model_id"]
+
+#: Low-latency default. The legacy ``eleven_multilingual_v2`` is higher
+#: quality but noticeably slow for the short notification blurbs this
+#: package mostly speaks (operator 2026-06-17).
+DEFAULT_MODEL_ID = "eleven_turbo_v2_5"
+
+#: Override the default model, e.g. ``eleven_flash_v2_5`` for the lowest
+#: latency or ``eleven_multilingual_v2`` for the highest quality.
+MODEL_ENV_VAR = "SCITEX_AUDIO_ELEVENLABS_MODEL"
+
+
+def resolve_model_id(model_id: Optional[str] = None) -> str:
+    """Resolve the ElevenLabs model id: explicit > environment > default.
+
+    Single resolution point so every ElevenLabs call site (the engine and
+    :class:`~scitex_audio._tts.TTS`) agrees on one default.
+    """
+    return model_id or os.environ.get(MODEL_ENV_VAR) or DEFAULT_MODEL_ID
 
 
 class ElevenLabsTTS(BaseTTS):
@@ -64,7 +82,7 @@ class ElevenLabsTTS(BaseTTS):
         self,
         api_key: Optional[str] = None,
         voice: str = "adam",
-        model_id: str = "eleven_multilingual_v2",
+        model_id: Optional[str] = None,
         stability: float = 0.5,
         similarity_boost: float = 0.75,
         speed: float = 1.0,
@@ -78,7 +96,7 @@ class ElevenLabsTTS(BaseTTS):
             or os.environ.get("ELEVENLABS_API_KEY")
         )
         self.voice = voice
-        self.model_id = model_id
+        self.model_id = resolve_model_id(model_id)
         self.stability = stability
         self.similarity_boost = similarity_boost
         # Clamp speed to ElevenLabs API limits (0.7-1.2)
