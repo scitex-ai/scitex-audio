@@ -64,8 +64,12 @@ class _FakeElevenLabsClient:
 
 @pytest.fixture
 def env_save_restore():
-    """Snapshot the ElevenLabs API-key env vars; restore on teardown."""
-    keys = ("ELEVENLABS_API_KEY", "SCITEX_AUDIO_ELEVENLABS_API_KEY")
+    """Snapshot the ElevenLabs env vars; restore on teardown."""
+    keys = (
+        "ELEVENLABS_API_KEY",
+        "SCITEX_AUDIO_ELEVENLABS_API_KEY",
+        "SCITEX_AUDIO_ELEVENLABS_MODEL",
+    )
     saved = {k: os.environ.get(k) for k in keys}
     try:
         yield
@@ -119,13 +123,29 @@ class TestElevenLabsTTSDefaults:
         # Assert
         assert voice == "adam"
 
-    def test_default_model_id(self):
+    def test_default_model_id_is_low_latency_turbo(self, env_save_restore):
         # Arrange
-        tts = ElevenLabsTTS()
+        os.environ.pop("SCITEX_AUDIO_ELEVENLABS_MODEL", None)
         # Act
-        model_id = tts.model_id
+        tts = ElevenLabsTTS()
         # Assert
-        assert model_id == "eleven_multilingual_v2"
+        assert tts.model_id == "eleven_turbo_v2_5"
+
+    def test_model_id_read_from_env_when_unset(self, env_save_restore):
+        # Arrange
+        os.environ["SCITEX_AUDIO_ELEVENLABS_MODEL"] = "eleven_flash_v2_5"
+        # Act
+        tts = ElevenLabsTTS()
+        # Assert
+        assert tts.model_id == "eleven_flash_v2_5"
+
+    def test_explicit_model_id_takes_precedence_over_env(self, env_save_restore):
+        # Arrange
+        os.environ["SCITEX_AUDIO_ELEVENLABS_MODEL"] = "eleven_flash_v2_5"
+        # Act
+        tts = ElevenLabsTTS(model_id="eleven_multilingual_v2")
+        # Assert
+        assert tts.model_id == "eleven_multilingual_v2"
 
     def test_default_stability_is_half(self):
         # Arrange

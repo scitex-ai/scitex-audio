@@ -103,12 +103,12 @@ class TestTTSConfig:
         # Assert
         assert config.voice_name is None
 
-    def test_default_model_id(self):
+    def test_default_model_id_is_unset_for_late_resolution(self):
         # Arrange
         # Act
         config = TTSConfig()
         # Assert
-        assert config.model_id == "eleven_multilingual_v2"
+        assert config.model_id is None
 
     def test_default_stability_is_half(self):
         # Arrange

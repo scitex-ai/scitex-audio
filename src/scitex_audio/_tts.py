@@ -23,6 +23,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
 
+from ._engines._elevenlabs_engine import resolve_model_id
+
 __all__ = ["TTS", "speak"]
 
 
@@ -32,7 +34,10 @@ class TTSConfig:
 
     voice_id: str = "pNInz6obpgDQGcFmaJgB"  # Adam (default; free-tier compatible)
     voice_name: Optional[str] = None
-    model_id: str = "eleven_multilingual_v2"
+    # ``None`` means "resolve at call time" — see
+    # ``_engines._elevenlabs_engine.resolve_model_id`` (explicit > env >
+    # default). Kept unset here so there is ONE default, not two.
+    model_id: Optional[str] = None
     stability: float = 0.5
     similarity_boost: float = 0.75
     style: float = 0.0
@@ -177,7 +182,7 @@ class TTS:
         audio = self.client.text_to_speech.convert(
             text=text,
             voice_id=vid,
-            model_id=self.config.model_id,
+            model_id=resolve_model_id(self.config.model_id),
             voice_settings={
                 "stability": self.config.stability,
                 "similarity_boost": self.config.similarity_boost,
