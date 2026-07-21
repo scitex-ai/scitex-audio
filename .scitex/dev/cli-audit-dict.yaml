@@ -1,0 +1,7 @@
+# Project-local CLI-audit token dictionary (scitex-dev audit-cli §1d).
+# Tokens here override the bundled catalog + Moby POS classification.
+intransitive_verbs:
+  # `relay` is a verb in this CLI (`scitex-audio relay` relays playback to a
+  # remote host:port). Moby classifies it as both noun and verb, so the §1
+  # noun-leaf check flags it without this hint.
+  - relay
