@@ -84,6 +84,10 @@ all = [
     "scitex-audio[luxtts]",
     "scitex-audio[mcp]",
     "scitex-audio[pyttsx3]",
+    # PS-221 closure: every public extra is a subset of `all`, so
+    # `pip install scitex-audio[all]` pulls everything public.
+    "scitex-audio[dev]",
+    "scitex-audio[docs]",
 ]
 
 [project.scripts]
