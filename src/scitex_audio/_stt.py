@@ -28,10 +28,28 @@ import tempfile
 from pathlib import Path
 from typing import Optional
 
-__all__ = ["transcribe", "find_whisper_cli", "find_whisper_model"]
+__all__ = [
+    "BACKEND_ENV_VAR",
+    "find_whisper_cli",
+    "find_whisper_model",
+    "resolve_backend",
+    "transcribe",
+]
 
 # Default model — tiny is fast enough for interactive use
 DEFAULT_MODEL = "tiny"
+
+#: Pin the STT backend: "whisper.cpp", "faster-whisper", or "auto".
+BACKEND_ENV_VAR = "SCITEX_AUDIO_STT_BACKEND"
+
+#: Backend that has always served this module; still the default when both
+#: are installed, so an existing working setup does not change under anyone.
+BACKEND_WHISPER_CPP = "whisper.cpp"
+
+#: Optional CTranslate2 backend — see :mod:`scitex_audio._stt_faster_whisper`.
+BACKEND_FASTER_WHISPER = "faster-whisper"
+
+BACKENDS = (BACKEND_WHISPER_CPP, BACKEND_FASTER_WHISPER)
 
 # Model search directories
 _MODEL_DIRS = [
@@ -172,7 +190,99 @@ def _parse_whisper_output(stdout: str) -> list[dict]:
     return segments
 
 
+def _whisper_cpp_usable(
+    whisper_cli: Optional[str] = None, model: str = DEFAULT_MODEL
+) -> bool:
+    """True if both the whisper.cpp binary and a model file are present."""
+    return bool(
+        (whisper_cli or find_whisper_cli()) and find_whisper_model(model)
+    )
+
+
+def resolve_backend(
+    backend: Optional[str] = None,
+    whisper_cli: Optional[str] = None,
+    model: str = DEFAULT_MODEL,
+) -> str:
+    """Choose the STT backend: explicit > environment > auto-detect.
+
+    Auto-detect prefers whisper.cpp *when it is actually set up* -- its
+    binary and a model file both resolve -- because that means someone
+    deliberately installed it, and silently switching engines under a
+    working setup would change transcripts for no reason they asked for.
+    Otherwise it falls back to faster-whisper.
+
+    Returns a name from :data:`BACKENDS`; an unknown explicit value is
+    returned unchanged so the caller can report it rather than guessing.
+    """
+    explicit = backend or os.environ.get(BACKEND_ENV_VAR)
+    if explicit and explicit != "auto":
+        return explicit
+    if _whisper_cpp_usable(whisper_cli, model):
+        return BACKEND_WHISPER_CPP
+    from . import _stt_faster_whisper
+
+    if _stt_faster_whisper.available():
+        return BACKEND_FASTER_WHISPER
+    # Neither is usable; name whisper.cpp so the existing, more detailed
+    # "not found" errors below explain how to install it.
+    return BACKEND_WHISPER_CPP
+
+
 def transcribe(
+    audio_path: str,
+    language: Optional[str] = "ja",
+    model: Optional[str] = None,
+    whisper_cli: Optional[str] = None,
+    model_path: Optional[str] = None,
+    backend: Optional[str] = None,
+) -> dict:
+    """Transcribe an audio file to text.
+
+    Dispatches to whisper.cpp (default when installed) or faster-whisper.
+    Both backends return the same dict shape.
+
+    Args:
+        audio_path: Path to audio file (any format ffmpeg supports).
+        language: Language code (e.g., "ja", "en"). None for auto-detect.
+        model: Model name. Defaults per backend ("tiny" for whisper.cpp,
+            "large-v3" for faster-whisper) since their model names differ.
+        whisper_cli: Override path to whisper-cli binary (whisper.cpp only).
+        model_path: Override path to model file (whisper.cpp only).
+        backend: "whisper.cpp", "faster-whisper", or "auto" (default).
+
+    Returns
+    -------
+        Dict with keys: success, text, segments, language, model, audio_path.
+    """
+    chosen = resolve_backend(backend, whisper_cli, model or DEFAULT_MODEL)
+
+    if chosen == BACKEND_FASTER_WHISPER:
+        from . import _stt_faster_whisper
+
+        return _stt_faster_whisper.transcribe(
+            audio_path, language=language, model=model
+        )
+
+    if chosen != BACKEND_WHISPER_CPP:
+        return {
+            "success": False,
+            "error": (
+                f"Unknown STT backend {chosen!r}. "
+                f"Choose one of: {', '.join(BACKENDS)}, or 'auto'."
+            ),
+        }
+
+    return _transcribe_whisper_cpp(
+        audio_path,
+        language=language,
+        model=model or DEFAULT_MODEL,
+        whisper_cli=whisper_cli,
+        model_path=model_path,
+    )
+
+
+def _transcribe_whisper_cpp(
     audio_path: str,
     language: Optional[str] = "ja",
     model: str = DEFAULT_MODEL,

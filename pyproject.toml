@@ -45,6 +45,9 @@ dependencies = [
 elevenlabs = [
     "elevenlabs",
 ]
+faster-whisper = [
+    "faster-whisper",
+]
 gtts = [
     "gTTS",
 ]
@@ -62,6 +65,7 @@ pyttsx3 = [
 ]
 dev = [
     "elevenlabs",
+    "faster-whisper",
     "fastmcp>=2.0",
     "huggingface-hub",
     "pytest-asyncio",
@@ -79,7 +83,13 @@ docs = [
     "sphinx-autodoc-typehints>=1.25",
 ]
 all = [
+    # Closure-by-inclusion (PS-221): every public extra must be a subset of
+    # `all`, so `pip install scitex-audio[all]` really does pull everything
+    # public. Reference the extras rather than duplicating their pins.
+    "scitex-audio[dev]",
+    "scitex-audio[docs]",
     "scitex-audio[elevenlabs]",
+    "scitex-audio[faster-whisper]",
     "scitex-audio[gtts]",
     "scitex-audio[luxtts]",
     "scitex-audio[mcp]",
