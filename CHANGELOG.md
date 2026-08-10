@@ -7,6 +7,25 @@ versions follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- **stt**: optional `faster-whisper` (CTranslate2) backend alongside the
+  existing whisper.cpp CLI backend, plus a backend-selection layer in
+  `_stt.py` (`transcribe(..., backend=...)` /
+  `SCITEX_AUDIO_STT_BACKEND`). Install with
+  `pip install 'scitex-audio[faster-whisper]'`.
+
+  `auto` keeps whisper.cpp when its binary **and** a model both resolve —
+  an existing working setup does not change engines underfoot — and
+  otherwise uses faster-whisper.
+
+  Measured on a GTX 1070 (sm_61) with `large-v3` + `int8`: CUDA
+  transcribe 1.46 s vs CPU 21.60 s (~15x). Device detection asks
+  CTranslate2, never `torch`: on Pascal `torch.cuda.is_available()`
+  returns True while the wheel ships no sm_61 kernel, so a torch-based
+  check would promise a GPU that cannot run. Unlike the whisper.cpp path,
+  this backend decodes via PyAV and needs no `ffmpeg` binary.
+
 ## [0.3.0]
 
 ### Added

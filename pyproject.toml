@@ -45,6 +45,9 @@ dependencies = [
 elevenlabs = [
     "elevenlabs",
 ]
+faster-whisper = [
+    "faster-whisper",
+]
 gtts = [
     "gTTS",
 ]
@@ -80,6 +83,7 @@ docs = [
 ]
 all = [
     "scitex-audio[elevenlabs]",
+    "scitex-audio[faster-whisper]",
     "scitex-audio[gtts]",
     "scitex-audio[luxtts]",
     "scitex-audio[mcp]",
