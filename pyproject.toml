@@ -78,6 +78,11 @@ dev = [
     "elevenlabs",
     "fastmcp>=2.0",
     "huggingface-hub",
+    # numpy + soundfile back the voice/ io + vad tests (PS-210 [dev]
+    # completeness: every dep a test imports must let `pip install -e .[dev]`
+    # run the full suite).
+    "numpy",
+    "soundfile",
     "pytest-asyncio",
     "pytest-cov>=4.0",
     "pytest>=7.0",
