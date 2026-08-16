@@ -60,10 +60,29 @@ mcp = [
 pyttsx3 = [
     "pyttsx3",
 ]
+# SciTeX Voice V1 speaker-verified dictation (inbound ASR path).
+# soundfile for mono-16k io; torch for the Silero VAD backend and the
+# scitex-ml ECAPA embedder. torch pinned <=2.7 because 2.8+ dropped
+# prebuilt Pascal (sm_61) wheels and compute-03/04 are GTX 1070; use a
+# cu12x wheel there (CUDA 13 dropped offline Pascal support). numpy is the
+# only hard requirement of the pure io/vad paths. Card:
+# scitex-voice-speaker-verified-dictation-v1-20260816.
+voice = [
+    "numpy",
+    "soundfile",
+    "torch<=2.7",
+    "torchaudio<=2.7",
+    "scitex-ml[voice]",
+]
 dev = [
     "elevenlabs",
     "fastmcp>=2.0",
     "huggingface-hub",
+    # numpy + soundfile back the voice/ io + vad tests (PS-210 [dev]
+    # completeness: every dep a test imports must let `pip install -e .[dev]`
+    # run the full suite).
+    "numpy",
+    "soundfile",
     "pytest-asyncio",
     "pytest-cov>=4.0",
     "pytest>=7.0",
@@ -84,6 +103,7 @@ all = [
     "scitex-audio[luxtts]",
     "scitex-audio[mcp]",
     "scitex-audio[pyttsx3]",
+    "scitex-audio[voice]",
     # PS-221 closure: every public extra is a subset of `all`, so
     # `pip install scitex-audio[all]` pulls everything public.
     "scitex-audio[dev]",
