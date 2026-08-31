@@ -5,16 +5,30 @@ Hand edits inside the AUTO-GENERATED block will be overwritten on
 regeneration; add hand-written cases below the second sentinel.
 
 This test imports every cross-package module that 'scitex-audio' references
-in its source tree. Two outcomes:
+in its source tree. Three outcomes:
 
-- Module installed AND import succeeds → test PASSES.
-- Module installed BUT import fails (e.g. internal rename like
-  `scitex_io._load_cache` → `scitex_io._loading._load_cache`) →
+- Module installed AND import succeeds -> test PASSES.
+- Peer ROOT installed BUT the submodule import fails (e.g. internal rename
+  like `scitex_io._load_cache` -> `scitex_io._loading._load_cache`) ->
   test FAILS loudly.
-- Module NOT installed (peer standalone absent in the CI env) →
-  test is SKIPPED via `pytest.importorskip`. The umbrella's CI
-  (which installs every peer) catches cross-package renames.
+- Peer ROOT NOT installed (peer standalone absent in the CI env) ->
+  test is SKIPPED. The umbrella's CI (which installs every peer)
+  catches cross-package renames.
+
+The skip and the import are deliberately split across two different
+names. `pytest.importorskip` is called on the ROOT package only, so it
+answers exactly one question: is the peer installed at all? The FULL
+dotted path is then hard-imported with `importlib.import_module`, so a
+renamed or deleted submodule raises and FAILS the test.
+
+Calling `pytest.importorskip` on the FULL path collapses the two cases:
+a renamed submodule also raises ModuleNotFoundError, so the gate skips
+and reports green on the one failure it exists to catch. Do NOT drop the
+skip either -- a blanket hard import breaks a lean install where the peer
+is legitimately absent (optional extra, or a marker-gated dependency).
 """
+
+import importlib
 
 import pytest
 
@@ -34,7 +48,9 @@ CROSS_PACKAGE_IMPORTS = [
 def test_cross_package_import_module_loads_without_error(module_name):
     """Importing scitex-audio's declared cross-package dependency must succeed."""
     # Arrange
+    root_name = module_name.split(".")[0]
     # Act
-    mod = pytest.importorskip(module_name)
+    pytest.importorskip(root_name)  # peer genuinely absent -> skip
+    mod = importlib.import_module(module_name)  # renamed submodule -> FAIL
     # Assert
     assert mod is not None
