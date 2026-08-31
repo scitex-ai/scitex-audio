@@ -12,7 +12,10 @@ on:
 jobs:
   test:
     name: pytest-matrix-on-ubuntu-py${{ matrix.python-version }}
-    runs-on: ubuntu-latest
+    # Honour the repo/org variable CI_RUNS_ON so CI can be pointed at our
+    # own runners without editing this file. Unset -> ubuntu-latest, i.e.
+    # this change is completely inert wherever the variable is not set.
+    runs-on: ${{ fromJSON(vars.CI_RUNS_ON || '["ubuntu-latest"]') }}
     strategy:
       fail-fast: false
       matrix:
