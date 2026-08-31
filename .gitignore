@@ -105,7 +105,6 @@ data/*
 **/*.pptx
 **/*.txt
 **/*.db
-**/*.sqlite
 **/*.xml
 **/*.JNB
 **/*.jnb
@@ -223,7 +222,6 @@ flycheck_*.el
 
 ### Source: SQL ###
 **/*.db
-**/*.sqlite3
 *.db-shm
 *.db-wal
 
