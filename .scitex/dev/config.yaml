@@ -2,3 +2,115 @@ audit:
   root-whitelist:
     files:
       - codecov.yml
+
+  # PS-231 (workflow-duplication) — five leaf workflows re-implement an
+  # org-provided reusable one. Two of these entries are HARD BLOCKERS with a
+  # measured, rule-acknowledged cause; three are DEFERRALS and say so in their
+  # own words. The distinction is written down deliberately: an exemption that
+  # claims "genuinely unique to the leaf" when nobody measured uniqueness makes
+  # this file a record of what was expensive to check rather than what is true,
+  # and then no row in it can be trusted — including the two that are.
+  #
+  # THE MEASUREMENT THAT RULES OUT A BLANKET CONVERSION, taken 2026-08-31:
+  #
+  #   gh api repos/SciTeX-AI/scitex-audio/branches/develop/protection
+  #     required contexts: pytest-matrix-on-ubuntu-py3.11
+  #                        pytest-matrix-on-ubuntu-py3.12
+  #                        pytest-matrix-on-ubuntu-py3.13
+  #   gh api repos/SciTeX-AI/scitex-audio/branches/main/protection
+  #     required contexts: pytest-matrix / pytest-matrix-on-ubuntu-py3.11
+  #                        pytest-matrix / pytest-matrix-on-ubuntu-py3.12
+  #                        pytest-matrix / pytest-matrix-on-ubuntu-py3.13
+  #
+  # develop requires the BARE job names, main requires the CALLER form. The two
+  # protected branches therefore require contexts that NO SINGLE FILE SHAPE can
+  # publish at once, which is exactly the per-branch enumeration PS-231's own
+  # text demands and exactly the state in which a workflow-only conversion PR
+  # deadlocks every open PR on a check nothing can publish.
+  exemptions:
+    PS-231:
+      # ---------------------------------------------------------------- 1/5
+      # HARD BLOCKER — required status contexts (PS-231 "BLOCKER 1").
+      - path: .github/workflows/pytest-matrix-on-ubuntu-py3-11-3-12-3-13.yml
+        line: 0
+        reason: >-
+          Converting this file to an org caller renames its published check
+          contexts from `pytest-matrix-on-ubuntu-py3.<v>` to
+          `<caller-job> / pytest-matrix-on-ubuntu-py3.<v>`, and the separator is
+          structural. Measured 2026-08-31 against the live protection API,
+          develop REQUIRES the three bare names and main REQUIRES the three
+          caller-form names — so the conversion cannot satisfy both protected
+          branches, and on develop it would leave every open PR waiting forever
+          on three checks nothing can publish again. This is a protection edit
+          that must land WITH a conversion, not a workflow-only change. Revisit
+          only as a paired protection + workflow change on both branches.
+
+      # ---------------------------------------------------------------- 2/5
+      # HARD BLOCKER — the leaf also PUBLISHES (PS-231 "BLOCKER 2").
+      - path: .github/workflows/rtd-sphinx-build-on-ubuntu-latest.yml
+        line: 0
+        reason: >-
+          This leaf workflow does two things the org reusable does not, and both
+          were read out of the two files on 2026-08-31 rather than assumed.
+          (1) It VENDORS its build output back into the package tree — the
+          "Refresh src/scitex_audio/_sphinx_html/" and "Commit refreshed HTML"
+          steps rewrite and commit `src/scitex_audio/_sphinx_html` on a develop
+          push. hatch packages `src/scitex_audio` wholesale, so that bundle
+          ships INSIDE THE WHEEL; the org reusable
+          (scitex-ai/.github .github/workflows/rtd-sphinx-build.yml) is
+          BUILD-ONLY — it builds into `$CONFDIR/_build/html` and commits
+          nothing. A bare `uses:` would keep building, stop publishing, and hand
+          users frozen documentation under a green check. (2) It runs
+          `sphinx-build -W` on pull_request only, so a docs warning fails a PR;
+          the org body has no `-W` and that gate would be silently lost. Revisit
+          when the org reusable grows a publish/vendor mode and a `-W` PR gate.
+
+      # ---------------------------------------------------------------- 3/5
+      # DEFERRAL, not a uniqueness claim. A conversion is already open.
+      - path: .github/workflows/cla.yml
+        line: 0
+        reason: >-
+          NOT a claim that this leaf's version is unique — it is not. main
+          already calls the org reusable, and PR #45 makes develop do the same
+          (SHA-pinned ref, explicit `secrets:` mapping rather than `inherit`).
+          This entry is an explicit stopgap so develop's audit gate can go green
+          ahead of that conversion instead of holding five open PRs hostage to
+          it, and it has a named terminator: DELETE THIS ENTRY when #45 lands.
+          Converting here instead would duplicate another open PR's diff and
+          conflict with it.
+
+      # ---------------------------------------------------------------- 4/5
+      # DEFERRAL, not a uniqueness claim.
+      - path: .github/workflows/auto-merge-to-develop.yaml
+        line: 0
+        reason: >-
+          NOT a claim of uniqueness. Measured 2026-08-31, the leaf copy is 49
+          lines against the org reusable's 280, and the difference runs AGAINST
+          the leaf: the org body carries the post-merge `workflow_dispatch` fix
+          for GitHub suppressing checks on github.token merges, plus `dry_run`
+          and `post_merge_gates` inputs, none of which this copy has. So the
+          right end state is a conversion. It is deferred rather than done here
+          because this file is the fleet's auto-merge RAIL: swapping it changes
+          what merges into develop unattended, which must not ride on the PR
+          whose only job is to make the audit gate green. Note also that
+          `check_suite` workflows are read from the DEFAULT branch and main
+          carries no copy of this file, so nothing is lost by waiting. Revisit
+          as its own PR with a dry-run verification.
+
+      # ---------------------------------------------------------------- 5/5
+      # DEFERRAL, not a uniqueness claim.
+      - path: .github/workflows/import-smoke-on-ubuntu-py3-12.yml
+        line: 0
+        reason: >-
+          NOT a claim of uniqueness. The org reusable is a superset of this file
+          (uv, a console-script assertion, a fork guard) and the job name it
+          publishes is the same, so a conversion is the right end state and is
+          not blocked by branch protection — `import-smoke-on-ubuntu-py3-12` is
+          required on neither develop nor main. It is deferred because the org
+          body's FIRST step refuses any pull_request whose head repo differs
+          from the base repo, unconditionally and regardless of runner. This
+          repo is public, ships a CLA and a CLA-assistant workflow, and runs
+          this job on GitHub-hosted `ubuntu-latest` where fork code is not a
+          self-hosted exposure — so adopting that guard would turn every
+          outside contributor's PR red for a hazard this job does not have.
+          That trade needs its own PR and an operator decision, not a drive-by.
