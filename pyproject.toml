@@ -35,7 +35,9 @@ classifiers = [
 dependencies = [
     "mcp",
     "click>=8.0",
+    "numpy",
     "pydub",
+    "scitex-logging",
     "soundfile",
     "scitex_dev",
     "scitex-dev>=0.11.7",
@@ -120,6 +122,8 @@ asyncio_mode = "auto"
 addopts = "--cov=scitex_audio --cov-report=term-missing --cov-report=html:tests/coverage"
 markers = [
     "network: end-to-end test that reaches a real network service (e.g. gTTS)",
+    "smoke: fast (<60s) subprocess-driven CLI happy-path tests, run on every PR",
+    "e2e: slow end-to-end workflows against real subsystems (loopback only, no network); gated by RUN_E2E=1",
 ]
 
 [tool.coverage.run]

@@ -18,6 +18,8 @@ import pytest
 
 
 def test_audit_all_clean():
+    # PS-206b: import-smoke-allowed — the audit itself is the assertion
+    # (audit_all_for_package raises on any error-severity violation).
     # Arrange
     if shutil.which("scitex-dev") is None:
         pytest.skip(

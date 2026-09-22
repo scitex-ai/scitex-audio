@@ -10,13 +10,14 @@ from a centralized shell profile without requiring manual env var setup.
 
 from __future__ import annotations
 
-import logging
 import os
 import re
 from pathlib import Path
 from typing import Dict, List
 
-logger = logging.getLogger(__name__)
+import scitex_logging as slogging
+
+logger = slogging.getLogger(__name__)
 
 _ENV_VAR = "SCITEX_AUDIO_ENV_SRC"
 

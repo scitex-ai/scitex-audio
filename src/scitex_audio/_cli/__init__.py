@@ -68,7 +68,6 @@ except Exception:
     pass
 
 # audit-cli §1a — packages with _skills/ MUST expose
-# `<cli> skills {list,get,install}`.
-from ._skills import skills_group as _skills_group
-
-main.add_command(_skills_group, name="skills")
+# `<cli> skills {list,get,install}`. Federated via scitex-dev's shared
+# `skills_click_group` primitive (registered in `._main`; PS-217).
+# No hand-rolled `skills` group here by design.

@@ -23,9 +23,13 @@
   <a href="https://pypi.org/project/scitex-audio/"><img src="https://img.shields.io/pypi/v/scitex-audio?label=pypi" alt="pypi"></a>
   <a href="https://pypi.org/project/scitex-audio/"><img src="https://img.shields.io/pypi/pyversions/scitex-audio?label=python" alt="python"></a>
   <a href="https://github.com/ywatanabe1989/scitex-audio/actions/workflows/rtd-sphinx-build-on-ubuntu-latest.yml"><img src="https://img.shields.io/github/actions/workflow/status/ywatanabe1989/scitex-audio/rtd-sphinx-build-on-ubuntu-latest.yml?branch=develop&label=docs" alt="docs"></a>
+  <a href="https://scitex-audio.readthedocs.io/en/latest/"><img src="https://img.shields.io/readthedocs/scitex-audio" alt="docs"></a>
+</p>
+<p align="center">
   <a href="https://github.com/ywatanabe1989/scitex-audio/actions/workflows/pytest-matrix-on-ubuntu-py3-11-3-12-3-13.yml"><img src="https://img.shields.io/github/actions/workflow/status/ywatanabe1989/scitex-audio/pytest-matrix-on-ubuntu-py3-11-3-12-3-13.yml?branch=develop&label=tests" alt="tests"></a>
+  <a href="https://github.com/ywatanabe1989/scitex-audio/actions/workflows/import-smoke-on-ubuntu-py3-12.yml"><img src="https://img.shields.io/github/actions/workflow/status/ywatanabe1989/scitex-audio/import-smoke-on-ubuntu-py3-12.yml?branch=develop&label=install-check" alt="install-check"></a>
+  <a href="https://github.com/ywatanabe1989/scitex-audio/actions/workflows/scitex-audio-quality-audit-on-ubuntu-latest.yml"><img src="https://img.shields.io/github/actions/workflow/status/ywatanabe1989/scitex-audio/scitex-audio-quality-audit-on-ubuntu-latest.yml?branch=develop&label=quality" alt="quality"></a>
   <a href="https://codecov.io/gh/ywatanabe1989/scitex-audio"><img src="https://img.shields.io/codecov/c/github/ywatanabe1989/scitex-audio/develop?label=cov" alt="cov"></a>
-  <a href="https://www.gnu.org/licenses/agpl-3.0"><img src="https://img.shields.io/badge/license-AGPL_v3-blue.svg" alt="License: AGPL v3"></a>
 </p>
 <!-- scitex-badges:end -->
 
@@ -36,8 +40,8 @@
 | # | Problem | Solution |
 |---|---------|----------|
 | 1 | **TTS libraries balkanized** -- ElevenLabs REST + gTTS HTTP + pyttsx3 native each have different APIs, failure modes, voice formats | **`stx.audio.speak(text)`** -- one call; automatic fallback ElevenLabs → LuxTTS → gTTS → pyttsx3 when upstream fails or API key is missing |
-| 2 | **Offline TTS sounds robotic** -- espeak is a pi-era stopgap | **LuxTTS** -- offline 48 kHz voice-cloning on CPU; near-realtime after first-load warmup |
-| 3 | **Scripts can't alert users from a headless session** -- `print` gets lost in logs | **MCP tool `audio_speak`** -- agents and long-running scripts report status audibly to the operator, with desktop notification fallback |
+| 2 | **Offline TTS** sounds robotic -- espeak is a pi-era stopgap | **LuxTTS** -- offline 48 kHz voice-cloning on CPU; near-realtime after first-load warmup |
+| 3 | **Headless sessions** can't alert users -- `print` gets lost in logs | **MCP tool `audio_speak`** -- agents and long-running scripts report status audibly to the operator, with desktop notification fallback |
 
 ## TTS Backends
 
@@ -49,55 +53,6 @@
 | **System TTS** | Basic | Free | No | Yes | 150 wpm |
 
 <p align="center"><sub><b>Table 1.</b> Supported TTS backends. The fallback order (elevenlabs → luxtts → gtts → pyttsx3) ensures the best available quality is always used.</sub></p>
-
-## Installation
-
-Requires Python >= 3.10.
-
-```bash
-pip install scitex-audio
-```
-
-Install with specific backends:
-
-```bash
-pip install scitex-audio[gtts]         # Google TTS
-pip install scitex-audio[pyttsx3]      # System TTS (+ apt install espeak-ng)
-pip install scitex-audio[elevenlabs]   # ElevenLabs
-pip install scitex-audio[luxtts]       # LuxTTS (voice cloning, offline)
-pip install scitex-audio[all]          # Everything
-```
-
-## Architecture
-
-```
-src/scitex_audio/
-├── _engines/            # backend implementations (gtts, pyttsx3, elevenlabs, luxtts)
-├── _cli/                # `scitex-audio` Click CLI
-├── _mcp/                # MCP server entry
-├── _speak.py            # high-level speak() facade
-├── _tts.py              # text-to-speech dispatch
-├── _stt.py              # speech-to-text dispatch
-├── _state_paths.py      # on-disk state layout (~/.scitex/audio/runtime/)
-├── _relay.py            # cross-process audio relay
-├── _cross_process_lock.py # serialize concurrent playback
-├── _env_loader.py       # env-var driven backend selection
-├── _audio_check.py      # local audio sink diagnostics
-└── mcp_server.py        # MCP tool registrations
-```
-
-## Demo
-
-```mermaid
-flowchart LR
-    User[speak text] --> Speak[scitex_audio.speak]
-    Speak --> Sel{backend?}
-    Sel -->|gtts| GTTS[gTTS engine]
-    Sel -->|pyttsx3| Local[pyttsx3 / espeak-ng]
-    Sel -->|elevenlabs| EL[ElevenLabs API]
-    Sel -->|luxtts| Lux[LuxTTS offline clone]
-    GTTS & Local & EL & Lux --> Relay[cross-process relay] --> Audio[(speaker / .mp3)]
-```
 
 ## Quick Start
 
@@ -116,6 +71,58 @@ speak("Bonjour", backend="gtts", voice="fr")
 # Save without playing
 speak("Save this", output_path="output.mp3", play=False)
 ```
+
+## Demo
+
+```mermaid
+flowchart LR
+    User[speak text] --> Speak[scitex_audio.speak]
+    Speak --> Sel{backend?}
+    Sel -->|gtts| GTTS[gTTS engine]
+    Sel -->|pyttsx3| Local[pyttsx3 / espeak-ng]
+    Sel -->|elevenlabs| EL[ElevenLabs API]
+    Sel -->|luxtts| Lux[LuxTTS offline clone]
+    GTTS & Local & EL & Lux --> Relay[cross-process relay] --> Audio[(speaker / .mp3)]
+```
+
+<p align="center"><sub><b>Figure 1.</b> Backend fallback flow: one <code>speak()</code> call fans out across engines into the cross-process relay.</sub></p>
+
+## Installation
+
+```bash
+uv pip install "scitex-audio[all]"
+```
+
+Requires Python >= 3.10.
+
+<details>
+<summary>Per-backend extras</summary>
+
+```bash
+uv pip install "scitex-audio[gtts]"         # Google TTS
+uv pip install "scitex-audio[pyttsx3]"      # System TTS (+ apt install espeak-ng)
+uv pip install "scitex-audio[elevenlabs]"   # ElevenLabs
+uv pip install "scitex-audio[luxtts]"       # LuxTTS (voice cloning, offline)
+```
+
+</details>
+
+## Architecture
+
+```mermaid
+flowchart TB
+    CLI[`scitex-audio` Click CLI] --> Facade[speak() facade]
+    API[Python API] --> Facade
+    MCP[MCP server + relay] --> Facade
+    Facade --> Engines{backend?}
+    Engines -->|elevenlabs| EL[ElevenLabs API]
+    Engines -->|luxtts| Lux[LuxTTS offline clone]
+    Engines -->|gtts| GTTS[gTTS engine]
+    Engines -->|pyttsx3| Local[pyttsx3 / espeak-ng]
+    EL & Lux & GTTS & Local --> Relay[cross-process relay + lock] --> Audio[(speaker / .mp3)]
+```
+
+<p align="center"><sub><b>Figure 2.</b> Layered architecture: interfaces converge on the speak() facade, dispatch across four engines, and serialize playback through the relay.</sub></p>
 
 ## Four Interfaces
 

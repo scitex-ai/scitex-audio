@@ -73,11 +73,12 @@ def register(group):
           scitex-audio speak "Slow speech" --backend gtts --speed 0.8
           scitex-audio speak "Hello" --json
         """
-        import logging
         import warnings
 
+        import scitex_logging as slogging
+
         warnings.filterwarnings("ignore", category=DeprecationWarning)
-        logging.getLogger("httpx").setLevel(logging.WARNING)
+        slogging.getLogger("httpx").setLevel(slogging.WARNING)
 
         kwargs = build_speak_kwargs(
             text, backend, voice, output, no_play, rate, speed, no_fallback

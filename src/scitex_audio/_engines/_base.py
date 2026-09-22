@@ -14,7 +14,11 @@ from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import List, Optional
 
+import scitex_logging as slogging
+
 __all__ = ["BaseTTS", "TTSBackend"]
+
+log = slogging.getLogger(__name__)
 
 
 class TTSBackend:
@@ -244,7 +248,7 @@ class BaseTTS(ABC):
             except (subprocess.CalledProcessError, FileNotFoundError):
                 continue
 
-        print(f"Warning: No audio player found. Audio saved to: {path}")
+        log.warning(f"No audio player found. Audio saved to: {path}")
         return False
 
     def _play_audio_windows(self, path: Path) -> bool:

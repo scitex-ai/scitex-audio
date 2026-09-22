@@ -6,6 +6,10 @@ import signal
 import subprocess
 import time
 
+import scitex_logging as slogging
+
+log = slogging.getLogger(__name__)
+
 
 def kill_process_on_port(port: int, verbose: bool = True) -> None:
     """Kill process using the specified port.
@@ -29,7 +33,7 @@ def kill_process_on_port(port: int, verbose: bool = True) -> None:
                 try:
                     pid_int = int(pid)
                     if verbose:
-                        print(f"Killing process {pid_int} on port {port}...")
+                        log.info(f"Killing process {pid_int} on port {port}...")
                     os.kill(pid_int, signal.SIGTERM)
                     # Wait a bit for graceful shutdown
                     time.sleep(0.5)
@@ -40,7 +44,7 @@ def kill_process_on_port(port: int, verbose: bool = True) -> None:
                         pass  # Already dead
                 except (ValueError, ProcessLookupError) as e:
                     if verbose:
-                        print(f"Warning: Could not kill process {pid}: {e}")
+                        log.warning(f"Could not kill process {pid}: {e}")
     except FileNotFoundError:
         # lsof not available, try fuser
         try:
@@ -51,11 +55,11 @@ def kill_process_on_port(port: int, verbose: bool = True) -> None:
                 check=False,
             )
             if result.returncode == 0 and verbose:
-                print(f"Killed process on port {port}")
+                log.info(f"Killed process on port {port}")
         except FileNotFoundError:
             if verbose:
-                print(
-                    "Warning: Neither lsof nor fuser found. Cannot kill process on port."
+                log.warning(
+                    "Neither lsof nor fuser found. Cannot kill process on port."
                 )
 
 

@@ -12,7 +12,11 @@ from __future__ import annotations
 
 import click
 
+import scitex_logging as slogging
+
 from scitex_audio import _system_deps
+
+log = slogging.getLogger(__name__)
 
 
 def _declared():
@@ -20,24 +24,24 @@ def _declared():
 
 
 def _render(deps) -> None:
-    """Human-readable table of this package's declarations."""
-    from rich.console import Console
-    from rich.table import Table
-
+    """Human-readable listing of this package's declarations (stderr tier)."""
     if not deps:
-        Console().print("[yellow]scitex-audio declares no system deps.[/yellow]")
+        log.info("scitex-audio declares no system deps.")
         return
-    table = Table(show_header=True, header_style="bold")
-    table.add_column("package")
-    table.add_column("provider")
-    table.add_column("purpose")
-    table.add_column("apt_repo")
-    for dep in deps:
-        table.add_row(
-            dep.package, _system_deps.PROVIDER, dep.purpose, dep.apt_repo or "-"
+    header = ("package", "provider", "purpose", "apt_repo")
+    rows = [
+        (dep.package, _system_deps.PROVIDER, dep.purpose, dep.apt_repo or "-")
+        for dep in deps
+    ]
+    widths = [
+        max(len(str(cell)) for cell in column)
+        for column in zip(*([header] + rows))
+    ]
+    for row in [header] + rows:
+        log.info(
+            "  ".join(str(cell).ljust(width) for cell, width in zip(row, widths))
         )
-    Console().print(table)
-    Console().print(f"[bold]{len(deps)}[/bold] system package(s) for scitex-audio.")
+    log.info(f"{len(deps)} system package(s) for scitex-audio.")
 
 
 def _emit_json(deps) -> None:

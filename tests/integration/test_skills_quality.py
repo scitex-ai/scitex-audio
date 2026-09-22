@@ -8,4 +8,4 @@ from scitex_dev._skills_quality_pytest import make_skill_quality_tests
 
 test_skills_quality = make_skill_quality_tests(
     package_root=Path(__file__).resolve().parents[2]
-)
+)  # PS-206b: import-smoke-allowed
