@@ -7,6 +7,15 @@ versions follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.3.1] - 2026-10-08
+
+Vendored shell completion as drop-in module (contract v1, PR #50):
+stdlib+click only, in-process script generation, atomic+idempotent
+drop-in write, never touches rc files. Pin `mcp>=1.0,<2`
+(`_mcp/tool_schemas.py` builds the v1 `inputSchema` field; mcp 2.x
+renamed the schema surface). Clear pre-existing PS-233/PS-220/PS-140
+audit errors.
+
 ## [0.3.0]
 
 ### Added
