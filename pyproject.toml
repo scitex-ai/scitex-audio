@@ -33,7 +33,10 @@ classifiers = [
     "Topic :: Scientific/Engineering",
 ]
 dependencies = [
-    "mcp",
+    # Pinned below 2.x: _mcp/tool_schemas.py builds mcp.types.Tool with the
+    # v1 inputSchema field; mcp 2.x renamed the schema surface (owner call
+    # 2026-10-08, minimal reversible scope — migrate or lift pin deliberately).
+    "mcp>=1.0,<2",
     "click>=8.0",
     "numpy",
     "pydub",
