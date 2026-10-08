@@ -124,13 +124,12 @@ try:
 except ImportError:
     pass
 
-# §1a: install-shell-completion + print-shell-completion (canonical leaves)
-try:
-    from scitex_dev._cli._completion import attach_shell_completion
+# §1a: install-shell-completion + print-shell-completion (canonical leaves).
+# Vendored drop-in module (``._completion``): stdlib + click only, so shell
+# completion keeps working whether or not scitex-dev is installed.
+from ._completion import attach_shell_completion
 
-    attach_shell_completion(audio, prog_name="scitex-audio")
-except ImportError:
-    pass
+attach_shell_completion(audio, prog_name="scitex-audio")
 
 
 if __name__ == "__main__":

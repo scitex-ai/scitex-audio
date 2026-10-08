@@ -26,6 +26,10 @@ from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
+import scitex_logging as slogging
+
+log = slogging.getLogger(__name__)
+
 # Load environment variables from SCITEX_AUDIO_ENV_SRC early
 from ._env_loader import load_scitex_audio_env
 
@@ -391,15 +395,13 @@ def run_server(
 
         from ._branding import BRAND_NAME
 
-        print("=" * 60)
-        print(f"MCP Server '{BRAND_NAME}' requires the 'fastmcp' package.")
-        print()
-        print("Install with:")
-        print("  pip install fastmcp")
-        print()
-        print("Or install scitex with MCP support:")
-        print("  pip install scitex[mcp]")
-        print("=" * 60)
+        log.error("=" * 60)
+        log.error(f"MCP Server '{BRAND_NAME}' requires the 'fastmcp' package.")
+        log.error("Install with:")
+        log.error("  pip install fastmcp")
+        log.error("Or install scitex with MCP support:")
+        log.error("  pip install scitex[mcp]")
+        log.error("=" * 60)
         sys.exit(1)
 
     from ._branding import BRAND_NAME
@@ -407,11 +409,11 @@ def run_server(
     if transport == "stdio":
         mcp.run(transport="stdio")
     elif transport == "sse":
-        print(f"Starting {BRAND_NAME} MCP server (SSE) on {host}:{port}")
+        log.info(f"Starting {BRAND_NAME} MCP server (SSE) on {host}:{port}")
         mcp.run(transport="sse", host=host, port=port)
     elif transport == "http":
-        print(f"Starting {BRAND_NAME} MCP server (HTTP) on {host}:{port}")
-        print(f"Connect via: http://{host}:{port}/mcp")
+        log.info(f"Starting {BRAND_NAME} MCP server (HTTP) on {host}:{port}")
+        log.info(f"Connect via: http://{host}:{port}/mcp")
         mcp.run(transport="streamable-http", host=host, port=port)
     else:
         raise ValueError(f"Unknown transport: {transport}")
@@ -532,13 +534,13 @@ def run_relay_server(
             """Suppress default logging."""
             pass
 
-    print(f"Starting {BRAND_NAME} relay server on {host}:{port}")
-    print("Endpoints: POST /speak, GET /health, GET /list_backends")
+    log.info(f"Starting {BRAND_NAME} relay server on {host}:{port}")
+    log.info("Endpoints: POST /speak, GET /health, GET /list_backends")
     server = HTTPServer((host, port), RelayHandler)
     try:
         server.serve_forever()
     except KeyboardInterrupt:
-        print("\nShutting down relay server")
+        log.info("Shutting down relay server")
         server.shutdown()
 
 
