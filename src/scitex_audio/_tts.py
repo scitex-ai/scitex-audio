@@ -23,7 +23,11 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
 
+import scitex_logging as slogging
+
 __all__ = ["TTS", "speak"]
+
+log = slogging.getLogger(__name__)
 
 
 @dataclass
@@ -250,7 +254,7 @@ class TTS:
             except (subprocess.CalledProcessError, FileNotFoundError):
                 continue
 
-        print(f"Warning: No audio player found. Audio saved to: {path}")
+        log.warning(f"No audio player found. Audio saved to: {path}")
 
     def _play_audio_windows(self, path: Path) -> bool:
         """Play audio via Windows PowerShell SoundPlayer (WSL fallback).

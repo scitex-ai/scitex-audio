@@ -21,11 +21,14 @@ def _declared():
 
 def _render(deps) -> None:
     """Human-readable table of this package's declarations."""
+    import scitex_logging as slogging
     from rich.console import Console
     from rich.table import Table
 
+    console = slogging.getConsole(__name__)
+
     if not deps:
-        Console().print("[yellow]scitex-audio declares no system deps.[/yellow]")
+        console.warning("scitex-audio declares no system deps.")
         return
     table = Table(show_header=True, header_style="bold")
     table.add_column("package")
@@ -36,8 +39,13 @@ def _render(deps) -> None:
         table.add_row(
             dep.package, _system_deps.PROVIDER, dep.purpose, dep.apt_repo or "-"
         )
-    Console().print(table)
-    Console().print(f"[bold]{len(deps)}[/bold] system package(s) for scitex-audio.")
+    # Render via Rich's renderer (never Console.print — PS-220) and emit
+    # as levelled stdout records.
+    render_console = Console()
+    lines = render_console.render_lines(table, render_console.options, pad=False)
+    text = "\n".join("".join(segment.text for segment in line) for line in lines)
+    console.info(text.rstrip("\n"))
+    console.info(f"{len(deps)} system package(s) for scitex-audio.")
 
 
 def _emit_json(deps) -> None:

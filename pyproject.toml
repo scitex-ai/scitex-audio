@@ -35,7 +35,10 @@ classifiers = [
 dependencies = [
     "mcp",
     "click>=8.0",
+    "numpy",
     "pydub",
+    "rich",
+    "scitex-logging",
     "soundfile",
     "scitex_dev",
     "scitex-dev>=0.11.7",
@@ -109,6 +112,12 @@ Documentation = "https://scitex-audio.readthedocs.io"
 
 [tool.hatch.metadata]
 allow-direct-references = true
+
+[tool.scitex_dev]
+# ELEVENLABS_API_KEY is the vendor's own variable (the ElevenLabs SDK reads
+# it; existing operator deployments export it). Code prefers
+# SCITEX_AUDIO_ELEVENLABS_API_KEY and only falls back to the vendor name.
+env_allowlist = ["ELEVENLABS_API_KEY"]
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/scitex_audio"]
