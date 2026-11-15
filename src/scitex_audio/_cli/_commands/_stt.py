@@ -19,13 +19,17 @@ def register(group):
     )
     def transcribe(audio_path, language, model, as_json):
         """
-        Transcribe audio file to text using whisper.cpp
+        Transcribe a local file using whisper.cpp.
+
+        Requires whisper-cli and a GGML model; non-WAV conversion needs ffmpeg.
+        SCITEX_AUDIO_WHISPER_CLI and SCITEX_AUDIO_WHISPER_MODEL are file paths.
+        Setup: scitex-audio skills get 01_installation
 
         \b
         Examples:
-          scitex-audio transcribe recording.wav
-          scitex-audio transcribe recording.wav -l en -m base
-          scitex-audio transcribe recording.wav --json
+          scitex-audio transcribe-audio recording.wav
+          scitex-audio transcribe-audio recording.wav -l en -m base
+          scitex-audio transcribe-audio recording.wav --json
         """
         try:
             from scitex_audio import transcribe as stt_transcribe
@@ -40,6 +44,8 @@ def register(group):
                 import json as json_mod
 
                 click.echo(json_mod.dumps(result, ensure_ascii=False, indent=2))
+                if not result.get("success"):
+                    sys.exit(1)
             elif result.get("success"):
                 click.echo(result["text"])
             else:

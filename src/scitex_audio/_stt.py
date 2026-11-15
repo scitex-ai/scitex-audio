@@ -7,10 +7,10 @@ Speech-to-Text transcription using whisper.cpp.
 
 Pipeline: audio file -> ffmpeg convert to WAV -> whisper-cli transcribe
 
-Backends (discovery order):
-    1. whisper-cli in PATH
-    2. ~/.emacs.d/.cache/whisper.cpp/build/bin/whisper-cli
-    3. Custom path via SCITEX_AUDIO_WHISPER_CLI env var
+Binary discovery order:
+    1. Custom file path via SCITEX_AUDIO_WHISPER_CLI
+    2. whisper-cli in PATH
+    3. ~/.emacs.d/.cache/whisper.cpp/build/bin/whisper-cli
 
 Models (discovery order):
     1. SCITEX_AUDIO_WHISPER_MODEL env var
@@ -57,12 +57,13 @@ def find_whisper_cli() -> Optional[str]:
 
     Returns
     -------
-        Path to whisper-cli, or None if not found.
+        Executable path to whisper-cli, or None if not found. A configured
+        override must be an executable file; it does not silently fall back.
     """
     # 1. Environment variable override
     env_path = os.environ.get("SCITEX_AUDIO_WHISPER_CLI")
-    if env_path and Path(env_path).is_file():
-        return env_path
+    if env_path:
+        return env_path if Path(env_path).is_file() and os.access(env_path, os.X_OK) else None
 
     # 2. PATH lookup
     which = shutil.which("whisper-cli")
@@ -71,7 +72,7 @@ def find_whisper_cli() -> Optional[str]:
 
     # 3. Known locations
     for p in _CLI_PATHS:
-        if p.is_file():
+        if p.is_file() and os.access(p, os.X_OK):
             return str(p)
 
     return None
@@ -85,12 +86,13 @@ def find_whisper_model(model: str = DEFAULT_MODEL) -> Optional[str]:
 
     Returns
     -------
-        Path to model file, or None if not found.
+        Path to model file, or None if not found. An explicit missing-file
+        override does not silently select a different cached model.
     """
     # 1. Environment variable override
     env_path = os.environ.get("SCITEX_AUDIO_WHISPER_MODEL")
-    if env_path and Path(env_path).is_file():
-        return env_path
+    if env_path:
+        return env_path if Path(env_path).is_file() else None
 
     # 2. Search known directories
     filename = f"ggml-{model}.bin"
@@ -200,8 +202,9 @@ def transcribe(
         return {
             "success": False,
             "error": (
-                "whisper-cli not found. Install whisper.cpp or set "
-                "SCITEX_AUDIO_WHISPER_CLI environment variable."
+                "whisper-cli not found. Install whisper.cpp separately and set "
+                "SCITEX_AUDIO_WHISPER_CLI to its executable file path. "
+                "Setup: scitex-audio skills get 01_installation"
             ),
         }
 
@@ -211,9 +214,9 @@ def transcribe(
         return {
             "success": False,
             "error": (
-                f"Whisper model '{model}' not found. Download with: "
-                f"cd ~/.emacs.d/.cache/whisper.cpp/models && "
-                f"bash download-ggml-model.sh {model}"
+                f"Whisper model '{model}' not found. Download a matching GGML "
+                "model and set SCITEX_AUDIO_WHISPER_MODEL to its .bin file path. "
+                "Setup: scitex-audio skills get 01_installation"
             ),
         }
 

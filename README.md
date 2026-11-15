@@ -171,9 +171,14 @@ scitex-audio mcp list-tools               # List MCP tools
 Transcribe audio files using whisper.cpp. The binary and models are auto-detected
 from common locations (`~/.emacs.d/.cache/whisper.cpp/`, `$PATH`, or
 `SCITEX_AUDIO_WHISPER_CLI` / `SCITEX_AUDIO_WHISPER_MODEL`).
+Both overrides are file paths; the model variable names a GGML `.bin` file,
+not a model size. See the bundled setup guide with
+`scitex-audio skills get 01_installation`. Python extras do not install
+whisper.cpp or model weights. Use `--language auto` for explicit detection;
+failed transcription exits nonzero even with `--json`.
 
 ```bash
-scitex-audio transcribe-audio recording.wav             # auto-detect language
+scitex-audio transcribe-audio recording.wav             # Japanese by default
 scitex-audio transcribe-audio call.wav -l en -m base    # specify language + model
 scitex-audio transcribe-audio meeting.mp3 --json        # machine-readable output
 ```

@@ -31,8 +31,8 @@ tags: [scitex-audio-env-vars]
 | `SCITEX_AUDIO_ELEVENLABS_API_KEY` | ElevenLabs TTS API key. | `—` | string (optional) |
 | `SCITEX_AUDIO_LUXTTS_REFERENCE` | Reference audio path for LuxTTS voice cloning. | unset | path |
 | `SCITEX_AUDIO_LUXTTS_TRIM_START` | Seconds to trim from clone reference start. | `0.0` | float |
-| `SCITEX_AUDIO_WHISPER_CLI` | Path to a `whisper` CLI binary (STT). | auto | path |
-| `SCITEX_AUDIO_WHISPER_MODEL` | Whisper model size (`tiny`/`base`/`small`/...). | `tiny` | string |
+| `SCITEX_AUDIO_WHISPER_CLI` | Path to the `whisper-cli` executable file (STT). | auto | path |
+| `SCITEX_AUDIO_WHISPER_MODEL` | Path to a GGML model `.bin` file; overrides model-name lookup. | auto-discovered | path |
 
 ## Cross-package (ecosystem-wide)
 
