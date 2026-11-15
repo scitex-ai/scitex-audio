@@ -71,6 +71,17 @@ ENV_REGISTRY: List[EnvVar] = [
         "backend",
         sensitive=True,
     ),
+    # Speech-to-text: both values are filesystem paths, not model names.
+    EnvVar(
+        "SCITEX_AUDIO_WHISPER_CLI",
+        "Path to the whisper-cli executable file",
+        "stt",
+    ),
+    EnvVar(
+        "SCITEX_AUDIO_WHISPER_MODEL",
+        "Path to a GGML model .bin file (overrides model-name lookup)",
+        "stt",
+    ),
     # Storage
     EnvVar(
         "SCITEX_DIR",

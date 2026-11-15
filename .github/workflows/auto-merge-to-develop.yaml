@@ -42,7 +42,7 @@ jobs:
                 | (.conclusion // .state // "")
                 | select(. != "SUCCESS" and . != "NEUTRAL" and . != "SKIPPED" and . != "") ] | length' 2>/dev/null || echo 1)
             if [ "$pending" = "0" ]; then
-              gh pr merge "$pr" --repo "$REPO" --merge --admin --delete-branch && echo "MERGED #$pr -> develop" || echo "blocked #$pr"
+              gh pr merge "$pr" --repo "$REPO" --merge --delete-branch && echo "MERGED #$pr -> develop" || echo "blocked #$pr"
             else
               echo "PR #$pr not green ($pending) — skip"
             fi
