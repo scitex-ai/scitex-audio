@@ -185,7 +185,7 @@ def transcribe(
 
     Args:
         audio_path: Path to audio file (any format ffmpeg supports).
-        language: Language code (e.g., "ja", "en"). None for auto-detect.
+        language: Language code (e.g., "ja", "en"). None or "auto" for auto-detect.
         model: Whisper model name (tiny, base, small, medium, large-v3-turbo).
         whisper_cli: Override path to whisper-cli binary.
         model_path: Override path to model file.
@@ -237,8 +237,9 @@ def transcribe(
     try:
         # Build whisper-cli command
         cmd = [cli, "-m", mdl, "-f", wav_path]
-        if language:
-            cmd.extend(["-l", language])
+        # Omitting -l selects native English, so None must request auto explicitly.
+        if language or language is None:
+            cmd.extend(["-l", language or "auto"])
 
         result = subprocess.run(
             cmd,
